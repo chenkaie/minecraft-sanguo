@@ -1,0 +1,4517 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>三國方塊無雙 · 觸控版 · Sanguo Musou BlockWorld (Touch)</title>
+<style>
+  /* ===== 全域樣式 ===== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #87CEEB; }
+  canvas { display: block; }
+
+  /* ===== 開始畫面 ===== */
+  #overlay {
+    position: fixed; inset: 0; z-index: 20;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    background: rgba(20, 12, 8, 0.82);
+    color: #f5e6c8; font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+    text-align: center; cursor: pointer; user-select: none;
+    overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 24px 12px 48px;
+  }
+  /* 內容較短時垂直置中；較長時可由上往下捲動 */
+  #overlay > h1:first-child { margin-top: auto; }
+  #overlay > #lbOpen { margin-bottom: auto; }
+  #overlay h1 {
+    font-size: 50px; letter-spacing: 8px; margin-bottom: 14px;
+    color: #e8c170; text-shadow: 0 0 18px rgba(232,193,112,0.6);
+  }
+  #overlay h1 .ver {
+    font-size: 18px; letter-spacing: 1px; vertical-align: super;
+    color: #9fd0ff; text-shadow: none; opacity: 0.9;
+  }
+  /* 遊玩中右下角的版本浮水印 */
+  #verBadge {
+    position: fixed; right: 10px; bottom: 8px; z-index: 12;
+    font-family: "Microsoft JhengHei", sans-serif; font-size: 12px;
+    color: rgba(255,255,255,0.45); pointer-events: none; user-select: none;
+  }
+  #overlay p { font-size: 17px; line-height: 1.9; opacity: 0.9; }
+  #overlay .hint { margin-top: 24px; font-size: 16px; color: #c9a05a; }
+  #overlay.hidden { display: none; }
+
+  /* ===== HUD ===== */
+  #hud {
+    position: fixed; left: 16px; bottom: 14px; z-index: 10;
+    color: rgba(255,255,255,0.85); font-family: monospace; font-size: 13px;
+    line-height: 1.6; text-shadow: 0 1px 3px rgba(0,0,0,0.7); pointer-events: none;
+  }
+
+  /* ===== 準心（僅建造模式顯示）===== */
+  #crosshair {
+    position: fixed; top: 50%; left: 50%; width: 22px; height: 22px;
+    transform: translate(-50%, -50%); z-index: 12; pointer-events: none;
+    display: none;
+  }
+  #crosshair.show { display: block; }
+  #crosshair::before, #crosshair::after {
+    content: ""; position: absolute; background: rgba(255,255,255,0.9);
+    box-shadow: 0 0 3px rgba(0,0,0,0.9);
+  }
+  #crosshair::before { left: 50%; top: 0; width: 2px; height: 100%; transform: translateX(-50%); }
+  #crosshair::after  { top: 50%; left: 0; height: 2px; width: 100%; transform: translateY(-50%); }
+  #crosshair.aim::before, #crosshair.aim::after { background: #ffd76b; } /* 瞄到方塊變金色 */
+
+  /* ===== 模式 + 方塊選擇列（畫面上方中央）===== */
+  #buildHud {
+    position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 11;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    font-family: "Microsoft JhengHei", sans-serif; pointer-events: none;
+  }
+  #modeTag {
+    padding: 5px 18px; border-radius: 20px; font-size: 15px; font-weight: bold;
+    letter-spacing: 3px; color: #fff; text-shadow: 0 2px 3px rgba(0,0,0,0.7);
+    border: 2px solid rgba(255,255,255,0.5); background: rgba(0,0,0,0.35);
+  }
+  #modeTag.combat { border-color: #ff6b5a; background: rgba(120,20,20,0.5); }
+  #modeTag.build  { border-color: #5ad1ff; background: rgba(20,70,120,0.5); }
+  #blockBar { display: none; gap: 8px; }
+  #blockBar.show { display: flex; }
+  .blockSlot {
+    width: 46px; height: 46px; border-radius: 8px; border: 3px solid rgba(255,255,255,0.4);
+    background: rgba(0,0,0,0.35); display: flex; flex-direction: column;
+    align-items: center; justify-content: center; color: #fff; font-size: 11px;
+    text-shadow: 0 1px 2px #000;
+  }
+  .blockSlot .sw { width: 22px; height: 22px; border-radius: 4px; margin-bottom: 2px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.3); }
+  .blockSlot.sel { border-color: #ffd76b; box-shadow: 0 0 12px rgba(255,215,107,0.8); transform: scale(1.12); }
+
+  /* ===== 擊殺數 + 無雙能量條 ===== */
+  #stats {
+    position: fixed; top: 14px; left: 16px; z-index: 10;
+    font-family: "Microsoft JhengHei", monospace; color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8); pointer-events: none;
+  }
+  #killCount { font-size: 30px; font-weight: bold; color: #ffd76b; }
+  #killCount span { font-size: 15px; color: #fff; font-weight: normal; }
+
+  /* 無雙能量條 */
+  #musouWrap {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+    width: 360px; z-index: 10; pointer-events: none; text-align: center;
+  }
+  #musouLabel {
+    font-family: "Microsoft JhengHei", sans-serif; font-size: 14px;
+    color: #ffe08a; letter-spacing: 4px; margin-bottom: 5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  }
+  #musouBarBg {
+    width: 100%; height: 16px; background: rgba(0,0,0,0.45);
+    border: 2px solid rgba(255,224,138,0.7); border-radius: 9px; overflow: hidden;
+  }
+  #musouBar {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #ff7b00, #ffd76b, #ff3c3c);
+    transition: width 0.1s linear;
+  }
+  #musouBar.full { animation: pulse 0.6s infinite alternate; }
+  @keyframes pulse { from { filter: brightness(1); } to { filter: brightness(1.6); } }
+
+  /* ===== 放大絕全螢幕閃光 ===== */
+  #flash {
+    position: fixed; inset: 0; z-index: 15; pointer-events: none;
+    background: radial-gradient(circle, rgba(255,220,120,0.9), rgba(255,120,0,0.3));
+    opacity: 0; transition: opacity 0.15s;
+  }
+  /* ===== 過關轉場黑幕 ===== */
+  #fade {
+    position: fixed; inset: 0; z-index: 24; pointer-events: none;
+    background: #0a0806; opacity: 0; transition: opacity 0.5s;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Microsoft JhengHei", serif; color: #ffd76b;
+    font-size: 40px; font-weight: 900; letter-spacing: 8px;
+    text-shadow: 0 0 20px rgba(255,140,0,0.8);
+  }
+  #fade.show { opacity: 1; }
+
+  /* ===== 暫停畫面 ===== */
+  #pauseOverlay {
+    position: fixed; inset: 0; z-index: 23; display: none;
+    align-items: center; justify-content: center;
+    background: rgba(10,8,6,0.72); cursor: pointer;
+  }
+  #pauseOverlay.show { display: flex; }
+  #pauseOverlay .pauseBox {
+    text-align: center; color: #f5e6c8; font-family: "Microsoft JhengHei", serif;
+    padding: 40px 60px; border: 2px solid rgba(232,193,112,0.5); border-radius: 16px;
+    background: rgba(20,14,8,0.6); box-shadow: 0 0 40px rgba(0,0,0,0.6);
+  }
+  #pauseOverlay h2 { font-size: 44px; color: #ffd76b; letter-spacing: 8px; margin-bottom: 16px; text-shadow: 0 0 18px rgba(255,140,0,0.6); }
+  #pauseOverlay p { font-size: 20px; margin: 6px 0; }
+  #pauseOverlay .psub { font-size: 14px; color: #c9a05a; }
+  /* ===== 受傷紅屏 ===== */
+  #hurt {
+    position: fixed; inset: 0; z-index: 14; pointer-events: none;
+    box-shadow: inset 0 0 120px rgba(200,0,0,0.9);
+    opacity: 0; transition: opacity 0.25s;
+  }
+
+  /* ===== 無雙發動時的全螢幕金色暈染 + 速度線 ===== */
+  body.musou-active::before {
+    content: ""; position: fixed; inset: 0; z-index: 13; pointer-events: none;
+    box-shadow: inset 0 0 200px 60px rgba(255,170,40,0.55);
+    animation: musouGlow 0.5s ease-out infinite alternate;
+  }
+  body.musou-active::after {
+    content: ""; position: fixed; inset: 0; z-index: 13; pointer-events: none;
+    background:
+      repeating-conic-gradient(from 0deg at 50% 50%,
+        rgba(255,220,120,0.0) 0deg,
+        rgba(255,220,120,0.18) 3deg,
+        rgba(255,220,120,0.0) 6deg);
+    mix-blend-mode: screen; opacity: 0.5;
+    animation: musouSpin 0.8s linear infinite;
+  }
+  @keyframes musouGlow { from { opacity: 0.6; } to { opacity: 1; } }
+  @keyframes musouSpin { from { transform: rotate(0deg) scale(1.4); } to { transform: rotate(360deg) scale(1.4); } }
+
+  /* 武士刀無雙：藍白暈染（覆蓋金色）*/
+  body.musou-active.katana-musou::before {
+    box-shadow: inset 0 0 200px 60px rgba(120,200,255,0.55);
+  }
+  body.musou-active.katana-musou::after {
+    background:
+      repeating-conic-gradient(from 0deg at 50% 50%,
+        rgba(180,235,255,0.0) 0deg,
+        rgba(180,235,255,0.2) 3deg,
+        rgba(180,235,255,0.0) 6deg);
+  }
+
+  /* ===== 連段計數（畫面右側大字）===== */
+  #combo {
+    position: fixed; right: 30px; top: 42%; z-index: 12;
+    font-family: "Microsoft JhengHei", sans-serif; text-align: right;
+    pointer-events: none; opacity: 0; transition: opacity 0.2s;
+  }
+  #combo .num {
+    font-size: 64px; font-weight: 900; color: #ffd76b; line-height: 1;
+    text-shadow: 0 0 16px rgba(255,120,0,0.9), 0 3px 6px rgba(0,0,0,0.8);
+  }
+  #combo .lbl { font-size: 20px; color: #fff; letter-spacing: 4px; text-shadow: 0 2px 4px #000; }
+  #combo.show { opacity: 1; }
+  #combo.bump .num { animation: comboBump 0.18s ease-out; }
+  @keyframes comboBump { 0% { transform: scale(1.5); } 100% { transform: scale(1); } }
+
+  /* ===== 飄字層（傷害數字 / KILL）===== */
+  #floaters { position: fixed; inset: 0; z-index: 11; pointer-events: none; overflow: hidden; }
+  .floater {
+    position: absolute; font-family: "Microsoft JhengHei", sans-serif;
+    font-weight: 900; white-space: nowrap; will-change: transform, opacity;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.85);
+  }
+  @keyframes floatUp {
+    0%   { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
+    15%  { transform: translate(-50%, -10px) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -70px) scale(1); opacity: 0; }
+  }
+
+  /* ===== 玩家血條（左上，擊殺數下方）===== */
+  #playerHp { margin-top: 8px; width: 240px; }
+  #playerHpLabel {
+    font-family: "Microsoft JhengHei", sans-serif; font-size: 13px;
+    color: #fff; letter-spacing: 2px; margin-bottom: 3px; text-shadow: 0 2px 4px #000;
+  }
+  #hpBarBg {
+    width: 100%; height: 18px; background: rgba(0,0,0,0.5);
+    border: 2px solid rgba(255,255,255,0.6); border-radius: 4px; overflow: hidden;
+  }
+  #hpBar {
+    height: 100%; width: 100%;
+    background: linear-gradient(90deg, #c0392b, #e74c3c, #ff6b5a);
+    transition: width 0.2s ease-out;
+  }
+
+  /* ===== 波次資訊（右上）===== */
+  #waveInfo {
+    position: fixed; top: 14px; right: 20px; z-index: 10; text-align: right;
+    font-family: "Microsoft JhengHei", sans-serif; color: #fff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8); pointer-events: none;
+  }
+  #waveNum { font-size: 26px; font-weight: bold; color: #ffd76b; }
+  #waveTarget { font-size: 15px; margin-top: 2px; }
+  #waveTarget b { color: #ff8a5a; font-size: 18px; }
+
+  /* ===== 波次橫幅（畫面中央大字）===== */
+  #banner {
+    position: fixed; top: 32%; left: 50%; transform: translateX(-50%);
+    z-index: 13; text-align: center; pointer-events: none;
+    font-family: "Microsoft JhengHei", sans-serif; opacity: 0;
+  }
+  #banner .big {
+    font-size: 64px; font-weight: 900; color: #ffd76b; letter-spacing: 6px;
+    text-shadow: 0 0 24px rgba(255,140,0,0.9), 0 4px 8px rgba(0,0,0,0.9);
+  }
+  #banner .sub { font-size: 22px; color: #fff; letter-spacing: 4px; text-shadow: 0 2px 6px #000; margin-top: 6px; }
+  #banner.show { animation: bannerIn 2.2s ease-out forwards; }
+  @keyframes bannerIn {
+    0%   { opacity: 0; transform: translateX(-50%) scale(1.4); }
+    15%  { opacity: 1; transform: translateX(-50%) scale(1); }
+    80%  { opacity: 1; transform: translateX(-50%) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) scale(0.95); }
+  }
+
+  /* ===== 結算畫面（過關 / 陣亡）===== */
+  #result {
+    position: fixed; inset: 0; z-index: 25; display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    background: rgba(15, 8, 5, 0.88); cursor: pointer;
+    font-family: "Microsoft JhengHei", sans-serif; color: #f5e6c8; text-align: center;
+  }
+  #result.show { display: flex; }
+  #result h1 { font-size: 56px; letter-spacing: 10px; margin-bottom: 16px; }
+  #result h1.win  { color: #ffd76b; text-shadow: 0 0 24px rgba(255,200,80,0.7); }
+  #result h1.lose { color: #e74c3c; text-shadow: 0 0 24px rgba(200,40,40,0.7); }
+  #result p { font-size: 20px; line-height: 2; }
+  #result .stat { color: #ffd76b; font-weight: bold; font-size: 26px; }
+  #result .hint { margin-top: 28px; font-size: 16px; color: #c9a05a; }
+
+  /* ========== 排行榜 ========== */
+  #lbOpen {
+    margin-top: 16px; padding: 10px 22px; font-size: 17px; cursor: pointer;
+    background: rgba(20,14,8,0.7); color: #ffd76b; border: 2px solid rgba(232,193,112,0.5);
+    border-radius: 10px; font-family: inherit; font-weight: 700; transition: all 0.12s;
+  }
+  #lbOpen:hover { border-color: #ffd76b; box-shadow: 0 0 16px rgba(255,160,0,0.4); transform: translateY(-2px); }
+  #leaderboard {
+    position: fixed; inset: 0; z-index: 30; display: none;
+    align-items: center; justify-content: center;
+    background: rgba(10,6,4,0.85); font-family: "Microsoft JhengHei", sans-serif;
+  }
+  #leaderboard.show { display: flex; }
+  #leaderboard .lbBox {
+    width: min(560px, 92vw); max-height: 86vh; overflow-y: auto;
+    background: rgba(24,16,10,0.96); border: 2px solid rgba(232,193,112,0.5);
+    border-radius: 16px; padding: 24px 26px; color: #f5e6c8;
+    box-shadow: 0 0 50px rgba(0,0,0,0.7);
+  }
+  #leaderboard h2 { text-align: center; color: #ffd76b; font-size: 30px; letter-spacing: 4px; margin-bottom: 16px; text-shadow: 0 0 18px rgba(255,160,0,0.5); }
+  .lbRow {
+    display: grid; grid-template-columns: 40px 1fr 60px 56px 50px 50px 70px;
+    gap: 4px; align-items: center; padding: 7px 6px; font-size: 15px;
+    border-bottom: 1px solid rgba(232,193,112,0.12);
+  }
+  .lbRow span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lbHead { color: #c9a05a; font-size: 13px; font-weight: 700; border-bottom: 2px solid rgba(232,193,112,0.4); }
+  .lbScore { color: #ffd76b; font-weight: 700; text-align: right; }
+  .lbHot { background: rgba(255,170,40,0.18); border-radius: 6px; box-shadow: 0 0 12px rgba(255,160,0,0.3); }
+  .lbEmpty { text-align: center; color: #c9a05a; padding: 30px 0; }
+  .lbBtns { display: flex; gap: 12px; justify-content: center; margin-top: 18px; }
+  .lbBtns button {
+    padding: 9px 20px; font-size: 15px; cursor: pointer; border-radius: 9px;
+    font-family: inherit; font-weight: 700; border: 2px solid rgba(232,193,112,0.45);
+    background: rgba(40,26,14,0.8); color: #f5e6c8; transition: all 0.12s;
+  }
+  .lbBtns button:hover { border-color: #ffd76b; }
+  #lbReset { color: #e89a9a; border-color: rgba(200,80,80,0.5); }
+  .lbNote { text-align: center; font-size: 12px; color: #9a7a4a; margin-top: 14px; line-height: 1.6; }
+
+  /* ========== 觸控操作介面（僅觸控裝置顯示）========== */
+  #touchUI { display: none; }                    /* 預設隱藏，偵測到觸控才開 */
+  body.touch { touch-action: none; -webkit-touch-callout: none; overscroll-behavior: none; }
+  body.touch.playing #touchUI { display: block; }   /* 只在開打後顯示觸控按鈕 */
+  body.touch #hud { display: none; }             /* 觸控版隱藏鍵盤提示 */
+  /* 遊戲開始前（選角畫面）隱藏遊戲 HUD，避免蓋在選單上 */
+  body:not(.playing) #killCount,
+  body:not(.playing) #waveInfo,
+  body:not(.playing) #musouWrap,
+  body:not(.playing) #crosshair,
+  body:not(.playing) #modeTag { display: none !important; }
+
+  /* 左下虛擬搖桿 */
+  #joy {
+    position: fixed; left: 26px; bottom: 26px; z-index: 30;
+    width: 130px; height: 130px; border-radius: 50%;
+    background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.35);
+    touch-action: none; user-select: none;
+  }
+  #joyKnob {
+    position: absolute; left: 50%; top: 50%; width: 56px; height: 56px;
+    margin: -28px 0 0 -28px; border-radius: 50%;
+    background: rgba(255,255,255,0.5); border: 2px solid rgba(255,255,255,0.8);
+    pointer-events: none;
+  }
+
+  /* 右側動作鈕（共用樣式）*/
+  .btn {
+    position: fixed; z-index: 30; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "Microsoft JhengHei", sans-serif; font-weight: bold;
+    color: #fff; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    border: 3px solid rgba(255,255,255,0.6); touch-action: none; user-select: none;
+    -webkit-user-select: none;
+  }
+  .btn:active { filter: brightness(1.4); transform: scale(0.94); }
+  /* 主攻擊（大鈕，右下）*/
+  #btnAttack {
+    right: 30px; bottom: 40px; width: 96px; height: 96px; font-size: 17px;
+    background: rgba(180,40,40,0.55); border-color: #ff8a6a;
+  }
+  /* 無雙（右下左上方）*/
+  #btnMusou {
+    right: 140px; bottom: 70px; width: 78px; height: 78px; font-size: 15px;
+    background: rgba(200,130,20,0.6); border-color: #ffd76b;
+  }
+  #btnMusou.ready { animation: btnPulse 0.6s infinite alternate; }
+  @keyframes btnPulse { from { filter: brightness(1);} to { filter: brightness(1.7);} }
+  /* 跳躍（攻擊鈕上方）*/
+  #btnJump {
+    right: 56px; bottom: 150px; width: 64px; height: 64px; font-size: 14px;
+    background: rgba(60,110,170,0.55); border-color: #8fd0ff;
+  }
+  /* 模式切換（右上）*/
+  #btnMode {
+    right: 20px; top: 70px; width: 72px; height: 56px; border-radius: 14px; font-size: 13px;
+    background: rgba(0,0,0,0.45); border-color: rgba(255,255,255,0.6); line-height: 1.2; text-align: center;
+  }
+  #btnSwitch {
+    right: 20px; top: 136px; width: 72px; height: 50px; border-radius: 14px; font-size: 14px;
+    background: rgba(40,90,60,0.5); border-color: #6ad29a; text-align: center;
+  }
+  /* 建造模式的破壞/放置鈕（取代攻擊/無雙）*/
+  #btnBreak {
+    right: 140px; bottom: 70px; width: 78px; height: 78px; font-size: 15px;
+    background: rgba(120,60,40,0.6); border-color: #d2a07a; display: none;
+  }
+  #btnPlace {
+    right: 30px; bottom: 40px; width: 96px; height: 96px; font-size: 17px;
+    background: rgba(40,110,150,0.6); border-color: #7fd6ff; display: none;
+  }
+  body.touch.build-mode #btnAttack, body.touch.build-mode #btnMusou { display: none; }
+  body.touch.build-mode #btnBreak, body.touch.build-mode #btnPlace { display: flex; }
+
+  /* ===== BOSS 血條（畫面上方中央偏下）===== */
+  #bossBar {
+    position: fixed; top: 64px; left: 50%; transform: translateX(-50%); z-index: 11;
+    width: 520px; max-width: 80vw; text-align: center; pointer-events: none;
+    display: none;
+  }
+  #bossBar.show { display: block; }
+  #bossName {
+    font-family: "Microsoft JhengHei", serif; font-size: 22px; font-weight: bold;
+    letter-spacing: 10px; color: #ffdf7e; margin-bottom: 4px;
+    text-shadow: 0 0 12px rgba(255,80,40,0.9), 0 2px 4px #000;
+  }
+  #bossHpBg {
+    width: 100%; height: 20px; background: rgba(0,0,0,0.55);
+    border: 2px solid rgba(255,180,80,0.8); border-radius: 4px; overflow: hidden;
+    box-shadow: 0 0 16px rgba(200,40,20,0.5);
+  }
+  #bossHpFg {
+    height: 100%; width: 100%;
+    background: linear-gradient(90deg, #6a0d0d, #c41e1e, #ff5a2e);
+    transition: width 0.15s ease-out;
+  }
+
+  /* ===== 選角畫面 ===== */
+  #diffSelect { display: flex; gap: 12px; justify-content: center; margin-bottom: 6px; }
+  .diffBtn {
+    min-width: 130px; padding: 10px 16px; border-radius: 12px; cursor: pointer;
+    background: rgba(20,14,8,0.6); border: 2px solid rgba(232,193,112,0.35);
+    color: #f5e6c8; font-weight: 700; font-size: 19px; text-align: center;
+    transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s, background 0.12s;
+  }
+  .diffBtn span { display: block; font-size: 12px; font-weight: 400; color: #c9a05a; margin-top: 4px; }
+  .diffBtn:hover { transform: translateY(-2px); border-color: rgba(232,193,112,0.7); }
+  .diffBtn.selected { border-color: #ffd76b; background: rgba(90,50,20,0.7); box-shadow: 0 0 18px rgba(255,160,0,0.4); }
+  .diffBtn[data-diff="hell"].selected { border-color: #ff5a5a; box-shadow: 0 0 18px rgba(255,60,60,0.5); }
+  #charSelect { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; max-width: 920px; }
+  .charCard {
+    width: 150px; padding: 16px 10px; border-radius: 12px; cursor: pointer;
+    background: rgba(20,14,8,0.6); border: 2px solid rgba(232,193,112,0.4);
+    transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+  }
+  .charCard:hover { transform: translateY(-6px) scale(1.04); border-color: #e8c170; box-shadow: 0 0 22px rgba(232,193,112,0.6); }
+  .charCard .cName { font-size: 30px; font-weight: 900; color: #ffd76b; letter-spacing: 4px; }
+  .charCard .cTitle { font-size: 14px; color: #c9a05a; margin: 2px 0 10px; }
+  .charCard .cDesc { font-size: 14px; color: #f5e6c8; line-height: 1.5; min-height: 42px; }
+  .charCard .cStat { font-size: 12px; color: #9fd0ff; margin-top: 10px; }
+  .charCard.locked { opacity: 0.4; filter: grayscale(0.8); cursor: not-allowed; }
+  .charCard.locked::after { content: "🔒 未解鎖"; display:block; color:#bbb; font-size:12px; margin-top:6px; }
+
+  /* ===== 手機 / 窄螢幕：選角畫面自適應 + 可捲動 ===== */
+  @media (max-width: 720px) {
+    #overlay h1 { font-size: 34px; letter-spacing: 4px; margin-bottom: 8px; }
+    #overlay p { font-size: 15px; line-height: 1.6; }
+    #overlay .hint { font-size: 13px; margin-top: 16px; padding: 0 6px; }
+    #diffSelect { flex-wrap: wrap; gap: 8px; }
+    .diffBtn { min-width: 0; flex: 1 1 28%; padding: 8px 8px; font-size: 16px; }
+    .diffBtn span { font-size: 10px; }
+    #charSelect { gap: 10px; max-width: 100%; }
+    .charCard { width: 44vw; max-width: 200px; padding: 12px 8px; }
+    .charCard .cName { font-size: 24px; letter-spacing: 2px; }
+    .charCard .cName[style] { font-size: 20px !important; }
+    .charCard .cTitle { font-size: 12px; margin: 2px 0 6px; }
+    .charCard .cDesc { font-size: 12px; min-height: 36px; }
+    .charCard .cStat { font-size: 11px; margin-top: 6px; }
+    .charCard:hover { transform: none; }      /* 手機不做位移避免誤觸跑版 */
+    #lbOpen { font-size: 15px; padding: 9px 18px; }
+    /* 排行榜在窄螢幕縮欄位 */
+    #leaderboard .lbBox { padding: 18px 14px; }
+    #leaderboard h2 { font-size: 22px; }
+    .lbRow { grid-template-columns: 30px 1fr 44px 46px 38px 38px 54px; gap: 2px; font-size: 12px; padding: 6px 3px; }
+    .lbHead { font-size: 10px; }
+  }
+
+  /* ===== 切換武將提示（中央橫幅）===== */
+  #switchHud {
+    position: fixed; top: 40%; left: 50%; transform: translateX(-50%); z-index: 16;
+    font-family: "Microsoft JhengHei", sans-serif; font-size: 30px; font-weight: 900;
+    color: #ffd76b; text-shadow: 0 0 18px rgba(255,140,0,0.9), 0 3px 6px #000;
+    pointer-events: none; opacity: 0; white-space: nowrap;
+  }
+  #switchHud.show { animation: switchPop 1.4s ease-out forwards; }
+  @keyframes switchPop {
+    0% { opacity: 0; transform: translateX(-50%) scale(1.4); }
+    20% { opacity: 1; transform: translateX(-50%) scale(1); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 擊殺數 + 玩家血條 -->
+<div id="stats">
+  <div id="killCount">0 <span>擊殺</span></div>
+  <div id="playerHp">
+    <div id="playerHpLabel">主將氣力</div>
+    <div id="hpBarBg"><div id="hpBar"></div></div>
+  </div>
+</div>
+
+<!-- 關卡資訊 -->
+<div id="waveInfo">
+  <div id="waveNum">第 1 關</div>
+  <div id="waveTarget">小兵 <b>0</b> / 0</div>
+</div>
+
+<!-- 波次橫幅 -->
+<div id="banner"><div class="big">第一波</div><div class="sub">敵軍來襲</div></div>
+
+<!-- BOSS 血條（出場才顯示）-->
+<div id="bossBar">
+  <div id="bossName">呂 布</div>
+  <div id="bossHpBg"><div id="bossHpFg"></div></div>
+</div>
+
+<!-- 結算畫面 -->
+<div id="result">
+  <h1 class="win">大 獲 全 勝</h1>
+  <p>總擊殺數 <span class="stat" id="resultKills">0</span></p>
+  <p class="hint">▶ 點擊重新開始</p>
+</div>
+
+<!-- 排行榜面板 -->
+<div id="leaderboard">
+  <div class="lbBox">
+    <h2>🏆 英雄排行榜</h2>
+    <div id="lbBody"></div>
+    <div class="lbBtns">
+      <button id="lbClose">關閉</button>
+      <button id="lbReset">清除紀錄</button>
+    </div>
+    <p class="lbNote">分數 = 闖關速度(高) + 擊殺數(中) + 剩餘武將(低)　·　紀錄保存在本機</p>
+  </div>
+</div>
+
+<!-- 無雙能量條 -->
+<div id="musouWrap">
+  <div id="musouLabel">無 雙 槽</div>
+  <div id="musouBarBg"><div id="musouBar"></div></div>
+</div>
+
+<!-- 準心（建造模式顯示）-->
+<div id="crosshair"></div>
+<div id="verBadge">三國方塊無雙 v1.0</div>
+
+<!-- 模式 + 方塊選擇 -->
+<div id="buildHud">
+  <div id="modeTag" class="combat">戰鬥模式</div>
+  <div id="blockBar">
+    <div class="blockSlot sel" data-block="0"><div class="sw" style="background:#5fa83c"></div>1 草地</div>
+    <div class="blockSlot" data-block="1"><div class="sw" style="background:#8a5a3a"></div>2 泥土</div>
+    <div class="blockSlot" data-block="2"><div class="sw" style="background:#9a6b3a"></div>3 木頭</div>
+  </div>
+</div>
+
+<!-- 操作提示 -->
+<div id="hud">
+  <b>B：切換 戰鬥／建造模式</b><br>
+  戰鬥：左鍵 普攻連段　|　Q／右鍵 無雙亂舞（發動後可用 WASD 自由衝鋒開路）<br>
+  建造：<b>右鍵 放置方塊</b>　左鍵 破壞　|　1/2/3 選方塊（白色預覽框顯示落點）<br>
+  WASD：移動　|　滑鼠：轉視角　|　Space：跳躍　|　SHIFT+F：全螢幕
+</div>
+
+<!-- 特效層 -->
+<div id="flash"></div>
+<div id="hurt"></div>
+<div id="fade"></div>
+
+<!-- 暫停畫面（按 ESC 後顯示，點擊繼續）-->
+<div id="pauseOverlay">
+  <div class="pauseBox">
+    <h2>遊戲暫停</h2>
+    <p>點擊畫面繼續遊戲</p>
+    <p class="psub">（滑鼠移動轉視角・WASD 移動）</p>
+  </div>
+</div>
+<div id="combo"><div class="num">0</div><div class="lbl">連 段</div></div>
+<div id="floaters"></div>
+
+<!-- ========== 觸控操作介面 ========== -->
+<div id="touchUI">
+  <!-- 左下虛擬搖桿 -->
+  <div id="joy"><div id="joyKnob"></div></div>
+  <!-- 動作鈕 -->
+  <div id="btnAttack" class="btn">普攻</div>
+  <div id="btnMusou" class="btn">無雙</div>
+  <div id="btnJump" class="btn">跳</div>
+  <div id="btnMode" class="btn">建造<br>模式</div>
+  <div id="btnSwitch" class="btn">換將</div>
+  <!-- 建造模式專用 -->
+  <div id="btnBreak" class="btn">破壞</div>
+  <div id="btnPlace" class="btn">放置</div>
+</div>
+
+<!-- 開始畫面 / 選角 -->
+<div id="overlay">
+  <h1>三國方塊無雙 <span class="ver">v1.0</span></h1>
+  <p style="margin-bottom:10px">選擇難度</p>
+  <div id="diffSelect">
+    <div class="diffBtn" data-diff="rookie">新手村<br><span>敵弱・包子多</span></div>
+    <div class="diffBtn selected" data-diff="master">高手<br><span>標準平衡</span></div>
+    <div class="diffBtn" data-diff="hell">地獄<br><span>血厚・凶猛・包子少</span></div>
+  </div>
+  <p style="margin:14px 0 18px">選擇你的武將 · 蜀國五虎將</p>
+  <div id="charSelect">
+    <div class="charCard" data-gen="guanyu">
+      <div class="cName">關羽</div><div class="cTitle">美髯公</div>
+      <div class="cDesc">青龍偃月刀<br>攻守均衡</div>
+      <div class="cStat">氣力100 · 攻擊★★★</div>
+    </div>
+    <div class="charCard" data-gen="zhangfei">
+      <div class="cName">張飛</div><div class="cTitle">猛張飛</div>
+      <div class="cDesc">丈八蛇矛<br>高血量重攻</div>
+      <div class="cStat">氣力130 · 攻擊★★★★</div>
+    </div>
+    <div class="charCard" data-gen="zhaoyun">
+      <div class="cName">趙雲</div><div class="cTitle">常山趙子龍</div>
+      <div class="cDesc">亮銀槍<br>迅捷靈動</div>
+      <div class="cStat">氣力95 · 攻擊★★★</div>
+    </div>
+    <div class="charCard" data-gen="machao">
+      <div class="cName">馬超</div><div class="cTitle">錦馬超</div>
+      <div class="cDesc">長槍<br>西涼悍將</div>
+      <div class="cStat">氣力100 · 攻擊★★★</div>
+    </div>
+    <div class="charCard" data-gen="huangzhong">
+      <div class="cName">黃忠</div><div class="cTitle">老當益壯</div>
+      <div class="cDesc">大刀<br>百步穿楊</div>
+      <div class="cStat">氣力90 · 攻擊★★★★</div>
+    </div>
+    <div class="charCard" data-gen="yadan">
+      <div class="cName" style="font-size:24px">犀利鴨蛋</div><div class="cTitle">幼幼園戰神</div>
+      <div class="cDesc">彩繪雨傘<br>犀利又可愛</div>
+      <div class="cStat">氣力110 · 攻擊★★★</div>
+    </div>
+    <div class="charCard" data-gen="raymond67">
+      <div class="cName" style="font-size:22px">Raymond67</div><div class="cTitle">夜煞騎士</div>
+      <div class="cDesc">武士刀<br>騎夜煞黑龍</div>
+      <div class="cStat">氣力120 · 攻擊★★★★</div>
+    </div>
+  </div>
+  <p class="hint">點選武將後開始 · 闖六關：貓吉拉→曹操→孫策→呂布→夏侯惇→魔王哥吉拉 · 每位武將無雙招式各不同 · 每過一關招降新武將</p>
+  <button id="lbOpen">🏆 查看排行榜</button>
+</div>
+
+<!-- 切換武將提示 -->
+<div id="switchHud"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+/* =========================================================
+   1. 場景 / 相機 / 渲染器 / 光源 / 陰影
+   ========================================================= */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87CEEB);
+scene.fog = new THREE.Fog(0x87CEEB, 30, 80);
+
+const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 1000);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+/* =========================================================
+   音效系統（WebAudio，即時合成，免外部檔案）
+   ========================================================= */
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+// 通用音效播放：振盪器 + 音量包絡
+function playTone({ freq = 200, type = 'square', dur = 0.12, vol = 0.2, slideTo = null }) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t);
+  if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, t + dur);
+  gain.gain.setValueAtTime(vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t); osc.stop(t + dur);
+}
+function sfxSwing() { playTone({ freq: 700, slideTo: 200, type: 'sawtooth', dur: 0.12, vol: 0.12 }); }
+// 武士刀居合斬：清脆高頻金屬聲
+function sfxKatana() {
+  playTone({ freq: 1400, slideTo: 500, type: 'sawtooth', dur: 0.1, vol: 0.13 });
+  playTone({ freq: 2600, slideTo: 1200, type: 'sine', dur: 0.08, vol: 0.08 });
+}
+// 弓箭：放弦的咻聲
+function sfxBow() {
+  playTone({ freq: 300, slideTo: 1200, type: 'sine', dur: 0.12, vol: 0.12 });
+  playTone({ freq: 140, slideTo: 80, type: 'triangle', dur: 0.1, vol: 0.1 });
+}
+// AK47 連發槍聲（短促爆裂 + 低頻）
+function sfxGun() {
+  playTone({ freq: 180, slideTo: 60, type: 'square', dur: 0.08, vol: 0.2 });
+  playTone({ freq: 900, slideTo: 300, type: 'sawtooth', dur: 0.05, vol: 0.12 });
+}
+function sfxHit()   { playTone({ freq: 320, slideTo: 90, type: 'square', dur: 0.09, vol: 0.18 }); }
+function sfxKill()  { playTone({ freq: 160, slideTo: 50, type: 'square', dur: 0.18, vol: 0.22 }); }
+function sfxMusou() {
+  playTone({ freq: 120, slideTo: 900, type: 'sawtooth', dur: 0.5, vol: 0.25 });
+  playTone({ freq: 300, slideTo: 1400, type: 'square', dur: 0.5, vol: 0.12 });
+}
+function sfxHurt()  { playTone({ freq: 200, slideTo: 60, type: 'triangle', dur: 0.2, vol: 0.2 }); }
+// 拾取包子：上揚的悅耳音（兩段疊加）
+function sfxHeal()  {
+  playTone({ freq: 520, slideTo: 880, type: 'sine', dur: 0.18, vol: 0.18 });
+  playTone({ freq: 660, slideTo: 1100, type: 'triangle', dur: 0.22, vol: 0.1 });
+}
+
+const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+dirLight.position.set(20, 35, 15);
+dirLight.castShadow = true;
+dirLight.shadow.mapSize.set(2048, 2048);
+Object.assign(dirLight.shadow.camera, { near: 1, far: 100, left: -40, right: 40, top: 40, bottom: -40 });
+scene.add(dirLight);
+const ambLight = new THREE.AmbientLight(0xffffff, 0.65);
+scene.add(ambLight);
+
+/* === 各關場景主題（天色 / 霧 / 光線）=== */
+const LEVEL_THEMES = [
+  { name:'晴空草原',  sky:0x87CEEB, fog:0x87CEEB, amb:0xffffff, ai:0.65, sun:0xffffff, si:1.0 },   // 1 貓吉拉
+  { name:'黃昏戰場',  sky:0xf0a868, fog:0xe8b07a, amb:0xffd9b0, ai:0.6,  sun:0xffb060, si:1.05 },  // 2 曹操
+  { name:'翠谷密林',  sky:0x9fd8a0, fog:0x8fc890, amb:0xe0ffe0, ai:0.6,  sun:0xfff0c0, si:0.95 },  // 3 孫策
+  { name:'赤焰沙場',  sky:0xd86848, fog:0xc06040, amb:0xffc0a0, ai:0.62, sun:0xff8050, si:1.0 },    // 4 呂布
+  { name:'幽暗夜戰',  sky:0x2a3358, fog:0x1f2742, amb:0x9098c0, ai:0.5,  sun:0x8090d0, si:0.7 },    // 5 夏侯惇
+  { name:'核爆紅天',  sky:0x4a2a3a, fog:0x3a1f2a, amb:0xc090a0, ai:0.55, sun:0xff6a8a, si:0.85 },   // 6 哥吉拉
+];
+function applyLevelTheme(n) {
+  const th = LEVEL_THEMES[(n - 1) % LEVEL_THEMES.length] || LEVEL_THEMES[0];
+  scene.background.setHex(th.sky);
+  scene.fog.color.setHex(th.fog);
+  ambLight.color.setHex(th.amb); ambLight.intensity = th.ai;
+  dirLight.color.setHex(th.sun); dirLight.intensity = th.si;
+}
+
+/* =========================================================
+   2. 世界生成：起伏丘陵地形（高度圖 + 單一 InstancedMesh 渲染）
+   ========================================================= */
+const WORLD_SIZE = 64;          // 戰場邊長（格）— 比平地版更大
+const HALF = WORLD_SIZE / 2;
+const blockGeo = new THREE.BoxGeometry(1, 1, 1);
+
+// --- 簡易值雜訊（value noise）：用固定種子的偽隨機 + 雙線性內插，做出平滑起伏 ---
+// 比純 sin/cos 更自然，又不需引入完整 Perlin 函式庫
+function hashRand(ix, iz) {
+  // 由整數座標產生 0~1 的偽隨機（確定性，重開一致）
+  let h = ix * 374761393 + iz * 668265263;
+  h = (h ^ (h >> 13)) * 1274126177;
+  h = h ^ (h >> 16);
+  return ((h >>> 0) % 100000) / 100000;
+}
+function smooth(t) { return t * t * (3 - 2 * t); } // smoothstep
+function valueNoise(x, z) {
+  const ix = Math.floor(x), iz = Math.floor(z);
+  const fx = x - ix, fz = z - iz;
+  const a = hashRand(ix, iz),     b = hashRand(ix + 1, iz);
+  const c = hashRand(ix, iz + 1), d = hashRand(ix + 1, iz + 1);
+  const ux = smooth(fx), uz = smooth(fz);
+  return (a * (1 - ux) + b * ux) * (1 - uz) + (c * (1 - ux) + d * ux) * uz;
+}
+
+// --- 高度圖：每個格座標的地形頂層 y（整數）---
+const heightMap = new Int8Array(WORLD_SIZE * WORLD_SIZE);
+const hIndex = (gx, gz) => gx * WORLD_SIZE + gz;  // gx,gz 為 0..WORLD_SIZE-1 的陣列索引
+
+function computeHeight(worldX, worldZ) {
+  // 多層雜訊疊加（fBm 風格）+ 一點 sin/cos 做大尺度丘陵
+  let h = 0;
+  h += valueNoise(worldX * 0.06, worldZ * 0.06) * 8;   // 大丘陵
+  h += valueNoise(worldX * 0.15, worldZ * 0.15) * 3;   // 中起伏
+  h += valueNoise(worldX * 0.4,  worldZ * 0.4)  * 1;   // 細節
+  h += (Math.sin(worldX * 0.08) + Math.cos(worldZ * 0.08)) * 1.5; // 大尺度波浪
+  return Math.max(0, Math.round(h));
+}
+
+// 地形配色：依高度分層（草→泥→石→雪）
+function terrainColorFor(topY) {
+  if (topY <= 1) return 0x66b347;       // 低地草
+  if (topY <= 3) return 0x5a8f3a;       // 高草
+  if (topY <= 6) return 0x8a6a45;       // 泥土
+  if (topY <= 9) return 0x8b8b8b;       // 岩石
+  return 0xeef2f5;                       // 雪頂
+}
+
+// 計算高度圖，並決定需要渲染的方塊數量
+// 效能關鍵：每個 column 只渲染頂部數塊（看得見的表層），不渲染深埋方塊
+const RENDER_DEPTH = 3;  // 每column渲染頂部幾層（含頂層）
+let maxTopY = 0;
+for (let gx = 0; gx < WORLD_SIZE; gx++) {
+  for (let gz = 0; gz < WORLD_SIZE; gz++) {
+    const wx = gx - HALF + 0.5, wz = gz - HALF + 0.5;
+    const top = computeHeight(wx, wz);
+    heightMap[hIndex(gx, gz)] = top;
+    if (top > maxTopY) maxTopY = top;
+  }
+}
+
+// 統計實際要渲染的方塊總數
+let terrainCount = 0;
+for (let gx = 0; gx < WORLD_SIZE; gx++) {
+  for (let gz = 0; gz < WORLD_SIZE; gz++) {
+    const top = heightMap[hIndex(gx, gz)];
+    terrainCount += Math.min(RENDER_DEPTH, top + 1); // 從 top 往下最多 RENDER_DEPTH 層
+  }
+}
+
+// 單一 InstancedMesh 渲染整個地形（一個 draw call）
+const terrainMat = new THREE.MeshStandardMaterial({ vertexColors: false });
+const groundMesh = new THREE.InstancedMesh(blockGeo, terrainMat, terrainCount);
+groundMesh.receiveShadow = true;
+groundMesh.castShadow = true;
+groundMesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(terrainCount * 3), 3);
+
+const dummy = new THREE.Object3D();
+const col = new THREE.Color();
+let gi = 0;
+for (let gx = 0; gx < WORLD_SIZE; gx++) {
+  for (let gz = 0; gz < WORLD_SIZE; gz++) {
+    const top = heightMap[hIndex(gx, gz)];
+    const wx = gx - HALF + 0.5, wz = gz - HALF + 0.5;
+    const baseColor = terrainColorFor(top);
+    const depth = Math.min(RENDER_DEPTH, top + 1);
+    for (let d = 0; d < depth; d++) {
+      const y = top - d;
+      dummy.position.set(wx, y + 0.5, wz);
+      dummy.updateMatrix();
+      groundMesh.setMatrixAt(gi, dummy.matrix);
+      // 頂層用地形色，下層稍微加深，做出層次
+      col.setHex(baseColor);
+      if (d > 0) col.multiplyScalar(0.8);
+      // 加一點隨機明暗讓表面不死板
+      col.offsetHSL(0, 0, (hashRand(gx * 7 + d, gz * 13) - 0.5) * 0.08);
+      groundMesh.setColorAt(gi, col);
+      gi++;
+    }
+  }
+}
+groundMesh.instanceMatrix.needsUpdate = true;
+groundMesh.instanceColor.needsUpdate = true;
+scene.add(groundMesh);
+
+const GROUND_Y = 0;             // 地面基準（保留給舊邏輯參考）
+
+// --- 地形高度查詢（給碰撞用）---
+// 回傳某世界座標處「地形頂面」的 y（= 該格 top 高度 + 1，即可站立高度）
+function terrainSurfaceY(worldX, worldZ) {
+  const gx = Math.round(worldX - 0.5) + HALF;
+  const gz = Math.round(worldZ - 0.5) + HALF;
+  if (gx < 0 || gx >= WORLD_SIZE || gz < 0 || gz >= WORLD_SIZE) return 0;
+  return heightMap[hIndex(gx, gz)] + 1; // 頂塊頂面
+}
+
+/* =========================================================
+   2.5 挖掘與放置系統（Minecraft 玩法，建造模式專用）
+   ========================================================= */
+
+// 方塊種類定義（顏色）
+const BLOCK_TYPES = [
+  { name: '草地', color: 0x5fa83c },
+  { name: '泥土', color: 0x8a5a3a },
+  { name: '木頭', color: 0x9a6b3a },
+];
+let selectedBlock = 0;          // 目前選中的方塊種類
+let buildMode = false;          // false = 戰鬥模式, true = 建造模式
+
+// 共用材質（每種方塊一個，省記憶體）
+const blockMats = BLOCK_TYPES.map(t => new THREE.MeshStandardMaterial({ color: t.color }));
+
+// 已放置方塊的資料結構：key = "x,y,z"（整數格座標），value = mesh
+const placedBlocks = new Map();
+const blockKey = (x, y, z) => `${x},${y},${z}`;
+// 每個 (gx,gz) 直行上「已放置方塊的最高 gy + 1」，供碰撞快速查詢
+const placedTop = new Map();
+const colKey = (gx, gz) => `${gx},${gz}`;
+
+// 回傳某格座標直行的「可站立頂面 y」= max(地形頂面, 已放置方塊頂面)
+function columnTopY(gx, gz) {
+  // 地形：gx,gz 為世界整數格座標 → 陣列索引
+  const ax = gx + HALF, az = gz + HALF;
+  let terr = 0;
+  if (ax >= 0 && ax < WORLD_SIZE && az >= 0 && az < WORLD_SIZE) {
+    terr = heightMap[hIndex(ax, az)] + 1;
+  }
+  const pt = placedTop.get(colKey(gx, gz)) || 0;
+  return Math.max(terr, pt);
+}
+
+// 可被射線偵測的方塊集合（供 raycaster 用）
+const editableMeshes = [];
+
+// 在指定格座標放置一個方塊
+function placeBlock(gx, gy, gz, typeIndex) {
+  const key = blockKey(gx, gy, gz);
+  if (placedBlocks.has(key)) return false;      // 已有方塊
+  if (gy < 0) return false;                      // 不可放到地面以下
+  const m = new THREE.Mesh(blockGeo, blockMats[typeIndex]);
+  // 格座標 → 世界座標（方塊中心 = 格 + 0.5）
+  m.position.set(gx + 0.5, gy + 0.5, gz + 0.5);
+  m.castShadow = true; m.receiveShadow = true;
+  m.userData.gx = gx; m.userData.gy = gy; m.userData.gz = gz; // 記住格座標
+  scene.add(m);
+  placedBlocks.set(key, m);
+  editableMeshes.push(m);
+  // 更新該直行的最高已放置頂面
+  const ck = colKey(gx, gz);
+  placedTop.set(ck, Math.max(placedTop.get(ck) || 0, gy + 1));
+  return true;
+}
+
+// 移除一個已放置的方塊
+function removeBlock(mesh) {
+  const gx = mesh.userData.gx, gy = mesh.userData.gy, gz = mesh.userData.gz;
+  placedBlocks.delete(blockKey(gx, gy, gz));
+  const idx = editableMeshes.indexOf(mesh);
+  if (idx >= 0) editableMeshes.splice(idx, 1);
+  scene.remove(mesh);
+  // 重新計算該直行最高已放置方塊
+  const ck = colKey(gx, gz);
+  let newTop = 0;
+  for (let y = gy; y >= 0; y--) {
+    if (placedBlocks.has(blockKey(gx, y, gz))) { newTop = y + 1; break; }
+  }
+  if (newTop > 0) placedTop.set(ck, newTop);
+  else placedTop.delete(ck);
+}
+
+// 射線偵測：從畫面中心（相機正前方）發射
+// 注意：第三人稱相機在關羽後方約 10 格，所以射線「從相機算起」的距離會很長；
+// 真正該限制的是「從關羽到目標」的距離（建造可及範圍），因此 raycaster 不設 far，
+// 改在命中後用『目標離關羽的水平距離』來判定是否在可及範圍內。
+const raycaster = new THREE.Raycaster();
+const screenCenter = new THREE.Vector2(0, 0); // 畫面正中央
+const REACH = 8;                                // 關羽的建造可及範圍（格）
+
+function raycastBlock() {
+  raycaster.setFromCamera(screenCenter, camera);
+  const hitsEditable = raycaster.intersectObjects(editableMeshes, false);
+  const hitsGround = raycaster.intersectObject(groundMesh, false);
+
+  // 取最近的一個命中
+  let best = null;
+  if (hitsEditable.length) best = { ...hitsEditable[0], kind: 'block' };
+  if (hitsGround.length && (!best || hitsGround[0].distance < best.distance)) {
+    best = { ...hitsGround[0], kind: 'ground' };
+  }
+  if (!best) return null;
+
+  // 以「目標點離關羽的水平距離」判定可及範圍
+  const dx = best.point.x - player.position.x;
+  const dz = best.point.z - player.position.z;
+  if (Math.hypot(dx, dz) > REACH) return null;
+  return best;
+}
+
+// 破壞：移除瞄準的已放置方塊（地面草地不可破壞，作為戰場基底）
+function doBreak() {
+  const hit = raycastBlock();
+  if (!hit) return;
+  if (hit.kind === 'block') {
+    spawnParticles(hit.object.position, 10, hit.object.material.color.getHex());
+    removeBlock(hit.object);
+    sfxHit();
+  }
+  // 地面是 InstancedMesh 戰場基底，不開放破壞
+}
+
+// 計算「放置目標格座標」：給定一個命中，回傳要放方塊的整數格座標 {gx,gy,gz}
+function getPlaceTarget(hit) {
+  if (hit.kind === 'block') {
+    // 已放置方塊：往命中面的法向量 +1 格
+    const n = hit.face.normal;
+    return {
+      gx: hit.object.userData.gx + Math.round(n.x),
+      gy: hit.object.userData.gy + Math.round(n.y),
+      gz: hit.object.userData.gz + Math.round(n.z),
+    };
+  } else {
+    // 命中地形：用命中面法向量推算相鄰空格
+    const n = hit.face.normal;
+    const p = hit.point;
+    // 把命中點稍微往內推，落在「被命中的那個方塊」格內
+    const inX = Math.floor(p.x - n.x * 0.5);
+    const inY = Math.floor(p.y - n.y * 0.5);
+    const inZ = Math.floor(p.z - n.z * 0.5);
+    // 往法向量方向 +1 格 = 要放的空格
+    return { gx: inX + Math.round(n.x), gy: inY + Math.round(n.y), gz: inZ + Math.round(n.z) };
+  }
+}
+
+// 是否會卡到玩家（人馬所在格）
+function blockedByPlayer(gx, gy, gz) {
+  const px = player.position.x, pz = player.position.z;
+  return Math.abs(gx + 0.5 - px) < 1 && Math.abs(gz + 0.5 - pz) < 1 && gy <= 2;
+}
+
+// 放置：在命中面的外側相鄰格生成新方塊
+function doPlace() {
+  const hit = raycastBlock();
+  if (!hit) return;
+  const { gx, gy, gz } = getPlaceTarget(hit);
+  if (blockedByPlayer(gx, gy, gz)) return;
+  if (placeBlock(gx, gy, gz, selectedBlock)) sfxSwing();
+}
+
+// ===== 放置/破壞的預覽輪廓（像 Minecraft 的黑框）=====
+// 放置預覽：半透明線框方塊，顯示新方塊會出現的位置
+const ghostBox = new THREE.Mesh(
+  blockGeo,
+  new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.25, depthWrite: false })
+);
+ghostBox.visible = false;
+scene.add(ghostBox);
+// 目標輪廓線框：標示正瞄準的方塊/地面格
+const outline = new THREE.LineSegments(
+  new THREE.EdgesGeometry(blockGeo),
+  new THREE.LineBasicMaterial({ color: 0x111111, transparent: true, opacity: 0.9 })
+);
+outline.visible = false;
+scene.add(outline);
+
+// 每幀更新預覽（建造模式才顯示）
+function updateBuildPreview() {
+  if (!buildMode || !pointerLocked) {
+    ghostBox.visible = false; outline.visible = false;
+    crosshairEl.classList.remove('aim');
+    return;
+  }
+  const hit = raycastBlock();
+  if (!hit) {
+    ghostBox.visible = false; outline.visible = false;
+    crosshairEl.classList.remove('aim');
+    return;
+  }
+  crosshairEl.classList.add('aim');
+
+  // 被瞄準目標的輪廓線
+  if (hit.kind === 'block') {
+    outline.position.copy(hit.object.position);
+  } else {
+    // 地面格中心
+    outline.position.set(Math.floor(hit.point.x) + 0.5, 0, Math.floor(hit.point.z) + 0.5);
+  }
+  outline.visible = true;
+
+  // 放置預覽（將出現的位置）
+  const { gx, gy, gz } = getPlaceTarget(hit);
+  if (!placedBlocks.has(blockKey(gx, gy, gz)) && !blockedByPlayer(gx, gy, gz)) {
+    ghostBox.position.set(gx + 0.5, gy + 0.5, gz + 0.5);
+    ghostBox.material.color.setHex(BLOCK_TYPES[selectedBlock].color);
+    ghostBox.visible = true;
+  } else {
+    ghostBox.visible = false;
+  }
+}
+
+// 切換建造/戰鬥模式
+const crosshairEl = document.getElementById('crosshair');
+const modeTagEl = document.getElementById('modeTag');
+const blockBarEl = document.getElementById('blockBar');
+const blockSlots = [...document.querySelectorAll('.blockSlot')];
+
+function setBuildMode(on) {
+  buildMode = on;
+  crosshairEl.classList.toggle('show', on);
+  blockBarEl.classList.toggle('show', on);
+  modeTagEl.textContent = on ? '建造模式' : '戰鬥模式';
+  modeTagEl.className = on ? 'build' : 'combat';
+  document.body.classList.toggle('build-mode', on);  // 觸控版按鈕切換
+  if (!on) { ghostBox.visible = false; outline.visible = false; }
+}
+function selectBlock(i) {
+  selectedBlock = i;
+  blockSlots.forEach((s, idx) => s.classList.toggle('sel', idx === i));
+}
+
+
+/* =========================================================
+   3. 玩家武將（用方塊堆出造型）
+   ========================================================= */
+// ===== 蜀國五虎將設定 =====
+// 每位武將：名稱、戰袍色、披風色、頭飾、臉色、鬍鬚、武器類型、馬色、屬性
+const GENERALS = {
+  guanyu: {
+    name: '關羽', title: '美髯公', robe: 0x1f7a3d, cloak: 0x14613a, accent: 0xe8c170,
+    face: 0xc0392b, beard: 'long', headgear: 'turban_green', weapon: 'guandao', horse: 0x8a2f1a,
+    maxHp: 100, atk: 1.0, desc: '青龍偃月刀・攻守均衡',
+  },
+  zhangfei: {
+    name: '張飛', title: '猛張飛', robe: 0x2a2a2a, cloak: 0x4a1a1a, accent: 0x8a6a30,
+    face: 0xd99a6a, beard: 'bushy', headgear: 'helmet_dark', weapon: 'spear', horse: 0x2a2a2a,
+    maxHp: 130, atk: 1.2, desc: '丈八蛇矛・高血量重攻',
+  },
+  zhaoyun: {
+    name: '趙雲', title: '常山趙子龍', robe: 0xdce3ea, cloak: 0x3a6ea5, accent: 0xc0c8d0,
+    face: 0xf0c89a, beard: 'none', headgear: 'helmet_silver', weapon: 'spear', horse: 0xf0f0f0,
+    maxHp: 95, atk: 1.05, desc: '亮銀槍・迅捷靈動',
+  },
+  machao: {
+    name: '馬超', title: '錦馬超', robe: 0xe8e8ee, cloak: 0xb8232f, accent: 0xd4af37,
+    face: 0xf0c89a, beard: 'none', headgear: 'helmet_gold', weapon: 'spear', horse: 0xe0e0e0,
+    maxHp: 100, atk: 1.1, desc: '長槍・西涼悍將',
+  },
+  huangzhong: {
+    name: '黃忠', title: '老當益壯', robe: 0x8a6a2a, cloak: 0x6a4a1a, accent: 0xd4af37,
+    face: 0xd9a878, beard: 'white', headgear: 'helmet_dark', weapon: 'bow', horse: 0x6b4a2a,
+    maxHp: 90, atk: 1.25, desc: '弓箭・百步穿楊遠射',
+  },
+  yadan: {
+    name: '犀利鴨蛋', title: '幼幼園戰神', robe: 0x2ea84a, cloak: 0xf2c83a, accent: 0xd0202a,
+    face: 0xfdd9b5, beard: 'none', headgear: 'pigtails', weapon: 'umbrella', horse: 0xf6d24a,
+    mount: 'scooter', maxHp: 110, atk: 1.15, desc: '滑板車・彩繪雨傘', kid: true,
+  },
+  raymond67: {
+    name: 'Raymond67', title: '夜煞騎士', robe: 0x274a6b, cloak: 0x7a2a2a, accent: 0xd4af37,
+    face: 0xf0c89a, beard: 'none', headgear: 'kabuto', weapon: 'katana', mount: 'dragon',
+    horse: 0x222222, maxHp: 120, atk: 1.3, desc: '武士刀・騎夜煞黑龍',
+  },
+};
+
+// 每位武將的「無雙」招式設定：mode 決定機制，c1/c2 為主要配色，name 顯示用
+const MUSOU = {
+  guanyu:     { mode:'whirl',   c1:0xffe08a, c2:0xff7b2e, name:'青龍偃月・旋風斬' },
+  zhangfei:   { mode:'quake',   c1:0xff8a3a, c2:0x8a3a1a, name:'蛇矛震地・咆哮' },
+  zhaoyun:    { mode:'dash',    c1:0xdce8ff, c2:0x4a8fff, name:'龍膽・百突連刺' },
+  machao:     { mode:'cavalry', c1:0xffffff, c2:0xb8232f, name:'西涼鐵騎・突陣' },
+  huangzhong: { mode:'arrows',  c1:0xffe08a, c2:0x8a6a2a, name:'萬箭齊發・箭雨' },
+  yadan:      { mode:'tornado', c1:0xff8ad0, c2:0x9a6aff, name:'彩傘・繽紛旋風' },
+  raymond67:  { mode:'iai',     c1:0x9fe8ff, c2:0x3aa0ff, name:'武士刀・居合一閃' },
+};
+
+/* =========================================================
+   3. 玩家武將（用方塊堆出造型）— 五虎將通用建構器
+   ========================================================= */
+const player = new THREE.Group();
+
+function box(w, h, d, color, x, y, z) {
+  const m = new THREE.Mesh(
+    new THREE.BoxGeometry(w, h, d),
+    new THREE.MeshStandardMaterial({ color })
+  );
+  m.position.set(x, y, z);
+  m.castShadow = true;
+  return m;
+}
+
+// 建構一位武將的「騎手」group，回傳 { rider, weaponArm }
+function buildRider(cfg) {
+  const rider = new THREE.Group();
+  const robe = cfg.robe, cloak = cfg.cloak, accent = cfg.accent;
+
+  // 身體戰袍
+  rider.add(box(0.76, 0.95, 0.5, robe, 0, 1.05, 0));
+  rider.add(box(0.8, 0.16, 0.54, accent, 0, 0.62, 0));     // 腰帶
+  rider.add(box(0.3, 0.3, 0.06, accent, 0, 1.15, 0.27));   // 護心鏡
+
+  // 臉
+  rider.add(box(0.5, 0.52, 0.5, cfg.face, 0, 1.82, 0));
+  rider.add(box(0.16, 0.05, 0.02, 0x111111, -0.13, 1.92, 0.26)); // 眼
+  rider.add(box(0.16, 0.05, 0.02, 0x111111,  0.13, 1.92, 0.26));
+  rider.add(box(0.18, 0.06, 0.02, 0x1a1a1a, -0.13, 2.0, 0.26));  // 眉
+  rider.add(box(0.18, 0.06, 0.02, 0x1a1a1a,  0.13, 2.0, 0.26));
+
+  // 鬍鬚
+  if (cfg.beard === 'long') {        // 關羽美髯
+    rider.add(box(0.42, 0.3, 0.18, 0x1a1a1a, 0, 1.55, 0.18));
+    rider.add(box(0.34, 0.3, 0.16, 0x1a1a1a, 0, 1.28, 0.16));
+    rider.add(box(0.24, 0.28, 0.14, 0x1a1a1a, 0, 1.03, 0.15));
+  } else if (cfg.beard === 'bushy') { // 張飛虬髯
+    rider.add(box(0.56, 0.34, 0.24, 0x0a0a0a, 0, 1.56, 0.14));
+    rider.add(box(0.5, 0.2, 0.2, 0x0a0a0a, 0, 1.34, 0.16));
+  } else if (cfg.beard === 'white') { // 黃忠白鬚
+    rider.add(box(0.42, 0.34, 0.18, 0xe8e8e8, 0, 1.54, 0.18));
+    rider.add(box(0.3, 0.3, 0.15, 0xe8e8e8, 0, 1.24, 0.16));
+  }
+
+  // 頭飾
+  if (cfg.headgear === 'turban_green') {
+    rider.add(box(0.56, 0.26, 0.56, cloak, 0, 2.18, 0));
+    rider.add(box(0.58, 0.08, 0.58, accent, 0, 2.04, 0));
+    rider.add(box(0.2, 0.18, 0.2, accent, 0, 2.36, 0));
+  } else if (cfg.headgear === 'helmet_dark') {
+    rider.add(box(0.58, 0.3, 0.58, 0x222222, 0, 2.16, 0));
+    rider.add(box(0.16, 0.5, 0.16, 0xb8232f, 0, 2.5, 0)); // 紅纓
+  } else if (cfg.headgear === 'helmet_silver') {
+    rider.add(box(0.58, 0.3, 0.58, 0xc0c8d0, 0, 2.16, 0));
+    rider.add(box(0.16, 0.6, 0.16, 0xdce3ea, 0, 2.55, 0)); // 銀羽
+  } else if (cfg.headgear === 'helmet_gold') {
+    rider.add(box(0.58, 0.3, 0.58, 0xd4af37, 0, 2.16, 0));
+    rider.add(box(0.16, 0.6, 0.16, 0xb8232f, 0, 2.55, 0)); // 金盔紅纓
+  } else if (cfg.headgear === 'pigtails') {
+    // 黑色妹妹頭 + 瀏海 + 雙馬尾
+    rider.add(box(0.58, 0.3, 0.58, 0x161616, 0, 2.18, 0));          // 頭頂髮
+    rider.add(box(0.54, 0.14, 0.12, 0x161616, 0, 1.96, 0.27));      // 瀏海
+    rider.add(box(0.16, 0.16, 0.5, 0x161616, -0.28, 1.78, 0));      // 左側髮
+    rider.add(box(0.16, 0.16, 0.5, 0x161616,  0.28, 1.78, 0));      // 右側髮
+    // 雙馬尾（左右各一束 + 紅髮圈）
+    rider.add(box(0.18, 0.5, 0.18, 0x161616, -0.42, 1.95, -0.05));
+    rider.add(box(0.18, 0.5, 0.18, 0x161616,  0.42, 1.95, -0.05));
+    rider.add(box(0.2, 0.1, 0.2, 0xd0202a, -0.42, 2.2, -0.05));     // 紅髮圈
+    rider.add(box(0.2, 0.1, 0.2, 0xd0202a,  0.42, 2.2, -0.05));
+  } else if (cfg.headgear === 'kabuto') {
+    // 武士兜（黑盔 + 金色牛角前立 + 護頸）
+    rider.add(box(0.6, 0.34, 0.6, 0x2a3038, 0, 2.18, 0));           // 盔身
+    rider.add(box(0.18, 0.16, 0.18, 0x3a4048, 0, 2.4, 0));          // 盔頂鈕
+    // 金色雙牛角（前立，向上彎）
+    const hornL1 = box(0.1, 0.5, 0.1, 0xd4af37, -0.34, 2.5, 0.18); hornL1.rotation.z = 0.4; rider.add(hornL1);
+    const hornL2 = box(0.1, 0.3, 0.1, 0xd4af37, -0.52, 2.8, 0.18); hornL2.rotation.z = 0.9; rider.add(hornL2);
+    const hornR1 = box(0.1, 0.5, 0.1, 0xd4af37,  0.34, 2.5, 0.18); hornR1.rotation.z = -0.4; rider.add(hornR1);
+    const hornR2 = box(0.1, 0.3, 0.1, 0xd4af37,  0.52, 2.8, 0.18); hornR2.rotation.z = -0.9; rider.add(hornR2);
+    // 護頸吹返（兩側下垂甲片）
+    rider.add(box(0.16, 0.34, 0.42, 0x2a3038, -0.4, 1.95, 0));
+    rider.add(box(0.16, 0.34, 0.42, 0x2a3038,  0.4, 1.95, 0));
+  }
+
+  // 幼幼園裝扮細節（犀利鴨蛋）
+  if (cfg.kid) {
+    // 黃色圍兜
+    rider.add(box(0.46, 0.5, 0.06, 0xf2c83a, 0, 1.0, 0.28));
+    rider.add(box(0.5, 0.08, 0.06, accent, 0, 1.24, 0.29));         // 圍兜紅領
+    // 紅滾邊袖口
+    rider.add(box(0.28, 0.08, 0.32, accent, -0.5, 0.85, 0.05));
+    // 粉嫩腮紅
+    rider.add(box(0.1, 0.08, 0.02, 0xff9aa2, -0.2, 1.74, 0.26));
+    rider.add(box(0.1, 0.08, 0.02, 0xff9aa2,  0.2, 1.74, 0.26));
+    // 大大的笑容
+    rider.add(box(0.22, 0.06, 0.02, 0x7a2a1a, 0, 1.68, 0.26));
+  }
+
+  // 腿 + 靴
+  const legL = box(0.3, 0.6, 0.32, 0x2a2a2a, -0.32, 0.4, 0.05); legL.rotation.z = 0.25; rider.add(legL);
+  const legR = box(0.3, 0.6, 0.32, 0x2a2a2a,  0.32, 0.4, 0.05); legR.rotation.z = -0.25; rider.add(legR);
+  rider.add(box(0.3, 0.18, 0.4, 0x4a2f1a, -0.42, 0.14, 0.12));
+  rider.add(box(0.3, 0.18, 0.4, 0x4a2f1a,  0.42, 0.14, 0.12));
+
+  // 左臂
+  const lArm = box(0.26, 0.6, 0.3, robe, -0.5, 1.15, 0.15); lArm.rotation.x = 0.5; rider.add(lArm);
+
+  // 右臂 + 武器
+  const weaponArm = new THREE.Group();
+  weaponArm.position.set(0.52, 1.45, 0);
+  weaponArm.add(box(0.26, 0.72, 0.3, robe, 0, -0.35, 0));
+  weaponArm.add(buildWeapon(cfg.weapon));
+  rider.add(weaponArm);
+
+  // 披風
+  rider.add(box(0.7, 1.3, 0.12, cloak, 0, 1.0, -0.32));
+  rider.add(box(0.72, 0.1, 0.13, accent, 0, 0.4, -0.32));
+
+  rider.position.y = 1.5;
+  return { rider, weaponArm };
+}
+
+// 建構武器
+function buildWeapon(type) {
+  const w = new THREE.Group();
+  if (type === 'guandao') {           // 青龍偃月刀
+    w.add(box(0.14, 3.2, 0.14, 0x6b3a1a, 0, 0.9, 0.4));
+    w.add(box(0.2, 0.25, 0.2, 0xe8c170, 0, -0.75, 0.4));
+    w.add(box(0.24, 0.4, 0.24, 0xd4af37, 0, 2.2, 0.4));
+    const blade = new THREE.Group();
+    blade.add(box(0.1, 1.5, 0.7, 0xe8eef2, 0, 0, 0.2));
+    blade.add(box(0.1, 0.5, 0.55, 0xe8eef2, 0, 0.9, 0.05));
+    blade.add(box(0.1, 0.5, 0.6, 0xe8eef2, 0, -0.9, 0.35));
+    blade.add(box(0.12, 1.5, 0.12, 0xb0b8c0, 0, 0, 0.55));
+    blade.add(box(0.14, 0.4, 0.3, 0x2e8b57, 0, -0.65, 0.05));
+    blade.position.set(0, 2.9, 0.4);
+    w.add(blade);
+  } else if (type === 'spear') {      // 長槍 / 蛇矛
+    w.add(box(0.1, 3.6, 0.1, 0x5a3a1a, 0, 1.0, 0.4));     // 長桿
+    w.add(box(0.18, 0.5, 0.18, 0xd4af37, 0, 2.9, 0.4));   // 金箍
+    w.add(box(0.14, 0.8, 0.14, 0xe8eef2, 0, 3.5, 0.4));   // 槍尖
+    w.add(box(0.3, 0.2, 0.1, 0xb8232f, 0, 3.0, 0.4));     // 紅纓
+  } else if (type === 'umbrella') {   // 彩繪小雨傘
+    // 紅色傘柄（短一點，符合孩童手持）
+    w.add(box(0.1, 2.0, 0.1, 0xd0202a, 0, 0.6, 0.4));
+    w.add(box(0.28, 0.1, 0.1, 0xd0202a, 0.1, -0.35, 0.4)); // J 型握把
+    // 傘骨頂端
+    w.add(box(0.08, 0.2, 0.08, 0xcccccc, 0, 1.7, 0.4));
+    // 彩色傘面（多片拼成圓頂，撐開狀）
+    const canopy = new THREE.Group();
+    const segCols = [0xff5a5a, 0xffd24a, 0x4ab8ff, 0x5ad07a, 0x9a6aff, 0xff8ad0];
+    for (let i = 0; i < 6; i++) {
+      const a = (i / 6) * Math.PI * 2;
+      const panel = box(0.55, 0.12, 0.55, segCols[i], Math.cos(a) * 0.5, 0, Math.sin(a) * 0.5);
+      panel.rotation.y = -a;
+      panel.rotation.x = 0.4;  // 傘面向下斜
+      canopy.add(panel);
+    }
+    canopy.add(box(0.5, 0.14, 0.5, 0xffffff, 0, 0.08, 0)); // 傘頂中心
+    canopy.position.set(0, 1.85, 0.4);
+    w.add(canopy);
+    w.userData.canopy = canopy;  // 供無雙時旋轉
+  } else if (type === 'katana') {     // 日本武士刀（細長微彎單刃）
+    // 刀柄（黑色纏繩握把）
+    w.add(box(0.12, 0.7, 0.12, 0x1a1a1a, 0, 0.15, 0.4));
+    // 柄頭金飾
+    w.add(box(0.14, 0.1, 0.14, 0xd4af37, 0, -0.22, 0.4));
+    // 圓盤護手（鍔 tsuba）
+    w.add(box(0.34, 0.08, 0.34, 0xc9a227, 0, 0.52, 0.4));
+    // 刀身（細長銀亮，微帶弧度——用分段堆出彎刀感）
+    const blade = new THREE.Group();
+    blade.add(box(0.08, 1.2, 0.18, 0xeef2f6, 0, 0.6, 0));
+    blade.add(box(0.08, 1.2, 0.18, 0xeef2f6, 0.04, 1.78, 0.06));   // 上段微偏（弧度）
+    blade.add(box(0.1, 0.4, 0.2, 0xdfe7ee, 0.08, 2.5, 0.14));      // 刀尖（切先）
+    // 刀刃高光線（深色刀脊）
+    blade.add(box(0.04, 2.4, 0.06, 0xaeb8c2, -0.03, 1.2, -0.02));
+    blade.position.set(0, 0.7, 0.4);
+    blade.rotation.x = -0.08;
+    w.add(blade);
+  } else if (type === 'bow') {        // 弓（長弓 + 弓弦 + 搭一支待射的箭）
+    const bow = new THREE.Group();
+    // 弓臂（上下兩段，微彎）
+    const upper = box(0.1, 1.1, 0.14, 0x6b3f1e, 0, 0.6, 0); upper.rotation.x = 0.25; bow.add(upper);
+    const lower = box(0.1, 1.1, 0.14, 0x6b3f1e, 0, -0.6, 0); lower.rotation.x = -0.25; bow.add(lower);
+    bow.add(box(0.12, 0.3, 0.16, 0x8a5a2a, 0, 0, 0));            // 握把
+    bow.add(box(0.14, 0.14, 0.14, 0xd4af37, 0, 1.12, 0.14));     // 上弓梢金飾
+    bow.add(box(0.14, 0.14, 0.14, 0xd4af37, 0, -1.12, 0.14));    // 下弓梢金飾
+    // 弓弦（細白線）
+    bow.add(box(0.02, 2.3, 0.02, 0xeeeeee, 0, 0, -0.1));
+    // 搭著的箭
+    bow.add(box(0.04, 0.04, 1.0, 0x9a7b4a, 0, 0, 0.4));          // 箭桿
+    bow.add(box(0.08, 0.08, 0.12, 0xcfd6dd, 0, 0, 0.95));        // 箭頭
+    bow.add(box(0.12, 0.02, 0.12, 0xd0202a, 0, 0, -0.12));       // 箭羽
+    // 擺到手中（弓面朝前）
+    bow.position.set(0, -0.3, 0.45);
+    bow.rotation.y = Math.PI / 2;   // 弓身轉成與前進方向垂直（拉弓姿態）
+    w.add(bow);
+  }
+  return w;
+}
+
+// 建構戰馬，回傳 { horse, horseLegs, horseTail }
+function buildHorse(bodyColor) {
+  const horse = new THREE.Group();
+  const HB = bodyColor;
+  const HD = 0x000000;  // 鬃毛深色（用 body*0.5 也行，這裡固定深色）
+  const dark = new THREE.Color(bodyColor).multiplyScalar(0.6).getHex();
+  const HOOF = 0x2a2a2a;
+  horse.add(box(0.85, 0.9, 2.1, HB, 0, 1.5, -0.1));
+  horse.add(box(0.8, 0.8, 0.5, HB, 0, 1.45, 0.85));
+  horse.add(box(0.8, 0.85, 0.5, HB, 0, 1.5, -1.05));
+  const neck = box(0.5, 0.9, 0.5, HB, 0, 2.0, 1.1); neck.rotation.x = -0.5; horse.add(neck);
+  horse.add(box(0.45, 0.5, 0.85, HB, 0, 2.45, 1.55));
+  horse.add(box(0.4, 0.38, 0.4, dark, 0, 2.38, 1.95));
+  horse.add(box(0.1, 0.22, 0.1, HB, -0.14, 2.78, 1.4));
+  horse.add(box(0.1, 0.22, 0.1, HB,  0.14, 2.78, 1.4));
+  horse.add(box(0.06, 0.08, 0.06, 0x111111, -0.2, 2.5, 1.7));
+  horse.add(box(0.06, 0.08, 0.06, 0x111111,  0.2, 2.5, 1.7));
+  horse.add(box(0.16, 0.5, 0.9, dark, 0, 2.2, 1.0));
+  horse.add(box(0.16, 0.3, 0.7, dark, 0, 2.0, 0.4));
+  horse.add(box(0.9, 0.2, 0.9, 0x4a2f1a, 0, 1.98, -0.05));
+  horse.add(box(0.95, 0.08, 0.95, 0xd4af37, 0, 2.06, -0.05));
+  const horseLegs = [];
+  const mkLeg = (x, z) => {
+    const leg = new THREE.Group();
+    leg.add(box(0.24, 1.1, 0.28, HB, 0, -0.55, 0));
+    leg.add(box(0.28, 0.18, 0.34, HOOF, 0, -1.15, 0.02));
+    leg.position.set(x, 1.1, z); horse.add(leg); horseLegs.push(leg);
+  };
+  mkLeg(-0.32, 0.75); mkLeg(0.32, 0.75); mkLeg(-0.32, -0.85); mkLeg(0.32, -0.85);
+  const horseTail = box(0.2, 0.9, 0.2, dark, 0, 1.4, -1.35);
+  horseTail.rotation.x = 0.4; horse.add(horseTail);
+  return { horse, horseLegs, horseTail, wings: null };
+}
+
+// 建構夜煞黑龍（Night Fury 風格）— 回傳同樣的 { horse, horseLegs, horseTail, wings }
+function buildDragon() {
+  const d = new THREE.Group();
+  const BODY = 0x1a1a1f, BELLY = 0x2a2a30, EYE = 0x6ad08a;
+  // 軀幹（流線）
+  d.add(box(1.0, 0.95, 2.0, BODY, 0, 1.5, -0.1));
+  d.add(box(0.9, 0.8, 0.6, BODY, 0, 1.45, 0.9));      // 胸
+  d.add(box(0.85, 0.7, 0.6, BODY, 0, 1.5, -1.05));    // 臀
+  d.add(box(0.7, 0.4, 1.8, BELLY, 0, 1.1, -0.1));     // 腹（淺色）
+  // 頸 + 頭（夜煞圓頭）
+  const neck = box(0.55, 0.55, 0.6, BODY, 0, 1.95, 1.05); neck.rotation.x = -0.4; d.add(neck);
+  d.add(box(0.7, 0.6, 0.75, BODY, 0, 2.25, 1.6));     // 頭
+  d.add(box(0.5, 0.3, 0.3, BODY, 0, 2.1, 2.05));      // 吻部
+  // 綠眼（夜煞招牌大眼）
+  d.add(box(0.14, 0.18, 0.1, EYE, -0.22, 2.35, 1.92));
+  d.add(box(0.14, 0.18, 0.1, EYE,  0.22, 2.35, 1.92));
+  d.add(box(0.06, 0.12, 0.05, 0x0a0a0a, -0.22, 2.35, 1.97)); // 瞳孔
+  d.add(box(0.06, 0.12, 0.05, 0x0a0a0a,  0.22, 2.35, 1.97));
+  // 頭後的耳翼/角（夜煞特徵）
+  const earL = box(0.1, 0.5, 0.16, BODY, -0.26, 2.6, 1.3); earL.rotation.z = 0.3; earL.rotation.x = -0.4; d.add(earL);
+  const earR = box(0.1, 0.5, 0.16, BODY,  0.26, 2.6, 1.3); earR.rotation.z = -0.3; earR.rotation.x = -0.4; d.add(earR);
+  // 背鰭（沿背一排小三角）
+  for (let i = 0; i < 5; i++) {
+    d.add(box(0.08, 0.22, 0.3, 0x111114, 0, 2.0 - i*0.05, 0.6 - i * 0.45));
+  }
+  // 馬鞍（騎乘處）
+  d.add(box(0.95, 0.2, 0.95, 0x3a2a1a, 0, 1.98, -0.05));
+  d.add(box(1.0, 0.08, 1.0, 0x6b4a2a, 0, 2.06, -0.05));
+
+  // 翅膀（大片黑色蝠翼，可拍動）— 用子 group 從肩部旋轉
+  const wings = [];
+  const mkWing = (side) => {
+    const wing = new THREE.Group();
+    const s = side; // -1 左, +1 右
+    wing.add(box(1.6, 0.1, 1.2, 0x16161a, s * 0.9, 0, -0.1));      // 主翼膜
+    wing.add(box(0.16, 0.16, 1.3, 0x0a0a0c, s * 0.1, 0, -0.1));    // 翼骨
+    wing.add(box(1.2, 0.08, 0.7, 0x1e1e24, s * 1.6, 0, -0.4));     // 翼尖
+    wing.position.set(s * 0.35, 1.7, -0.1);
+    d.add(wing); wings.push(wing);
+  };
+  mkWing(-1); mkWing(1);
+
+  // 四肢（夜煞小腳，沿用 legs 介面做步態/收放）
+  const legs = [];
+  const mkLeg = (x, z) => {
+    const leg = new THREE.Group();
+    leg.add(box(0.26, 0.8, 0.3, BODY, 0, -0.4, 0));
+    leg.add(box(0.3, 0.16, 0.4, 0x0a0a0c, 0, -0.85, 0.06));  // 爪
+    leg.position.set(x, 1.1, z); d.add(leg); legs.push(leg);
+  };
+  mkLeg(-0.36, 0.7); mkLeg(0.36, 0.7); mkLeg(-0.36, -0.8); mkLeg(0.36, -0.8);
+
+  // 長尾 + 招牌尾翼（夜煞的紅色義肢尾翼風格，這裡用紅色點綴）
+  const tail = new THREE.Group();
+  tail.add(box(0.3, 0.3, 1.0, BODY, 0, 0, -0.5));
+  tail.add(box(0.6, 0.06, 0.5, 0x16161a, 0, 0, -1.1));   // 尾翼
+  tail.add(box(0.5, 0.06, 0.4, 0xb8232f, 0.15, 0.02, -1.15)); // 紅色義肢尾翼
+  tail.position.set(0, 1.4, -1.5);
+  d.add(tail);
+
+  return { horse: d, horseLegs: legs, horseTail: tail, wings };
+}
+
+// 幼童滑板車（犀利鴨蛋的坐騎）— 回傳同樣的 { horse, horseLegs, horseTail }
+function buildScooter() {
+  const s = new THREE.Group();
+  const DECK = 0xe23b6d, BAR = 0xf06292, WHEEL = 0x2a2a2a, HUB = 0xffd24a;
+  // 踏板（小朋友站的板子）
+  s.add(box(0.5, 0.12, 1.7, DECK, 0, 0.55, -0.1));
+  s.add(box(0.46, 0.06, 1.5, 0xf48fb1, 0, 0.62, -0.1));   // 防滑面
+  // 前叉立管 + 龍頭
+  const stem = box(0.14, 1.6, 0.14, BAR, 0, 1.3, 0.7); s.add(stem);
+  s.add(box(0.9, 0.14, 0.14, BAR, 0, 2.0, 0.7));          // 把手橫桿
+  s.add(box(0.12, 0.2, 0.12, 0x222222, -0.42, 2.0, 0.7)); // 左握把
+  s.add(box(0.12, 0.2, 0.12, 0x222222,  0.42, 2.0, 0.7)); // 右握把
+  s.add(box(0.16, 0.14, 0.3, 0xffd24a, 0, 2.08, 0.62));   // 車鈴
+  // 兩個輪子（用子 group 方便轉動）
+  const horseLegs = [];   // 沿用 legs 介面 → 這裡放「輪子」讓 gait 帶動旋轉
+  const mkWheel = (z) => {
+    const w = new THREE.Group();
+    w.add(box(0.16, 0.5, 0.5, WHEEL, 0, 0, 0));
+    w.add(box(0.18, 0.16, 0.16, HUB, 0, 0, 0));            // 輪轂
+    w.position.set(0, 0.3, z); s.add(w); horseLegs.push(w);
+  };
+  mkWheel(0.7); mkWheel(-0.85);
+  // 彩色小旗（裝在立管上，童趣）
+  s.add(box(0.04, 0.5, 0.04, 0x6b3f1e, 0, 2.3, 0.7));
+  s.add(box(0.4, 0.28, 0.03, 0x4ab8ff, 0.22, 2.35, 0.7));
+  // 假尾巴物件（gait 會碰到 horseTail，給個隱形佔位避免報錯）
+  const tail = new THREE.Group(); tail.position.set(0, 0.5, -1.0); s.add(tail);
+  s.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  return { horse: s, horseLegs, horseTail: tail, wings: null };
+}
+
+// 夜煞翅膀（全域，供拍動動畫）
+let mountWings = null;
+let mountScooter = false;   // 目前坐騎是否為滑板車（輪子旋轉用）
+
+// === 以選定武將組裝玩家（可重新組裝以切換武將）===
+let currentGeneral = 'guanyu';     // 預設關羽（選角畫面會覆蓋）
+let weaponArm, horse, horseLegs, horseTail, rider;
+
+// 只組裝視覺模型（不碰 playerState，避免載入時的 TDZ）
+function assemblePlayer(genKey) {
+  // 清掉舊模型
+  while (player.children.length) player.remove(player.children[0]);
+  currentGeneral = genKey;
+  const cfg = GENERALS[genKey];
+  const r = buildRider(cfg);
+  rider = r.rider; weaponArm = r.weaponArm;
+  player.add(rider);
+  // 坐騎：夜煞黑龍 / 滑板車 / 戰馬
+  let h;
+  if (cfg.mount === 'dragon') h = buildDragon();
+  else if (cfg.mount === 'scooter') h = buildScooter();
+  else h = buildHorse(cfg.horse);
+  horse = h.horse; horseLegs = h.horseLegs; horseTail = h.horseTail;
+  mountWings = h.wings || null;
+  mountScooter = (cfg.mount === 'scooter');
+  // 滑板車較矮：把騎手降低，做出「站在板上」的感覺
+  rider.position.y = mountScooter ? 0.5 : 1.5;
+  player.add(horse);
+  player.traverse(o => { if (o.isMesh) o.castShadow = true; });
+}
+
+// 每位武將獨立的當前血量（key = genKey），切換時各自保留
+const generalHp = {};
+
+// 套用武將屬性到 playerState（首次使用該武將時血量為滿，之後沿用各自記錄）
+function applyGeneralStats(genKey) {
+  const cfg = GENERALS[genKey];
+  playerState.maxHp = cfg.maxHp;
+  playerState.atkMul = cfg.atk;
+  // 該武將若沒有紀錄過，初始化為滿血
+  if (generalHp[genKey] === undefined) generalHp[genKey] = cfg.maxHp;
+  playerState.hp = generalHp[genKey];
+  updatePlayerHpUI();
+}
+
+// 載入時先組一個預設武將「模型」（讓 horseLegs 等就緒給動畫用），屬性等開始時再套
+assemblePlayer(currentGeneral);
+
+/* =========================================================
+   2.8 戰場美化：營寨、旗幟、城牆
+   ========================================================= */
+const decorBanners = [];  // 需要飄動動畫的旗幟
+
+// 旗幟：旗桿 + 旗面（旗面會隨風飄動）
+function makeBanner(wx, wz, color) {
+  const g = new THREE.Group();
+  const baseY = terrainSurfaceY(wx, wz);
+  // 旗桿
+  g.add(box(0.12, 4, 0.12, 0x4a3520, 0, 2, 0));
+  g.add(box(0.2, 0.2, 0.2, 0xd4af37, 0, 4.05, 0));   // 桿頂金飾
+  // 旗面（多片方塊，可逐片擺動模擬飄揚）
+  const flagSegs = [];
+  for (let i = 0; i < 4; i++) {
+    const seg = box(0.9, 0.5, 0.06, color, 0.55, 3.4 - i * 0.5, 0);
+    g.add(seg);
+    flagSegs.push(seg);
+  }
+  g.position.set(wx, baseY, wz);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  scene.add(g);
+  decorBanners.push({ segs: flagSegs, phase: Math.random() * Math.PI * 2 });
+}
+
+// 營帳：梯形帳篷 + 頂旗
+function makeTent(wx, wz, cloth) {
+  const g = new THREE.Group();
+  const baseY = terrainSurfaceY(wx, wz);
+  g.add(box(2.4, 1.4, 2.4, cloth, 0, 0.7, 0));            // 帳身
+  g.add(box(2.0, 0.5, 2.0, cloth, 0, 1.6, 0));            // 上層
+  g.add(box(1.2, 0.5, 1.2, cloth, 0, 2.1, 0));            // 頂
+  g.add(box(0.5, 0.4, 0.5, 0x8b1a1a, 0, 2.5, 0));         // 頂飾
+  g.add(box(0.08, 1.2, 0.08, 0x4a3520, 0, 3.1, 0));       // 旗桿
+  g.add(box(0.6, 0.36, 0.05, 0xc8a020, 0.34, 3.4, 0));    // 小旗
+  // 入口
+  g.add(box(0.8, 1.0, 0.1, 0x3a2a1a, 0, 0.5, 1.21));
+  g.position.set(wx, baseY, wz);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  scene.add(g);
+}
+
+// 城牆段：石牆 + 城垛
+function makeWallSegment(wx, wz, len, rotY) {
+  const g = new THREE.Group();
+  const baseY = terrainSurfaceY(wx, wz);
+  const STONE = 0x9a9488, STONE2 = 0x847e72;
+  // 主牆體
+  g.add(box(len, 3, 1.2, STONE, 0, 1.5, 0));
+  // 城垛（齒狀）
+  const n = Math.floor(len / 1.0);
+  for (let i = 0; i < n; i++) {
+    if (i % 2 === 0) {
+      const x = -len/2 + 0.5 + i * 1.0;
+      g.add(box(0.9, 0.6, 1.2, STONE2, x, 3.3, 0));
+    }
+  }
+  // 牆面磚紋（深淺交錯）
+  g.add(box(len, 0.1, 1.24, STONE2, 0, 1.0, 0));
+  g.add(box(len, 0.1, 1.24, STONE2, 0, 2.0, 0));
+  g.position.set(wx, baseY, wz);
+  g.rotation.y = rotY;
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; o.receiveShadow = true; });
+  scene.add(g);
+}
+
+// --- 佈置戰場 ---
+
+// 瞭望箭塔：木製高塔 + 頂棚 + 旗
+function makeTower(wx, wz) {
+  const g = new THREE.Group();
+  const baseY = terrainSurfaceY(wx, wz);
+  const WOOD = 0x6b4a2a, WOOD2 = 0x563a20;
+  // 四根支柱
+  for (const [dx, dz] of [[-0.8,-0.8],[0.8,-0.8],[-0.8,0.8],[0.8,0.8]]) {
+    g.add(box(0.22, 5, 0.22, WOOD2, dx, 2.5, dz));
+  }
+  // 中段橫樑
+  g.add(box(1.9, 0.18, 1.9, WOOD, 0, 2.6, 0));
+  // 頂層平台
+  g.add(box(2.2, 0.3, 2.2, WOOD, 0, 5.0, 0));
+  // 圍欄
+  g.add(box(2.2, 0.5, 0.15, WOOD2, 0, 5.4, 1.0));
+  g.add(box(2.2, 0.5, 0.15, WOOD2, 0, 5.4, -1.0));
+  g.add(box(0.15, 0.5, 2.2, WOOD2, 1.0, 5.4, 0));
+  g.add(box(0.15, 0.5, 2.2, WOOD2, -1.0, 5.4, 0));
+  // 頂棚（斜頂感用兩層）
+  g.add(box(2.6, 0.2, 2.6, 0x4a3018, 0, 6.0, 0));
+  g.add(box(1.8, 0.3, 1.8, 0x3a2410, 0, 6.3, 0));
+  g.position.set(wx, baseY, wz);
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  scene.add(g);
+}
+
+// 拒馬路障：交叉木樁
+function makeBarricade(wx, wz, rotY) {
+  const g = new THREE.Group();
+  const baseY = terrainSurfaceY(wx, wz);
+  const W = 0x5a3a1a;
+  const a = box(0.16, 1.8, 0.16, W, 0, 0.7, 0); a.rotation.z = 0.7; g.add(a);
+  const b = box(0.16, 1.8, 0.16, W, 0, 0.7, 0); b.rotation.z = -0.7; g.add(b);
+  const c = box(0.16, 1.8, 0.16, W, 0, 0.7, 0.4); c.rotation.x = 0.7; g.add(c);
+  g.add(box(1.6, 0.14, 0.14, 0x4a2f14, 0, 0.9, 0)); // 橫桿
+  g.position.set(wx, baseY, wz);
+  g.rotation.y = rotY;
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  scene.add(g);
+}
+
+// 篝火：石圈 + 柴堆 + 火焰（會閃爍）+ 點光源
+const campfires = [];
+function makeCampfire(wx, wz) {
+  const g = new THREE.Group();
+  const baseY = terrainSurfaceY(wx, wz);
+  // 石圈
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2;
+    g.add(box(0.3, 0.25, 0.3, 0x777068, Math.cos(a) * 0.55, 0.12, Math.sin(a) * 0.55));
+  }
+  // 柴堆
+  const w1 = box(0.8, 0.14, 0.14, 0x4a3018, 0, 0.2, 0); w1.rotation.y = 0.5; g.add(w1);
+  const w2 = box(0.8, 0.14, 0.14, 0x4a3018, 0, 0.2, 0); w2.rotation.y = -0.5; g.add(w2);
+  // 火焰（多層方塊，會脈動）
+  const fcore = box(0.4, 0.6, 0.4, 0xff9a1e, 0, 0.6, 0);
+  fcore.material = new THREE.MeshBasicMaterial({ color: 0xff9a1e });
+  const ftip = box(0.24, 0.5, 0.24, 0xffd24a, 0, 1.0, 0);
+  ftip.material = new THREE.MeshBasicMaterial({ color: 0xffd24a });
+  g.add(fcore); g.add(ftip);
+  // 點光源（暖橙）
+  const light = new THREE.PointLight(0xff8a30, 1.4, 12, 2);
+  light.position.set(0, 1.2, 0);
+  g.add(light);
+  g.position.set(wx, baseY, wz);
+  g.traverse(o => { if (o.isMesh && o.material.type !== 'MeshBasicMaterial') o.castShadow = true; });
+  scene.add(g);
+  campfires.push({ core: fcore, tip: ftip, light, phase: Math.random() * 6 });
+}
+
+// 樹：樹幹 + 方塊樹冠
+function makeTree(wx, wz) {
+  const g = new THREE.Group();
+  const baseY = terrainSurfaceY(wx, wz);
+  g.add(box(0.5, 2.4, 0.5, 0x5a3a1e, 0, 1.2, 0));            // 樹幹
+  const leaf = 0x3a7a32;
+  g.add(box(2.4, 1.4, 2.4, leaf, 0, 2.8, 0));
+  g.add(box(1.8, 1.2, 1.8, 0x46893c, 0, 3.7, 0));
+  g.add(box(1.0, 0.9, 1.0, 0x3a7a32, 0, 4.4, 0));
+  g.position.set(wx, baseY, wz);
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  scene.add(g);
+}
+
+// 我方營寨（靠近出生點後方）
+makeTent(-6, -10, 0x2a5a8a);
+makeTent(-9, -12, 0x2a5a8a);
+makeTent(-4, -13, 0x356a9a);
+makeBanner(-7, -8, 0x2a52be);   // 藍色我軍旗
+makeBanner(-3, -9, 0x2a52be);
+makeTower(-12, -9);             // 我方瞭望塔
+makeCampfire(-6, -7);          // 營火
+makeBarricade(-2, -6, 0.2);
+makeBarricade(0, -6.5, -0.3);
+
+// 敵方營寨（戰場另一側）
+makeTent(8, 12, 0x8a2a2a);
+makeTent(11, 14, 0x8a2a2a);
+makeBanner(9, 10, 0xb8232f);    // 紅色敵軍旗
+makeBanner(13, 13, 0xb8232f);
+makeTower(14, 9);              // 敵方瞭望塔
+makeCampfire(9, 8);
+makeBarricade(6, 7, 0.5);
+
+// 城牆（戰場邊緣的一段防線）
+// 前緣的城牆改由關隘城門取代（見 buildGate）
+makeWallSegment(-HALF + 4, 0, 16, Math.PI / 2);
+makeWallSegment(HALF - 4, 6, 12, Math.PI / 2);
+
+// 零星旗幟、樹木點綴
+makeBanner(HALF - 8, -HALF + 8, 0xc8a020);
+makeBanner(-HALF + 8, HALF - 8, 0xc8a020);
+makeTree(-16, 6); makeTree(16, -10); makeTree(-14, 14);
+makeTree(18, 16); makeTree(-18, -16); makeTree(12, -16);
+
+// 篝火閃爍動畫
+function updateCampfires(t) {
+  for (const f of campfires) {
+    const flick = 0.8 + Math.sin(t * 12 + f.phase) * 0.15 + Math.sin(t * 23 + f.phase) * 0.1;
+    f.core.scale.set(1, flick, 1);
+    f.tip.scale.set(flick, flick * 1.2, flick);
+    f.tip.position.y = 1.0 + (flick - 1) * 0.3;
+    f.light.intensity = 1.2 + flick * 0.5;
+  }
+}
+
+// 旗幟飄動動畫
+function updateBanners(t) {
+  for (const b of decorBanners) {
+    for (let i = 0; i < b.segs.length; i++) {
+      const wave = Math.sin(t * 3 + b.phase + i * 0.6) * 0.12;
+      b.segs[i].rotation.y = wave;
+      b.segs[i].position.z = Math.sin(t * 3 + b.phase + i * 0.5) * 0.15;
+    }
+  }
+}
+
+/* =========================================================
+   2.95 關隘城門（打贏 BOSS 後開啟，玩家走進去進入下一關）
+   ========================================================= */
+const GATE_Z = -HALF + 6;        // 城門位於戰場前緣（-z 方向）
+const gateGroup = new THREE.Group();
+let gateDoorL, gateDoorR, gateGlow, gatePortal, gatePortalRing, gateBeam, gatePool, gatePlaqueText;
+let gateOpen = false, gateOpenAmount = 0;
+const DOOR_HALF = 2.2;           // 單扇門寬的一半（門關起來時各自的中心偏移）
+
+function buildGate() {
+  const STONE = 0x9a948a, STONE2 = 0x76705f, STONE3 = 0x595446, WOOD = 0x5a3a1a;
+
+  // ===== 兩側巨大門柱（加高到 14，加粗）=====
+  for (const sx of [-5.2, 5.2]) {
+    gateGroup.add(box(3.0, 14, 3.0, STONE, sx, 7, 0));
+    // 柱身分層磚紋
+    for (let i = 1; i < 7; i++) gateGroup.add(box(3.15, 0.18, 3.15, STONE3, sx, i * 2, 0));
+    // 柱頂收頭
+    gateGroup.add(box(3.6, 0.8, 3.6, STONE2, sx, 14.1, 0));
+    gateGroup.add(box(3.0, 0.6, 3.0, STONE3, sx, 14.7, 0));
+  }
+
+  // ===== 城樓橫樑（厚重，架在兩柱之間）=====
+  gateGroup.add(box(13.5, 2.6, 3.0, STONE2, 0, 13.0, 0));
+  gateGroup.add(box(13.8, 0.4, 3.2, STONE3, 0, 11.6, 0));   // 樑底線腳
+  // 城垛（樓頂齒狀）
+  for (let i = -3; i <= 3; i++) {
+    gateGroup.add(box(1.1, 1.0, 3.0, STONE, i * 1.8, 14.8, 0));
+  }
+  // ===== 城樓屋頂（兩段歇山式）=====
+  gateGroup.add(box(15.5, 0.7, 4.2, 0x5a1c1c, 0, 15.7, 0));
+  gateGroup.add(box(13.0, 0.7, 3.4, 0x6a2222, 0, 16.4, 0));
+  gateGroup.add(box(9.5, 0.7, 2.6, 0x7a2828, 0, 17.0, 0));
+  // 屋脊金飾
+  gateGroup.add(box(9.6, 0.25, 0.25, 0xd4af37, 0, 17.4, 0));
+  gateGroup.add(box(0.5, 0.6, 0.5, 0xd4af37, -4.7, 17.5, 0));
+  gateGroup.add(box(0.5, 0.6, 0.5, 0xd4af37,  4.7, 17.5, 0));
+
+  // ===== 城樓上的雙紅旗（加高加大）=====
+  for (const fx of [-3.4, 3.4]) {
+    gateGroup.add(box(0.14, 2.6, 0.14, 0x3a2410, fx, 19.0, 0));
+    gateGroup.add(box(1.3, 0.9, 0.06, 0xb8232f, fx + 0.7, 19.3, 0));
+  }
+
+  // ===== 匾額（大，掛在門洞上方）=====
+  gateGroup.add(box(4.2, 1.6, 0.3, 0x2a1c0e, 0, 10.6, 1.7));
+  gateGroup.add(box(4.5, 0.18, 0.34, 0xd4af37, 0, 11.45, 1.72));  // 金上框
+  gateGroup.add(box(4.5, 0.18, 0.34, 0xd4af37, 0, 9.75, 1.72));   // 金下框
+  gatePlaqueText = box(3.0, 1.0, 0.12, 0x6a4a20, 0, 10.6, 1.86);
+  gateGroup.add(gatePlaqueText);
+
+  // ===== 深邃拱形門洞（門框，加高到 9）=====
+  // 門洞兩側內框
+  gateGroup.add(box(0.8, 9, 3.0, STONE3, -3.4, 4.5, 0));
+  gateGroup.add(box(0.8, 9, 3.0, STONE3,  3.4, 4.5, 0));
+  // 拱頂橫楣（多層往內收，做出拱門感）
+  gateGroup.add(box(7.4, 0.9, 3.0, STONE2, 0, 9.2, 0));
+  gateGroup.add(box(6.4, 0.7, 3.0, STONE3, 0, 9.7, 0));
+  gateGroup.add(box(5.2, 0.6, 3.0, STONE2, 0, 10.1, 0));
+
+  // ===== 發光傳送門（門洞內的核心，一開始暗，開門後大亮）=====
+  // 後層：深邃漸層底光
+  gatePortal = new THREE.Mesh(
+    new THREE.PlaneGeometry(5.4, 8.4),
+    new THREE.MeshBasicMaterial({ color: 0x2a6fff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })
+  );
+  gatePortal.position.set(0, 4.4, -0.3);
+  gateGroup.add(gatePortal);
+  // 前層：亮藍白光幕（脈動）
+  gateGlow = new THREE.Mesh(
+    new THREE.PlaneGeometry(5.0, 8.0),
+    new THREE.MeshBasicMaterial({ color: 0xbfeeff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })
+  );
+  gateGlow.position.set(0, 4.4, -0.1);
+  gateGroup.add(gateGlow);
+  // 旋轉的傳送漩渦環（疊在門洞中央）
+  gatePortalRing = new THREE.Mesh(
+    new THREE.RingGeometry(1.4, 2.6, 32, 1),
+    new THREE.MeshBasicMaterial({ color: 0xeaf8ff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })
+  );
+  gatePortalRing.position.set(0, 4.4, 0.05);
+  gateGroup.add(gatePortalRing);
+
+  // ===== 兩扇厚重木門（緊閉，會向兩側滑開）=====
+  gateDoorL = box(3.0, 8.4, 0.6, WOOD, -DOOR_HALF, 4.4, 0.3);
+  gateDoorR = box(3.0, 8.4, 0.6, WOOD,  DOOR_HALF, 4.4, 0.3);
+  // 門上金鉚釘 + 鋪首
+  for (const dr of [gateDoorL, gateDoorR]) {
+    for (let r = 0; r < 4; r++) for (let c = 0; c < 2; c++) {
+      dr.add(box(0.26, 0.26, 0.12, 0xd4af37, -0.7 + c * 1.4, -2.6 + r * 1.7, 0.34));
+    }
+  }
+  gateDoorL.add(box(0.7, 0.7, 0.16, 0xc9a227, 1.0, 0.4, 0.36));   // 門環座
+  gateDoorR.add(box(0.7, 0.7, 0.16, 0xc9a227, -1.0, 0.4, 0.36));
+  gateGroup.add(gateDoorL); gateGroup.add(gateDoorR);
+
+  // ===== 地面光暈（傳送門投射在地上的光池）=====
+  gatePool = new THREE.Mesh(
+    new THREE.CircleGeometry(4.0, 32),
+    new THREE.MeshBasicMaterial({ color: 0x6ac8ff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })
+  );
+  gatePool.rotation.x = -Math.PI / 2;
+  gatePool.position.set(0, 0.06, 1.5);
+  gateGroup.add(gatePool);
+
+  // ===== 衝天光柱（讓城門老遠就看得到、明顯是傳送門）=====
+  gateBeam = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.6, 2.4, 26, 20, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0x9fe8ff, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })
+  );
+  gateBeam.position.set(0, 13, 0);
+  gateGroup.add(gateBeam);
+
+  gateGroup.position.set(0, 0, GATE_Z);
+  gateGroup.traverse(o => { if (o.isMesh && o.material.blending !== THREE.AdditiveBlending) o.castShadow = true; });
+  scene.add(gateGroup);
+}
+buildGate();
+
+// 開啟城門
+function openGate() { gateOpen = true; }
+
+// 關閉（進新關時重置）
+function closeGate() {
+  gateOpen = false; gateOpenAmount = 0;
+  if (gateDoorL) { gateDoorL.position.x = -DOOR_HALF; gateDoorR.position.x = DOOR_HALF; }
+  for (const m of [gateGlow, gatePortal, gatePortalRing, gatePool, gateBeam]) {
+    if (m) m.material.opacity = 0;
+  }
+}
+
+// 每幀更新城門：開門動畫 + 傳送門發光 + 玩家踏入判定
+function updateGate(delta) {
+  if (waveState.gameOver) return;     // 結算後不再偵測城門
+  const t = clock.elapsedTime;
+  if (gateOpen && gateOpenAmount < 1) {
+    gateOpenAmount = Math.min(1, gateOpenAmount + delta * 0.7);
+    // 兩扇門向兩側滑開（藏進門柱後）
+    gateDoorL.position.x = -DOOR_HALF - gateOpenAmount * 3.0;
+    gateDoorR.position.x =  DOOR_HALF + gateOpenAmount * 3.0;
+  }
+  if (gateOpen) {
+    const k = gateOpenAmount;
+    // 傳送門核心隨開門越來越亮 + 脈動
+    const pulse = 0.5 + Math.sin(t * 4) * 0.18;
+    gatePortal.material.opacity = k * (0.55 + Math.sin(t * 3) * 0.12);
+    gateGlow.material.opacity = k * pulse;
+    // 漩渦環旋轉 + 縮放
+    gatePortalRing.material.opacity = k * (0.5 + Math.sin(t * 6) * 0.25);
+    gatePortalRing.rotation.z += delta * 1.6;
+    const rs = 1 + Math.sin(t * 5) * 0.12;
+    gatePortalRing.scale.set(rs, rs, 1);
+    // 地面光池呼吸
+    gatePool.material.opacity = k * (0.35 + Math.sin(t * 3.5) * 0.15);
+    const ps = 1 + Math.sin(t * 3.5) * 0.1;
+    gatePool.scale.set(ps, ps, 1);
+    // 衝天光柱
+    gateBeam.material.opacity = k * (0.18 + Math.sin(t * 4) * 0.08);
+    gateBeam.rotation.y += delta * 0.5;
+
+    // 門開到底 → 偵測玩家是否走進門口
+    if (gateOpenAmount >= 1) {
+      const dx = player.position.x - 0;
+      const dz = player.position.z - GATE_Z;
+      if (Math.abs(dx) < 2.6 && Math.abs(dz) < 2.4 && !levelTransition) {
+        enterGate();
+      }
+    }
+  }
+}
+
+// 走進城門 → 黑幕轉場 → 進入下一關（或全破）
+let levelTransition = false;
+const fadeEl = document.getElementById('fade');
+function enterGate() {
+  if (levelTransition || waveState.gameOver) return;   // 防止重複觸發
+  levelTransition = true;
+  const nextLevel = waveState.current + 1;
+  if (nextLevel > TOTAL_WAVES) {       // 已是最後一關，過門即全破
+    winGame();
+    // 不重設 levelTransition（保持 true），避免 updateGate 每幀重複呼叫 → 無限彈出排行榜
+    return;
+  }
+  // 淡出黑幕 + 顯示下一關標題
+  const bcfg = bossForLevel(nextLevel);
+  fadeEl.textContent = `第 ${cnNum[nextLevel] || nextLevel} 關　${bcfg ? bcfg.name : ''}`;
+  fadeEl.classList.add('show');
+  setTimeout(() => {
+    // 黑幕全黑時：清場、把玩家移回新關起點、開始新關、關門重置
+    clearArena();
+    player.position.set(0, terrainSurfaceY(0.5, 0.5), HALF - 6);  // 從關後方入場
+    closeGate();
+    startWave(nextLevel);
+    // 淡入
+    setTimeout(() => {
+      fadeEl.classList.remove('show');
+      levelTransition = false;
+    }, 400);
+  }, 700);
+}
+
+// 清空當前關卡的所有敵兵 / 掉落物
+function clearArena() {
+  for (const s of soldiers) { if (s.active) deactivateSoldier(s); s.dead = false; }
+  for (const b of buns) { b.active = false; b.mesh.visible = false; }
+  for (const a of enemyArrows) { a.active = false; a.mesh.visible = false; }
+}
+
+/* =========================================================
+   2.9 補血小包子（小兵掉落，拾取回復氣力）
+   ========================================================= */
+const buns = [];
+const BUN_POOL = 16;
+const BUN_HEAL = 18;            // 每顆回復的氣力
+const BUN_PICKUP_R = 2.2;       // 拾取半徑
+
+// 建立一顆包子（白胖 + 頂部褶子 + 底部金光圈）
+function createBun() {
+  const g = new THREE.Group();
+  // 包子身（用幾塊白方塊堆出胖胖的圓感）
+  const skin = 0xf3efe6;
+  g.add(box(0.5, 0.4, 0.5, skin, 0, 0.22, 0));
+  g.add(box(0.42, 0.18, 0.42, skin, 0, 0.46, 0));   // 上半
+  g.add(box(0.3, 0.12, 0.3, 0xe8e0d2, 0, 0.56, 0)); // 頂褶
+  // 頂部紅點（叉燒包風味）
+  g.add(box(0.1, 0.06, 0.1, 0xd0402a, 0, 0.62, 0));
+  // 底部金光圈（提示可拾取）
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.4, 0.6, 20),
+    new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.6, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })
+  );
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.y = 0.02;
+  g.add(ring);
+  g.traverse(o => { if (o.isMesh && o.geometry.type === 'BoxGeometry') o.castShadow = true; });
+  g.visible = false;
+  scene.add(g);
+  return { mesh: g, ring, active: false, baseY: 0, phase: 0, life: 0 };
+}
+for (let i = 0; i < BUN_POOL; i++) buns.push(createBun());
+
+// 在某位置掉落一顆包子
+function dropBun(pos) {
+  const b = buns.find(x => !x.active);
+  if (!b) return;
+  b.active = true; b.life = 0; b.phase = Math.random() * 6;
+  // 從擊殺點隨機四散一段距離
+  const ang = Math.random() * Math.PI * 2;
+  const r = 0.8 + Math.random() * 3.0;
+  let bx = pos.x + Math.cos(ang) * r;
+  let bz = pos.z + Math.sin(ang) * r;
+  bx = Math.max(-(HALF-0.5), Math.min(HALF-0.5, bx));
+  bz = Math.max(-(HALF-0.5), Math.min(HALF-0.5, bz));
+  const gy = terrainSurfaceY(bx, bz);
+  b.baseY = gy + 0.4;
+  b.popX = bx; b.popZ = bz;
+  b.vy = 5 + Math.random() * 3;        // 向上彈起
+  b.popping = true;                     // 落地前的拋物線階段
+  b.mesh.position.set(pos.x, terrainSurfaceY(pos.x, pos.z) + 0.6, pos.z);  // 從擊殺點起跳
+  b.mesh.visible = true;
+}
+
+// 每幀更新：彈出拋物線 → 浮動旋轉 + 拾取判定 + 逾時消失
+function updateBuns(delta) {
+  for (const b of buns) {
+    if (!b.active) continue;
+    b.life += delta;
+    b.phase += delta;
+    if (b.popping) {
+      // 彈出階段：XZ 漸移到落點，Y 做拋物線
+      b.mesh.position.x += (b.popX - b.mesh.position.x) * Math.min(1, delta * 6);
+      b.mesh.position.z += (b.popZ - b.mesh.position.z) * Math.min(1, delta * 6);
+      b.vy -= 18 * delta;
+      b.mesh.position.y += b.vy * delta;
+      b.mesh.rotation.y += delta * 8;
+      if (b.mesh.position.y <= b.baseY) {   // 落地 → 進入浮動
+        b.mesh.position.set(b.popX, b.baseY, b.popZ);
+        b.popping = false;
+      }
+    } else {
+      // 上下浮動 + 旋轉
+      b.mesh.position.y = b.baseY + Math.sin(b.phase * 3) * 0.15;
+      b.mesh.rotation.y += delta * 2;
+    }
+    b.ring.material.opacity = 0.4 + Math.sin(b.phase * 5) * 0.2;
+    // 快消失前閃爍
+    if (b.life > 12) b.mesh.visible = Math.floor(b.life * 6) % 2 === 0;
+    if (b.life > 15) { b.active = false; b.mesh.visible = false; continue; }
+    // 拾取判定（與玩家水平距離）
+    const dx = b.mesh.position.x - player.position.x;
+    const dz = b.mesh.position.z - player.position.z;
+    if (Math.hypot(dx, dz) < BUN_PICKUP_R) pickupBun(b);
+  }
+}
+
+function pickupBun(b) {
+  b.active = false;
+  b.mesh.visible = false;
+  // 回復氣力（不超過上限）
+  playerState.hp = Math.min(playerState.maxHp, playerState.hp + BUN_HEAL);
+  generalHp[currentGeneral] = playerState.hp;   // 同步該武將的獨立血量
+  updatePlayerHpUI();
+  // 特效
+  spawnParticles(b.mesh.position, 8, 0x9be36b);
+  spawnFloater(b.mesh.position.clone().setY(b.mesh.position.y + 1), '+' + BUN_HEAL, '#8bff6b', 26);
+  sfxHeal();
+}
+
+// 馬匹奔跑動畫狀態
+let horseGaitPhase = 0;
+const horseRestY = [];  // 記錄每條腿的基準 y（髖位置）
+horseLegs.forEach(l => horseRestY.push(l.position.y));
+
+function updateHorseGait(delta, moving) {
+  // 滑板車：輪子持續旋轉（移動時更快），車身微微前傾律動
+  if (mountScooter) {
+    const spin = (moving ? 14 : 0) * delta;
+    for (const w of horseLegs) w.rotation.x += spin;
+    horse.position.y = 0;
+    horse.rotation.x = moving ? -0.06 : 0;     // 滑行時車頭微傾
+    return;
+  }
+  // 夜煞黑龍：翅膀持續拍動（移動時更快更大）
+  if (mountWings) {
+    const flapSpeed = moving ? 9 : 4;
+    const amp = moving ? 0.7 : 0.35;
+    const flap = Math.sin(clock.elapsedTime * flapSpeed) * amp;
+    mountWings[0].rotation.z = 0.2 + flap;     // 左翼
+    mountWings[1].rotation.z = -0.2 - flap;    // 右翼
+    // 飛行感：龍身隨拍翅微浮
+    horse.position.y = 0.3 + Math.sin(clock.elapsedTime * flapSpeed) * 0.12;
+    horseTail.rotation.x = Math.sin(clock.elapsedTime * 3) * 0.2;  // 尾巴擺動
+    // 腿略收起（飛行姿態）
+    for (const l of horseLegs) l.rotation.x = -0.4;
+    return;
+  }
+  if (moving) {
+    horseGaitPhase += delta * 14;  // 奔跑頻率
+    // 四條腿對角交替擺動（前左+後右 為一組）
+    const swing = 0.7;
+    horseLegs[0].rotation.x = Math.sin(horseGaitPhase) * swing;          // 前左
+    horseLegs[3].rotation.x = Math.sin(horseGaitPhase) * swing;          // 後右
+    horseLegs[1].rotation.x = Math.sin(horseGaitPhase + Math.PI) * swing;// 前右
+    horseLegs[2].rotation.x = Math.sin(horseGaitPhase + Math.PI) * swing;// 後左
+    // 馬身奔馳上下起伏 + 前後俯仰
+    horse.position.y = Math.abs(Math.sin(horseGaitPhase * 2)) * 0.12;
+    horse.rotation.x = Math.sin(horseGaitPhase * 2) * 0.04;
+    // 馬尾擺動
+    horseTail.rotation.z = Math.sin(horseGaitPhase) * 0.15;
+  } else {
+    // 待機：腿回正，馬身輕微呼吸起伏
+    horseGaitPhase += delta * 2;
+    for (const l of horseLegs) l.rotation.x *= 0.85;  // 平滑回正
+    horse.position.y = Math.sin(horseGaitPhase) * 0.02;
+    horse.rotation.x *= 0.9;
+    horseTail.rotation.z = Math.sin(horseGaitPhase) * 0.05;
+  }
+}
+
+player.position.set(0, terrainSurfaceY(0.5, 0.5), HALF - 6);
+player.castShadow = true;
+scene.add(player);
+
+// 玩家狀態
+const playerState = {
+  hp: 100, maxHp: 100, atkMul: 1.0,
+  yVel: 0, canJump: true,
+  attacking: false, comboStep: 0, attackTimer: 0,
+  musou: 0, musouMax: 100, inMusou: false, musouTimer: 0,
+  shockTimer: 0, swirlTimer: 0, bladeWaveTimer: 0,
+  chargeTime: 0,                 // 持續移動累積的衝鋒時間（用於馬衝撞）
+  trampleCd: 0,                  // 衝撞特效節流
+  invuln: 0,
+};
+
+/* =========================================================
+   4. 第三人稱相機（環繞 + 跟隨）
+   ========================================================= */
+const camOrbit = { yaw: 0, pitch: 0.38, dist: 10 };
+let pointerLocked = false;
+
+// 偵測觸控裝置（iPad/手機）
+const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+if (isTouch) document.body.classList.add('touch');
+
+const overlay = document.getElementById('overlay');
+
+// 已解鎖武將（一開始只有選的那位 + 透過 BOSS 解鎖）
+const unlockedGenerals = new Set();
+const deadGenerals = new Set();    // 已陣亡的武將（血歸零）
+let gameStarted = false;
+let gameStartTime = 0;
+
+// 啟動遊戲（選定武將後）
+function startGame(genKey) {
+  if (gameStarted) return;
+  gameStarted = true;
+  document.body.classList.add('playing');   // 顯示遊戲 HUD / 觸控按鈕
+  gameStartTime = performance.now();   // 計時起點（用於排行榜闖關速度）
+  CONCURRENT_CAP = diff().cap;     // 依難度設定場上小兵上限
+  unlockedGenerals.add(genKey);
+  assemblePlayer(genKey);
+  applyGeneralStats(genKey);   // 套用該武將屬性（此時 playerState 已就緒）
+  initAudio();
+  overlay.classList.add('hidden');
+  if (isTouch) {
+    pointerLocked = true;
+  } else {
+    renderer.domElement.requestPointerLock();
+  }
+  // 召喚初始小動物友軍
+  for (let i = 0; i < 4; i++) spawnAlly();
+}
+
+// 難易度按鈕：點選切換（開始前）
+document.querySelectorAll('#diffSelect .diffBtn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    currentDifficulty = btn.dataset.diff;
+    document.querySelectorAll('#diffSelect .diffBtn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+});
+
+// 排行榜按鈕
+document.getElementById('lbOpen').addEventListener('click', (e) => { e.stopPropagation(); showLeaderboard(null); });
+document.getElementById('lbClose').addEventListener('click', (e) => { e.stopPropagation(); hideLeaderboard(); });
+document.getElementById('lbReset').addEventListener('click', (e) => {
+  e.stopPropagation();
+  let ok = false; try { ok = confirm('確定清除所有排行榜紀錄？'); } catch (er) { ok = true; }
+  if (ok) { lbSave([]); showLeaderboard(null); }
+});
+
+// 點選角色卡 → 開始
+document.querySelectorAll('#charSelect .charCard').forEach(card => {
+  card.addEventListener('click', (e) => {
+    e.stopPropagation();
+    startGame(card.dataset.gen);
+  });
+});
+
+if (!isTouch) {
+  document.addEventListener('pointerlockchange', () => {
+    pointerLocked = document.pointerLockElement === renderer.domElement;
+    if (gameStarted) {
+      // 遊戲中失去鎖定（按了 ESC）→ 顯示「暫停」畫面，可再點擊繼續
+      pauseOverlay.classList.toggle('show', !pointerLocked);
+    }
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!pointerLocked) return;
+    camOrbit.yaw   -= e.movementX * 0.0025;
+    camOrbit.pitch -= e.movementY * 0.0025;
+    camOrbit.pitch = Math.max(0.05, Math.min(1.2, camOrbit.pitch));
+  });
+}
+
+// 暫停畫面：點擊即重新鎖定指針並繼續遊戲
+const pauseOverlay = document.getElementById('pauseOverlay');
+if (pauseOverlay) {
+  pauseOverlay.addEventListener('click', () => {
+    if (gameStarted && !isTouch) renderer.domElement.requestPointerLock();
+  });
+}
+
+/* =========================================================
+   5. 輸入
+   ========================================================= */
+const keys = { f:false, b:false, l:false, r:false };
+// 觸控搖桿的類比移動向量（x: 右為正, z: 前為正），範圍 -1~1
+const touchAxis = { x: 0, z: 0, active: false };
+addEventListener('keydown', (e) => {
+  // SHIFT + F：切換全螢幕
+  if (e.shiftKey && e.code === 'KeyF') {
+    e.preventDefault();
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+    return;
+  }
+  switch (e.code) {
+    case 'KeyW': case 'ArrowUp':    keys.f = true; break;
+    case 'KeyS': case 'ArrowDown':  keys.b = true; break;
+    case 'KeyA': case 'ArrowLeft':  keys.l = true; break;
+    case 'KeyD': case 'ArrowRight': keys.r = true; break;
+    case 'Space':
+      if (playerState.canJump) { playerState.yVel = 9; playerState.canJump = false; }
+      break;
+    case 'KeyB': setBuildMode(!buildMode); break;     // 切換戰鬥/建造模式
+    case 'KeyT': switchGeneral(); break;               // 切換已解鎖武將
+    case 'Digit1': if (buildMode) selectBlock(0); break;
+    case 'Digit2': if (buildMode) selectBlock(1); break;
+    case 'Digit3': if (buildMode) selectBlock(2); break;
+    case 'KeyQ': if (!buildMode) tryMusou(); break;    // 無雙僅戰鬥模式
+  }
+});
+addEventListener('keyup', (e) => {
+  switch (e.code) {
+    case 'KeyW': case 'ArrowUp':    keys.f = false; break;
+    case 'KeyS': case 'ArrowDown':  keys.b = false; break;
+    case 'KeyA': case 'ArrowLeft':  keys.l = false; break;
+    case 'KeyD': case 'ArrowRight': keys.r = false; break;
+  }
+});
+addEventListener('mousedown', (e) => {
+  if (isTouch) return;            // 觸控版用專屬按鈕，忽略合成的滑鼠事件
+  if (!pointerLocked) return;
+  if (buildMode) {
+    // 建造模式：左鍵破壞、右鍵放置
+    if (e.button === 0) doBreak();
+    if (e.button === 2) doPlace();
+  } else {
+    // 戰鬥模式：左鍵普攻、右鍵無雙
+    if (e.button === 0) tryAttack();
+    if (e.button === 2) tryMusou();
+  }
+});
+addEventListener('contextmenu', (e) => e.preventDefault());
+
+/* =========================================================
+   5.5 觸控輸入（虛擬搖桿 + 視角拖曳 + 動作鈕）
+   ========================================================= */
+if (isTouch) {
+  // --- 左下虛擬搖桿 ---
+  const joy = document.getElementById('joy');
+  const knob = document.getElementById('joyKnob');
+  let joyId = null, joyCx = 0, joyCy = 0;
+  const JOY_R = 50; // 搖桿最大半徑（px）
+
+  joy.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    joyId = t.identifier;
+    const rect = joy.getBoundingClientRect();
+    joyCx = rect.left + rect.width / 2;
+    joyCy = rect.top + rect.height / 2;
+    touchAxis.active = true;
+  }, { passive: false });
+
+  function joyMove(e) {
+    if (joyId === null) return;
+    for (const t of e.changedTouches) {
+      if (t.identifier !== joyId) continue;
+      let dx = t.clientX - joyCx;
+      let dy = t.clientY - joyCy;
+      const len = Math.hypot(dx, dy);
+      const clamped = Math.min(len, JOY_R);
+      const nx = len > 0 ? dx / len : 0;
+      const ny = len > 0 ? dy / len : 0;
+      // 旋鈕位移
+      knob.style.left = `calc(50% + ${nx * clamped}px)`;
+      knob.style.top  = `calc(50% + ${ny * clamped}px)`;
+      // 類比輸出：螢幕上=前進(z+)，右=x+
+      const mag = clamped / JOY_R;
+      touchAxis.x = nx * mag;
+      touchAxis.z = -ny * mag;   // 螢幕 y 向下，移動前進是 z+
+      e.preventDefault();
+    }
+  }
+  function joyEnd(e) {
+    for (const t of e.changedTouches) {
+      if (t.identifier === joyId) {
+        joyId = null;
+        touchAxis.x = 0; touchAxis.z = 0; touchAxis.active = false;
+        knob.style.left = '50%'; knob.style.top = '50%';
+      }
+    }
+  }
+  addEventListener('touchmove', joyMove, { passive: false });
+  addEventListener('touchend', joyEnd);
+  addEventListener('touchcancel', joyEnd);
+
+  // --- 視角拖曳：在「非 UI 區域」滑動旋轉相機 ---
+  let camId = null, lastX = 0, lastY = 0;
+  // 判斷觸點是否落在某個 UI 元素上（搖桿/按鈕）→ 是則不轉視角
+  function onUI(target) { return target.closest('#joy, .btn'); }
+
+  renderer.domElement.addEventListener('touchstart', (e) => {
+    if (!pointerLocked) return;
+    const t = e.changedTouches[0];
+    if (onUI(t.target)) return;
+    camId = t.identifier; lastX = t.clientX; lastY = t.clientY;
+  }, { passive: false });
+  addEventListener('touchmove', (e) => {
+    if (camId === null) return;
+    for (const t of e.changedTouches) {
+      if (t.identifier !== camId) continue;
+      camOrbit.yaw   -= (t.clientX - lastX) * 0.006;
+      camOrbit.pitch -= (t.clientY - lastY) * 0.006;
+      camOrbit.pitch = Math.max(0.05, Math.min(1.2, camOrbit.pitch));
+      lastX = t.clientX; lastY = t.clientY;
+      e.preventDefault();
+    }
+  }, { passive: false });
+  function camEnd(e) {
+    for (const t of e.changedTouches) if (t.identifier === camId) camId = null;
+  }
+  addEventListener('touchend', camEnd);
+  addEventListener('touchcancel', camEnd);
+
+  // --- 動作鈕 ---
+  const bind = (id, fn) => {
+    const el = document.getElementById(id);
+    el.addEventListener('touchstart', (e) => { e.preventDefault(); fn(); }, { passive: false });
+  };
+  bind('btnAttack', () => { if (!buildMode) tryAttack(); });
+  bind('btnMusou',  () => { if (!buildMode) tryMusou(); });
+  bind('btnJump',   () => { if (playerState.canJump) { playerState.yVel = 9; playerState.canJump = false; } });
+  bind('btnBreak',  () => { if (buildMode) doBreak(); });
+  bind('btnPlace',  () => { if (buildMode) doPlace(); });
+  bind('btnMode',   () => {
+    setBuildMode(!buildMode);
+    document.getElementById('btnMode').innerHTML = buildMode ? '戰鬥<br>模式' : '建造<br>模式';
+  });
+  bind('btnSwitch', () => switchGeneral());
+
+  // 建造模式時，點方塊選擇列可切換方塊
+  document.querySelectorAll('.blockSlot').forEach((slot, i) => {
+    slot.style.pointerEvents = 'auto';
+    slot.addEventListener('touchstart', (e) => { e.preventDefault(); selectBlock(i); }, { passive: false });
+  });
+}
+
+/* =========================================================
+   6. 小兵系統（物件池 + 頭頂血條，由波次系統控制生成）
+   ========================================================= */
+const soldiers = [];
+const SOLDIER_POOL = 80;       // 物件池容量（場上最多同時存在數的上限）
+const soldierGeo = new THREE.BoxGeometry(0.6, 1.2, 0.4);
+
+// 建立一個小兵物件（type: 'melee' | 'archer' | 'cavalry'）
+function createSoldier(type) {
+  type = type || 'melee';
+  const g = new THREE.Group();
+
+  // 隨機陣營配色：黃巾賊（土黃）/ 雜兵（灰甲）/ 紅巾兵（暗紅）
+  const factions = [
+    { armor: 0x9a7b3a, cloth: 0xc9a14a, helm: 0x6b5424 }, // 黃巾
+    { armor: 0x4a4a55, cloth: 0x3a3a44, helm: 0x6a6a78 }, // 灰甲
+    { armor: 0x7a2f2f, cloth: 0x5a2020, helm: 0x9a3a3a }, // 紅巾
+  ];
+  let f = factions[Math.floor(Math.random() * factions.length)];
+  // 弓兵：綠衣；騎兵：深紅金甲（更醒目）
+  if (type === 'archer')   f = { armor: 0x3a6b3a, cloth: 0x2e8b57, helm: 0x4a7a3a };
+  if (type === 'cavalry')  f = { armor: 0x8a2f2f, cloth: 0x5a1a1a, helm: 0xd4af37 };
+  const skin = [0xe0b080, 0xd9a878, 0xc99868][Math.floor(Math.random()*3)];
+
+  // 軀幹護甲
+  const body = box(0.6, 0.85, 0.4, f.armor, 0, 0.78, 0);
+  g.add(body);
+  g.add(box(0.22, 0.22, 0.44, f.helm, -0.34, 1.08, 0));
+  g.add(box(0.22, 0.22, 0.44, f.helm,  0.34, 1.08, 0));
+  g.add(box(0.64, 0.28, 0.44, f.cloth, 0, 0.42, 0));
+  g.add(box(0.22, 0.5, 0.26, 0x2e2a26, -0.14, 0.1, 0));
+  g.add(box(0.22, 0.5, 0.26, 0x2e2a26,  0.14, 0.1, 0));
+  g.add(box(0.16, 0.55, 0.2, f.armor, -0.4, 0.78, 0));
+  g.add(box(0.16, 0.55, 0.2, f.armor,  0.4, 0.78, 0));
+
+  // 頭 + 臉
+  g.add(box(0.38, 0.38, 0.38, skin, 0, 1.42, 0));
+  g.add(box(0.07, 0.04, 0.02, 0x111111, -0.09, 1.46, 0.2));
+  g.add(box(0.07, 0.04, 0.02, 0x111111,  0.09, 1.46, 0.2));
+  g.add(box(0.44, 0.18, 0.44, f.helm, 0, 1.66, 0));
+  g.add(box(0.1, 0.16, 0.1, 0xd4af37, 0, 1.82, 0));
+  g.add(box(0.12, 0.4, 0.08, f.cloth, 0, 1.5, -0.24));
+
+  // 武器：依兵種
+  if (type === 'archer') {
+    // 弓（左手持，立著）
+    const bow = new THREE.Group();
+    bow.add(box(0.1, 1.2, 0.1, 0x6b3f1e, 0, 0, 0));
+    bow.add(box(0.04, 1.3, 0.04, 0xeeeeee, -0.08, 0, 0));  // 弦
+    bow.position.set(-0.5, 0.85, 0.15);
+    g.add(bow);
+  } else {
+    // 長槍（melee / cavalry 都持槍）
+    const spear = new THREE.Group();
+    spear.add(box(0.06, 1.8, 0.06, 0x5a3a1a, 0, 0.3, 0));
+    spear.add(box(0.1, 0.3, 0.1, 0xcfd6dd, 0, 1.25, 0));
+    spear.add(box(0.14, 0.1, 0.14, 0xd4af37, 0, 1.05, 0));
+    spear.position.set(0.46, 0.5, 0.1);
+    spear.rotation.z = -0.2;
+    g.add(spear);
+  }
+
+  // 騎兵：加一匹小戰馬 + 把人抬高 + 背旗
+  let mount = null;
+  if (type === 'cavalry') {
+    mount = new THREE.Group();
+    const HB = 0x6b4a2a;
+    mount.add(box(0.7, 0.7, 1.7, HB, 0, 0.7, 0));         // 馬身
+    mount.add(box(0.4, 0.7, 0.4, HB, 0, 1.0, 0.9));        // 馬頸
+    mount.add(box(0.4, 0.4, 0.7, HB, 0, 1.3, 1.15));       // 馬頭
+    for (const [lx, lz] of [[-0.26,0.6],[0.26,0.6],[-0.26,-0.6],[0.26,-0.6]])
+      mount.add(box(0.18, 0.8, 0.2, HB, lx, 0.0, lz));     // 馬腿
+    mount.position.y = 0;
+    g.add(mount);
+    g.children.forEach(c => { if (c !== mount) c.position.y += 1.1; }); // 把人抬到馬背
+    // 背旗
+    const flag = box(0.5, 0.4, 0.04, 0xd4af37, 0.0, 2.9, -0.3);
+    g.add(box(0.05, 1.4, 0.05, 0x3a2410, 0, 2.6, -0.3));
+    g.add(flag);
+  }
+
+  // 頭頂血條（騎兵抬高一點）
+  const barY = type === 'cavalry' ? 3.2 : 2.05;
+  const hpBg = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.9, 0.12),
+    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.6, depthTest: false })
+  );
+  hpBg.position.y = barY; hpBg.renderOrder = 999;
+  const hpFg = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.9, 0.12),
+    new THREE.MeshBasicMaterial({ color: type === 'cavalry' ? 0xffcc44 : 0xff4444, depthTest: false })
+  );
+  hpFg.position.set(0, barY, 0.001); hpFg.renderOrder = 1000;
+  g.add(hpBg); g.add(hpFg);
+
+  g.visible = false;
+  g.position.set(0, -50, 0);
+  scene.add(g);
+
+  return {
+    mesh: g, body, hpBg, hpFg, mount, type,
+    active: false, dead: false,
+    hp: 2, maxHp: 2,
+    yVel: 0, knockback: new THREE.Vector3(),
+    attackCooldown: 0, deathTimer: 0,
+    speed: 2.2, damage: 6,
+    walkPhase: Math.random() * Math.PI * 2,
+  };
+}
+// 物件池：分配不同兵種（多近戰、適量弓兵、少量騎兵）
+const SOLDIER_TYPES = ['melee','melee','melee','melee','archer','archer','cavalry'];
+for (let i = 0; i < SOLDIER_POOL; i++) soldiers.push(createSoldier(SOLDIER_TYPES[i % SOLDIER_TYPES.length]));
+
+/* =========================================================
+   6.6 我方小動物友軍（隨機生成，會攻擊敵兵）
+   ========================================================= */
+const allies = [];
+// 動物造型設定
+const ANIMAL_TYPES = [
+  { name:'熊貓', body:0xf2f2f2, dark:0x222222, ear:0x222222 },
+  { name:'虎', body:0xe8902a, dark:0x3a2a1a, ear:0xe8902a },
+  { name:'兔', body:0xf0e8e0, dark:0xd9b0b0, ear:0xf0e8e0 },
+  { name:'狗', body:0xb98a4a, dark:0x6a4a2a, ear:0x8a6030 },
+  { name:'貓', body:0x9a9a9a, dark:0x4a4a4a, ear:0x9a9a9a },
+];
+
+function createAnimal(typeIdx) {
+  const t = ANIMAL_TYPES[typeIdx];
+  const g = new THREE.Group();
+  // 身體（四足獸，橫向）
+  g.add(box(0.5, 0.4, 0.7, t.body, 0, 0.45, 0));
+  // 頭
+  g.add(box(0.42, 0.4, 0.4, t.body, 0, 0.6, 0.45));
+  // 耳朵
+  g.add(box(0.14, 0.16, 0.1, t.ear, -0.16, 0.85, 0.45));
+  g.add(box(0.14, 0.16, 0.1, t.ear,  0.16, 0.85, 0.45));
+  // 眼睛
+  g.add(box(0.07, 0.08, 0.04, 0x111111, -0.1, 0.62, 0.66));
+  g.add(box(0.07, 0.08, 0.04, 0x111111,  0.1, 0.62, 0.66));
+  // 鼻
+  g.add(box(0.1, 0.08, 0.05, t.dark, 0, 0.52, 0.67));
+  // 熊貓黑眼圈 / 虎紋（用深色點綴）
+  if (t.name === '熊貓') {
+    g.add(box(0.12, 0.12, 0.04, t.dark, -0.12, 0.64, 0.65));
+    g.add(box(0.12, 0.12, 0.04, t.dark,  0.12, 0.64, 0.65));
+  } else if (t.name === '虎') {
+    g.add(box(0.5, 0.06, 0.1, t.dark, 0, 0.55, 0.1));
+    g.add(box(0.5, 0.06, 0.1, t.dark, 0, 0.45, -0.1));
+  }
+  // 四條腿
+  const legs = [];
+  for (const [x,z] of [[-0.16,0.22],[0.16,0.22],[-0.16,-0.22],[0.16,-0.22]]) {
+    const leg = box(0.14, 0.3, 0.14, t.dark, x, 0.15, z);
+    g.add(leg); legs.push(leg);
+  }
+  // 尾巴
+  const tail = box(0.1, 0.1, 0.3, t.body, 0, 0.5, -0.5);
+  g.add(tail);
+  // 頭頂小綠旗（標示友軍）
+  g.add(box(0.04, 0.3, 0.04, 0x4a3520, 0, 1.0, 0.45));
+  g.add(box(0.2, 0.14, 0.03, 0x2ecc71, 0.12, 1.05, 0.45));
+  g.scale.setScalar(0.9);
+  g.castShadow = true;
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  g.visible = false;
+  scene.add(g);
+  return {
+    mesh: g, legs, tail, type: typeIdx,
+    active: false, hp: 6, maxHp: 6,
+    target: null, attackCd: 0, walkPhase: Math.random()*6, bob: 0,
+  };
+}
+
+// 預建動物池
+const ALLY_POOL = 10;
+for (let i = 0; i < ALLY_POOL; i++) allies.push(createAnimal(i % ANIMAL_TYPES.length));
+
+function spawnAlly() {
+  const a = allies.find(x => !x.active);
+  if (!a) return;
+  a.active = true; a.hp = a.maxHp; a.target = null; a.attackCd = 0;
+  // 在玩家附近生成
+  const ang = Math.random() * Math.PI * 2;
+  const r = 4 + Math.random() * 4;
+  const ax = Math.max(-HALF+1, Math.min(HALF-1, player.position.x + Math.cos(ang)*r));
+  const az = Math.max(-HALF+1, Math.min(HALF-1, player.position.z + Math.sin(ang)*r));
+  a.mesh.position.set(ax, terrainSurfaceY(ax, az), az);
+  a.mesh.visible = true;
+  spawnParticles(a.mesh.position, 5, 0x2ecc71);
+}
+
+// 找最近的活躍敵兵
+function nearestEnemy(pos) {
+  let best = null, bd = 999;
+  for (const s of soldiers) {
+    if (!s.active || s.dead) continue;
+    const d = pos.distanceTo(s.mesh.position);
+    if (d < bd) { bd = d; best = s; }
+  }
+  return { enemy: best, dist: bd };
+}
+
+function updateAllies(delta) {
+  for (const a of allies) {
+    if (!a.active) continue;
+    // 貼地
+    const fy = terrainSurfaceY(a.mesh.position.x, a.mesh.position.z);
+    a.mesh.position.y = fy + Math.abs(Math.sin(a.walkPhase)) * 0.08;
+
+    const { enemy, dist } = nearestEnemy(a.mesh.position);
+    if (enemy && dist < 20) {
+      // 朝敵兵移動
+      const to = new THREE.Vector3().subVectors(enemy.mesh.position, a.mesh.position); to.y = 0;
+      const d = to.length(); to.normalize();
+      a.mesh.rotation.y = Math.atan2(to.x, to.z) + Math.PI; // 頭朝前(+z)，補正
+      if (d > 1.2) {
+        a.mesh.position.addScaledVector(to, 3.5 * delta);
+        a.walkPhase += delta * 12;
+        for (let i=0;i<a.legs.length;i++) a.legs[i].rotation.x = Math.sin(a.walkPhase + (i%2)*Math.PI)*0.5;
+      } else {
+        // 咬擊敵兵
+        a.attackCd -= delta;
+        if (a.attackCd <= 0) {
+          a.attackCd = 0.6;
+          hitSoldier(enemy, 1, to, 4);
+          a.bob = 0.2;  // 撲咬前傾
+        }
+      }
+    } else {
+      // 沒有敵人 → 跟隨玩家
+      const to = new THREE.Vector3().subVectors(player.position, a.mesh.position); to.y = 0;
+      const d = to.length();
+      if (d > 4) {
+        to.normalize();
+        a.mesh.position.addScaledVector(to, 3.5 * delta);
+        a.mesh.rotation.y = Math.atan2(to.x, to.z) + Math.PI;
+        a.walkPhase += delta * 12;
+        for (let i=0;i<a.legs.length;i++) a.legs[i].rotation.x = Math.sin(a.walkPhase + (i%2)*Math.PI)*0.5;
+      }
+    }
+    // 撲咬前傾回正
+    a.bob *= 0.85;
+    a.mesh.rotation.x = -a.bob;
+    a.tail.rotation.y = Math.sin(a.walkPhase*0.5) * 0.3; // 搖尾巴
+  }
+}
+
+// 從池中啟用一個小兵，套用當前波次的屬性
+function activateSoldier(stats) {
+  const s = soldiers.find(s => !s.active);
+  if (!s) return null;
+  s.active = true; s.dead = false;
+  // 依兵種調整屬性
+  if (s.type === 'archer') {
+    s.maxHp = s.hp = stats.hp;
+    s.speed = stats.speed * 0.8;        // 弓兵走得慢
+    s.damage = stats.damage;            // 近身傷害（主要靠射箭）
+    s.shootCd = 1.0 + Math.random();
+  } else if (s.type === 'cavalry') {
+    s.maxHp = s.hp = stats.hp + 4;      // 騎兵更耐打
+    s.speed = stats.speed * 1.7;        // 騎兵更快
+    s.damage = stats.damage + 6;        // 騎兵更痛
+  } else {
+    s.maxHp = s.hp = stats.hp;
+    s.speed = stats.speed;
+    s.damage = stats.damage;
+  }
+  s.yVel = 0; s.deathTimer = 0;
+  s.knockback.set(0, 0, 0);
+  s.attackCooldown = Math.random() * 1.5;
+  s.mesh.visible = true;
+  s.mesh.rotation.set(0, 0, 0);
+  s.hpBg.visible = true; s.hpFg.visible = true;  // 重新顯示血條（上次死亡時被隱藏）
+  // 玩家周圍外圈生成
+  const angle = Math.random() * Math.PI * 2;
+  const radius = 16 + Math.random() * 12;
+  const sx = Math.max(-HALF + 1, Math.min(HALF - 1, player.position.x + Math.cos(angle) * radius));
+  const sz = Math.max(-HALF + 1, Math.min(HALF - 1, player.position.z + Math.sin(angle) * radius));
+  s.mesh.position.set(sx, terrainSurfaceY(sx, sz) - 1, sz);
+  updateSoldierHpBar(s);
+  return s;
+}
+
+// 停用小兵（回到池中）
+function deactivateSoldier(s) {
+  s.active = false;
+  s.mesh.visible = false;
+  s.mesh.position.set(0, -50, 0);
+}
+
+// 更新頭頂血條寬度
+function updateSoldierHpBar(s) {
+  const ratio = Math.max(0, s.hp / s.maxHp);
+  s.hpFg.scale.x = ratio;
+  s.hpFg.position.x = -0.45 * (1 - ratio); // 從左側縮減
+}
+
+/* =========================================================
+   6.7 BOSS：過五關斬六將的敵將（騎馬大將，大血條 + 特殊攻擊）
+   ========================================================= */
+// 五關 BOSS 設定：名稱、鎧甲色、披風色、頭飾翎色、武器、血量
+const BOSS_GENERALS = [
+  { name:'貓吉拉', subtitle:'飛將天下無雙', armor:0x5a6470, cloak:0x3a4250, plume:0x2a2f38, crown:0x4a5460, weapon:'burger', hp:60,  horse:0x4a5460, catzilla:true },
+  { name:'曹操', subtitle:'亂世之奸雄', armor:0x1f3a6b, cloak:0xd4af37, plume:0xd4af37, crown:0xd4af37, weapon:'sword',   hp:75,  horse:0x2a2a2a },
+  { name:'孫策', subtitle:'江東小霸王', armor:0x1f6b4a, cloak:0xe8e8ee, plume:0xe8e8ee, crown:0xd4af37, weapon:'spear',   hp:85,  horse:0x6b4a2a },
+  { name:'呂布', subtitle:'古之惡來',   armor:0x4b2e83, cloak:0xb8232f, plume:0xb8232f, crown:0xd4af37, weapon:'halberd', hp:100, horse:0x4a3528 },
+  { name:'夏侯惇', subtitle:'獨眼盲夏侯', armor:0x3a3a44, cloak:0x7a2a2a, plume:0x2a2a2a, crown:0xc0c8d0, weapon:'spear',  hp:120, horse:0x222222 },
+  { name:'哥吉拉', subtitle:'終極魔王・核爆咆哮', armor:0x2a3a2a, cloak:0x1a261a, plume:0x6ad08a, crown:0x3a4a3a, weapon:'gamma', hp:500, horse:0x2a3a2a, catzilla:true, gozilla:true },
+];
+
+// 柴犬熱狗堡（貓吉拉手上的「武器」）
+function makeBurger() {
+  const b = new THREE.Group();
+  const BUN = 0xe0a23a, BUN_D = 0xc8852a;
+  // 下層麵包
+  b.add(box(1.6, 0.4, 0.8, BUN_D, 0, -0.3, 0));
+  // 生菜
+  b.add(box(1.7, 0.2, 0.9, 0x6abf3a, 0, -0.05, 0));
+  // 柴犬（夾在中間，露出頭）
+  b.add(box(1.0, 0.5, 0.7, 0xd98e3a, 0, 0.2, 0));           // 柴犬身
+  b.add(box(0.5, 0.45, 0.45, 0xe0a050, 0.55, 0.3, 0.1));    // 柴犬頭
+  b.add(box(0.16, 0.2, 0.1, 0xe0a050, 0.5, 0.6, 0.1));      // 耳
+  b.add(box(0.16, 0.2, 0.1, 0xe0a050, 0.68, 0.6, 0.1));
+  b.add(box(0.4, 0.3, 0.1, 0xf2e0c0, 0.6, 0.22, 0.3));      // 白吻
+  b.add(box(0.06, 0.06, 0.04, 0x111111, 0.75, 0.32, 0.32)); // 鼻
+  // 上層麵包（圓頂感）
+  b.add(box(1.7, 0.5, 0.9, BUN, 0, 0.55, 0));
+  b.add(box(1.4, 0.3, 0.7, BUN, 0, 0.85, 0));
+  // 芝麻
+  b.add(box(0.08, 0.05, 0.08, 0xfff4d0, -0.3, 1.0, 0.1));
+  b.add(box(0.08, 0.05, 0.08, 0xfff4d0, 0.2, 1.0, -0.1));
+  b.scale.setScalar(0.9);
+  return b;
+}
+
+// 建立 BOSS 模型（騎馬將領；貓吉拉為特例：站立的貓怪獸）
+function buildBoss(cfg) {
+  const g = new THREE.Group();
+
+  // ===== 特例：貓吉拉 / Gozilla（站立的貓怪獸）=====
+  if (cfg.catzilla) {
+    const isGoz = cfg.gozilla;
+    const FUR = isGoz ? 0x3a5a3a : 0x5a6470;
+    const FUR_D = isGoz ? 0x294a29 : 0x434b55;
+    const BELLY = isGoz ? 0x7aa86a : 0x7a8490;
+    const FIN = isGoz ? 0x9affc0 : 0xeaeef2;   // Gozilla 背鰭發光綠
+    // 厚實身體（站立）
+    g.add(box(1.8, 2.0, 1.4, FUR, 0, 2.0, 0));
+    g.add(box(1.4, 1.4, 0.3, BELLY, 0, 1.8, 0.72));        // 淺色肚子
+    // 頭（大貓頭）
+    g.add(box(1.7, 1.5, 1.5, FUR, 0, 3.7, 0.1));
+    g.add(box(1.3, 0.6, 0.3, BELLY, 0, 3.35, 0.86));       // 口鼻淺色
+    // 尖耳
+    const earL = box(0.5, 0.7, 0.3, FUR, -0.6, 4.6, 0.1); earL.rotation.z = 0.2; g.add(earL);
+    const earR = box(0.5, 0.7, 0.3, FUR,  0.6, 4.6, 0.1); earR.rotation.z = -0.2; g.add(earR);
+    g.add(box(0.24, 0.34, 0.16, 0xe7b0c0, -0.6, 4.5, 0.2));// 內耳
+    g.add(box(0.24, 0.34, 0.16, 0xe7b0c0,  0.6, 4.5, 0.2));
+    // 凶眼（黃）+ 怒眉
+    g.add(box(0.4, 0.4, 0.1, 0xf2d23a, -0.42, 3.95, 0.82));
+    g.add(box(0.4, 0.4, 0.1, 0xf2d23a,  0.42, 3.95, 0.82));
+    g.add(box(0.22, 0.24, 0.06, 0x111111, -0.42, 3.95, 0.88)); // 瞳
+    g.add(box(0.22, 0.24, 0.06, 0x111111,  0.42, 3.95, 0.88));
+    const browL = box(0.5, 0.12, 0.06, FUR_D, -0.42, 4.22, 0.84); browL.rotation.z = -0.3; g.add(browL);
+    const browR = box(0.5, 0.12, 0.06, FUR_D,  0.42, 4.22, 0.84); browR.rotation.z = 0.3; g.add(browR);
+    // 鼻 + 白獠牙
+    g.add(box(0.18, 0.14, 0.08, 0xe7889a, 0, 3.5, 0.9));
+    g.add(box(0.14, 0.3, 0.1, 0xffffff, -0.3, 3.15, 0.85));
+    g.add(box(0.14, 0.3, 0.1, 0xffffff,  0.3, 3.15, 0.85));
+    // 鬍鬚
+    g.add(box(0.7, 0.03, 0.03, 0xeeeeee, -0.7, 3.4, 0.8));
+    g.add(box(0.7, 0.03, 0.03, 0xeeeeee,  0.7, 3.4, 0.8));
+    // 哥吉拉背鰭（沿背一排尖鰭，由大到小；Gozilla 發光綠且更大）
+    const finCount = isGoz ? 8 : 6;
+    for (let i = 0; i < finCount; i++) {
+      const s = (isGoz ? 1.0 : 0.7) - i * 0.08;
+      const fin = box(0.2, s, s, FIN, 0, 3.2 - i * 0.5, -0.75 - i * 0.02);
+      fin.rotation.x = 0.2; g.add(fin);
+    }
+    // 粗腿（站姿）
+    const luLegs = [];
+    const mkPaw = (x) => {
+      const leg = new THREE.Group();
+      leg.add(box(0.6, 1.2, 0.8, FUR, 0, -0.6, 0));
+      leg.add(box(0.66, 0.3, 0.95, FUR_D, 0, -1.15, 0.1));   // 腳掌
+      leg.position.set(x, 1.1, 0.1); g.add(leg); luLegs.push(leg);
+    };
+    mkPaw(-0.55); mkPaw(0.55);
+    // 粗尾
+    const tail = box(0.5, 0.5, 1.6, FUR, 0, 1.4, -1.2); tail.rotation.x = 0.3; g.add(tail);
+
+    // 雙手 + 武器
+    g.add(box(0.45, 1.1, 0.45, FUR, -1.0, 2.3, 0.3));        // 左臂
+    const arm = new THREE.Group();
+    arm.position.set(0.95, 2.5, 0.3);
+    arm.add(box(0.45, 1.0, 0.45, FUR, 0, -0.4, 0));          // 右臂
+    let halberd, mouthGlow = null;
+    if (isGoz) {
+      // Gozilla：嘴中 gamma 能量球（蓄力時發亮）
+      arm.add(box(0.4, 0.3, 0.4, FUR_D, 0, -0.7, 0));        // 空手（無漢堡）
+      mouthGlow = new THREE.Mesh(
+        new THREE.SphereGeometry(0.5, 16, 12),
+        new THREE.MeshBasicMaterial({ color: 0x9affc0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })
+      );
+      mouthGlow.position.set(0, 3.3, 1.0);   // 嘴部位置
+      g.add(mouthGlow);
+      halberd = new THREE.Group();           // 佔位（Gozilla 無持武器）
+    } else {
+      halberd = makeBurger();                // 貓吉拉：漢堡當「武器」
+      halberd.position.set(0, -0.9, 0.5);
+      arm.add(halberd);
+    }
+    g.add(arm);
+
+    g.scale.setScalar(isGoz ? 4.5 : 1.5);    // Gozilla 約貓吉拉 3 倍大
+    g.visible = false;
+    scene.add(g);
+    g.traverse(o => { if (o.isMesh && o.material.blending !== THREE.AdditiveBlending) o.castShadow = true; });
+    return { group: g, legs: luLegs, arm, halberd, mouthGlow };
+  }
+
+  const HB = cfg.horse, HD = new THREE.Color(cfg.horse).multiplyScalar(0.6).getHex();
+  g.add(box(0.95, 1.0, 2.3, HB, 0, 1.5, -0.1));
+  g.add(box(0.9, 0.9, 0.55, HB, 0, 1.45, 0.95));
+  g.add(box(0.9, 0.95, 0.55, HB, 0, 1.5, -1.15));
+  const lneck = box(0.55, 1.0, 0.55, HB, 0, 2.05, 1.2); lneck.rotation.x = -0.5; g.add(lneck);
+  g.add(box(0.5, 0.55, 0.95, HB, 0, 2.55, 1.7));
+  g.add(box(0.45, 0.42, 0.45, 0x1a120c, 0, 2.46, 2.15));
+  g.add(box(0.16, 0.55, 0.95, HD, 0, 2.3, 1.1));
+  const luLegs = [];
+  const mkLeg = (x, z) => {
+    const leg = new THREE.Group();
+    leg.add(box(0.26, 1.2, 0.3, HB, 0, -0.6, 0));
+    leg.add(box(0.3, 0.2, 0.36, 0x111111, 0, -1.25, 0.02));
+    leg.position.set(x, 1.1, z); g.add(leg); luLegs.push(leg);
+  };
+  mkLeg(-0.34, 0.85); mkLeg(0.34, 0.85); mkLeg(-0.34, -0.95); mkLeg(0.34, -0.95);
+  g.add(box(1.0, 0.22, 1.0, 0x3a1f10, 0, 2.05, -0.05));
+
+  // --- 武將本體 ---
+  const rider = new THREE.Group();
+  rider.add(box(0.9, 1.05, 0.6, cfg.armor, 0, 1.1, 0));         // 鎧甲
+  rider.add(box(0.95, 0.2, 0.64, 0xe8c170, 0, 0.65, 0));        // 金腰帶
+  rider.add(box(0.4, 0.4, 0.08, 0xf0d24a, 0, 1.2, 0.32));       // 護心鏡
+  rider.add(box(0.4, 0.36, 0.5, 0xd4af37, -0.62, 1.4, 0));      // 肩甲
+  rider.add(box(0.4, 0.36, 0.5, 0xd4af37,  0.62, 1.4, 0));
+  rider.add(box(0.52, 0.54, 0.52, 0xf0c89a, 0, 1.95, 0));       // 頭
+  rider.add(box(0.18, 0.05, 0.02, 0x1a1a1a, -0.13, 2.05, 0.27));
+  // 夏侯惇獨眼：右眼用眼罩
+  if (cfg.name === '夏侯惇') {
+    rider.add(box(0.2, 0.12, 0.04, 0x161616, 0.13, 2.05, 0.27)); // 眼罩
+  } else {
+    rider.add(box(0.18, 0.05, 0.02, 0x1a1a1a,  0.13, 2.05, 0.27));
+  }
+  rider.add(box(0.58, 0.28, 0.58, cfg.crown, 0, 2.3, 0));        // 冠
+  const plumeL = box(0.08, 1.0, 0.2, cfg.plume, -0.18, 2.85, 0); plumeL.rotation.z = 0.35; rider.add(plumeL);
+  const plumeR = box(0.08, 1.0, 0.2, cfg.plume,  0.18, 2.85, 0); plumeR.rotation.z = -0.35; rider.add(plumeR);
+  const ll = box(0.34, 0.65, 0.36, 0x3a2a1a, -0.34, 0.42, 0.05); ll.rotation.z = 0.25; rider.add(ll);
+  const lr = box(0.34, 0.65, 0.36, 0x3a2a1a,  0.34, 0.42, 0.05); lr.rotation.z = -0.25; rider.add(lr);
+  const la = box(0.28, 0.62, 0.32, cfg.armor, -0.56, 1.2, 0.1); la.rotation.x = 0.4; rider.add(la);
+
+  // 右臂 + 武器（依 cfg.weapon）
+  const arm = new THREE.Group();
+  arm.position.set(0.58, 1.5, 0);
+  arm.add(box(0.28, 0.7, 0.32, cfg.armor, 0, -0.35, 0));
+  const halberd = new THREE.Group();   // 沿用變數名（泛指 BOSS 武器）
+  if (cfg.weapon === 'halberd') {       // 方天畫戟
+    halberd.add(box(0.13, 3.6, 0.13, 0x2a1a10, 0, 1.0, 0.4));
+    halberd.add(box(0.16, 0.5, 0.16, 0xd4af37, 0, 2.7, 0.4));
+    halberd.add(box(0.14, 0.9, 0.2, 0xe8eef2, 0, 3.15, 0.4));
+    halberd.add(box(0.5, 0.5, 0.12, 0xdfe7ee, 0.25, 2.95, 0.4));
+    halberd.add(box(0.5, 0.5, 0.12, 0xdfe7ee, -0.25, 2.95, 0.4));
+  } else if (cfg.weapon === 'sword') {  // 寶劍
+    halberd.add(box(0.12, 0.7, 0.12, 0x2a1a10, 0, 0.1, 0.4));
+    halberd.add(box(0.5, 0.12, 0.14, 0xd4af37, 0, 0.5, 0.4));      // 護手
+    halberd.add(box(0.16, 1.8, 0.06, 0xe8eef2, 0, 1.5, 0.4));      // 劍身
+  } else if (cfg.weapon === 'spear') {  // 長槍
+    halberd.add(box(0.1, 3.6, 0.1, 0x5a3a1a, 0, 1.0, 0.4));
+    halberd.add(box(0.14, 0.8, 0.14, 0xe8eef2, 0, 3.1, 0.4));
+    halberd.add(box(0.3, 0.2, 0.1, 0xb8232f, 0, 2.7, 0.4));
+  } else if (cfg.weapon === 'twinaxe') { // 雙鐵戟（典韋）
+    halberd.add(box(0.12, 2.4, 0.12, 0x2a1a10, 0, 0.6, 0.4));
+    halberd.add(box(0.5, 0.6, 0.14, 0xb0b8c0, 0.25, 1.7, 0.4));
+    halberd.add(box(0.5, 0.6, 0.14, 0xb0b8c0, -0.25, 1.7, 0.4));
+  }
+  arm.add(halberd);
+  rider.add(arm);
+  rider.add(box(0.85, 1.5, 0.14, cfg.cloak, 0, 1.1, -0.36));     // 披風
+
+  rider.position.y = 1.55;
+  g.add(rider);
+  g.scale.setScalar(1.35);
+  g.visible = false;
+  scene.add(g);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  return { group: g, legs: luLegs, arm, halberd };
+}
+// 目前場上的 BOSS 模型（spawnBoss 時依關卡建立）
+let lubuModel = null;
+
+// BOSS 狀態
+const boss = {
+  active: false, dead: false,
+  hp: 0, maxHp: 0,
+  pos: new THREE.Vector3(),
+  yVel: 0, gait: 0,
+  attackCd: 2.0, state: 'chase', // chase / windup / charge / recover / gammaCharge / gammaFire
+  stateTimer: 0,
+  chargeDir: new THREE.Vector3(),
+  speed: 3.2, deathTimer: 0,
+  gammaCd: 4.0,
+};
+const bossBarEl = document.getElementById('bossBar');
+const bossHpFgEl = document.getElementById('bossHpFg');
+
+// Gozilla 的 gamma 射線光束（細長發光圓柱，平時隱藏）
+const gammaBeam = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.6, 0.6, 1, 12, 1, true),
+  new THREE.MeshBasicMaterial({ color: 0x9affc0, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })
+);
+gammaBeam.visible = false;
+scene.add(gammaBeam);
+// gamma 射線打到地面的命中光暈
+const gammaImpact = new THREE.Mesh(
+  new THREE.CircleGeometry(3.5, 28),
+  new THREE.MeshBasicMaterial({ color: 0x9affc0, transparent: true, opacity: 0, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })
+);
+gammaImpact.rotation.x = -Math.PI / 2;
+gammaImpact.visible = false;
+scene.add(gammaImpact);
+
+const bossNameEl = document.getElementById('bossName');
+
+function spawnBoss(cfg) {
+  // 移除上一個 BOSS 模型（換關時）
+  if (lubuModel) { scene.remove(lubuModel.group); lubuModel = null; }
+  lubuModel = buildBoss(cfg);
+  boss.cfg = cfg;
+  boss.active = true; boss.dead = false;
+  boss.hp = boss.maxHp = Math.round(cfg.hp * diff().boss);
+  boss.yVel = 0; boss.deathTimer = 0;
+  boss.attackCd = 2.5; boss.state = 'chase'; boss.stateTimer = 0;
+  boss.gammaCd = 4.0;
+  gammaBeam.visible = false; gammaBeam.material.opacity = 0; gammaImpact.visible = false;
+  const a = Math.random() * Math.PI * 2;
+  const bx = Math.max(-HALF+2, Math.min(HALF-2, player.position.x + Math.cos(a)*18));
+  const bz = Math.max(-HALF+2, Math.min(HALF-2, player.position.z + Math.sin(a)*18));
+  boss.pos.set(bx, terrainSurfaceY(bx, bz), bz);
+  lubuModel.group.position.copy(boss.pos);
+  lubuModel.group.rotation.set(0, 0, 0);
+  lubuModel.group.visible = true;
+  bossBarEl.classList.add('show');
+  bossNameEl.textContent = cfg.name;
+  updateBossHpUI();
+  showBanner(cfg.name + ' 來襲', cfg.subtitle);
+  sfxMusou();
+  addShake(0.4);
+}
+
+function updateBossHpUI() {
+  bossHpFgEl.style.width = Math.max(0, (boss.hp / boss.maxHp) * 100) + '%';
+}
+
+// 對 BOSS 造成傷害（玩家攻擊命中時呼叫）
+function damageBoss(dmg, dir) {
+  if (!boss.active || boss.dead) return;
+  boss.hp -= dmg;
+  updateBossHpUI();
+  spawnParticles(lubuModel.group.position, 5, 0xd4af37);
+  spawnFloater(lubuModel.group.position.clone().setY(lubuModel.group.position.y + 3), '-' + dmg, '#ffd76b', 24);
+  hitStop(0.05); addShake(0.12);
+  // BOSS 受擊不會被擊飛（霸體），但會略後退
+  if (dir) boss.pos.addScaledVector(dir, 0.15);
+  if (boss.hp <= 0) killBoss();
+}
+
+function killBoss() {
+  boss.dead = true;
+  bossBarEl.classList.remove('show');
+  gammaBeam.visible = false; gammaBeam.material.opacity = 0; gammaImpact.visible = false;
+  if (lubuModel.mouthGlow) lubuModel.mouthGlow.material.opacity = 0;
+  sfxKill(); hitStop(0.12); addShake(0.5);
+  for (let i = 0; i < 6; i++) spawnParticles(lubuModel.group.position, 12, 0xd4af37);
+  const isGoz = boss.cfg && boss.cfg.gozilla;
+  spawnFloater(lubuModel.group.position.clone().setY(lubuModel.group.position.y + 3), isGoz ? '魔王討伐！' : '擊 破！', '#ff6b3c', isGoz ? 52 : 40);
+  showBanner((boss.cfg ? boss.cfg.name : '敵將') + (isGoz ? ' 討伐成功' : ' 擊破'), isGoz ? '世界得救了' : '斬將立功');
+  // 擊敗 BOSS → 招降一名新武將
+  unlockRandomGeneral();
+}
+
+// 招降一名尚未解鎖的武將
+function unlockRandomGeneral() {
+  const locked = Object.keys(GENERALS).filter(k => !unlockedGenerals.has(k));
+  if (locked.length === 0) return;
+  const newGen = locked[Math.floor(Math.random() * locked.length)];
+  unlockedGenerals.add(newGen);
+  const cfg = GENERALS[newGen];
+  setTimeout(() => {
+    showSwitchHud(`招降武將：${cfg.name}！　按 T 切換 (${unlockedGenerals.size})`);
+    sfxMusou();
+  }, 1600);  // 等「擊破」橫幅播完再提示
+}
+
+// 切換到下一位「存活的」已解鎖武將
+function switchGeneral() {
+  const living = Object.keys(GENERALS).filter(k => unlockedGenerals.has(k) && !deadGenerals.has(k));
+  if (living.length < 2) {
+    showSwitchHud('沒有其他存活武將可切換');
+    return;
+  }
+  const idx = living.indexOf(currentGeneral);
+  const next = living[(idx + 1) % living.length];
+  // 存下目前武將的血量，切到下一位時載入他自己的血量（各自獨立）
+  generalHp[currentGeneral] = playerState.hp;
+  assemblePlayer(next);
+  applyGeneralStats(next);                 // 載入新武將的最大血量/攻擊 + 自己的當前血量
+  updatePlayerHpUI();
+  showSwitchHud(`切換武將：${GENERALS[next].name}（氣力 ${playerState.hp}/${playerState.maxHp}）`);
+  spawnParticles(player.position, 12, 0xffd76b);
+  sfxHeal();
+}
+
+const switchHudEl = document.getElementById('switchHud');
+function showSwitchHud(text) {
+  switchHudEl.textContent = text;
+  switchHudEl.classList.remove('show');
+  void switchHudEl.offsetWidth;
+  switchHudEl.classList.add('show');
+}
+
+function updateBoss(delta) {
+  if (!boss.active) return;
+  const g = lubuModel.group;
+
+  if (boss.dead) {
+    boss.deathTimer += delta;
+    g.rotation.z = Math.min(boss.deathTimer * 2, Math.PI / 2);  // 倒下
+    g.position.y = boss.pos.y - boss.deathTimer * 1.2;
+    if (boss.deathTimer > 1.2) { g.visible = false; boss.active = false; }
+    return;
+  }
+
+  // 重力貼地
+  const floorY = terrainSurfaceY(boss.pos.x, boss.pos.z);
+  boss.yVel -= 30 * delta;
+  boss.pos.y += boss.yVel * delta;
+  if (boss.pos.y < floorY) { boss.pos.y = floorY; boss.yVel = 0; }
+
+  const toPlayer = new THREE.Vector3().subVectors(player.position, boss.pos); toPlayer.y = 0;
+  const dist = toPlayer.length();
+  toPlayer.normalize();
+  boss.stateTimer -= delta;
+
+  // 狀態機：追擊 → 蓄力 → 衝鋒 → 收招（Gozilla 另有 gamma 射線）
+  const isGoz = boss.cfg && boss.cfg.gozilla;
+  const isCat = boss.cfg && boss.cfg.catzilla && !isGoz;
+  if (boss.state === 'chase') {
+    g.rotation.y = Math.atan2(toPlayer.x, toPlayer.z);
+    if (dist > 3) boss.pos.addScaledVector(toPlayer, boss.speed * delta);
+    boss.gait += delta * 8;
+    // Gozilla：優先嘗試遠距 gamma 射線
+    if (isGoz) {
+      boss.gammaCd -= delta;
+      if (boss.gammaCd <= 0) {
+        boss.state = 'gammaCharge'; boss.stateTimer = 1.2;
+        boss.chargeDir.copy(toPlayer);
+        sfxMusou(); addShake(0.2);
+      }
+    }
+    // 貓吉拉：靠近時用「漢堡重砸」震波(專屬招)
+    if (isCat) {
+      boss.gammaCd -= delta;
+      if (boss.gammaCd <= 0 && dist < 12) {
+        boss.state = 'catSlam'; boss.stateTimer = 0.6;
+        boss.chargeDir.copy(toPlayer);
+      }
+    }
+    boss.attackCd -= delta;
+    if (boss.attackCd <= 0 && dist < 14 && boss.state === 'chase') {
+      boss.state = 'windup'; boss.stateTimer = 0.7;
+      boss.chargeDir.copy(toPlayer);
+    }
+  } else if (boss.state === 'catSlam') {
+    // 貓吉拉專屬：高舉漢堡 → 重砸地面 → 放射狀漢堡震波
+    g.rotation.y = Math.atan2(boss.chargeDir.x, boss.chargeDir.z);
+    lubuModel.arm.rotation.x = -1.6 + (0.6 - boss.stateTimer) * 3;  // 舉起再砸下
+    if (boss.stateTimer <= 0) {
+      // 砸地！
+      addShake(0.5); hitStop(0.06); sfxKill();
+      spawnShockwave(); spawnShockwave();
+      // 朝四周噴出漢堡彈（用箭矢池當投射物，外觀以粒子表現）
+      for (let k = 0; k < 8; k++) {
+        const ang = (k / 8) * Math.PI * 2;
+        spawnParticles(boss.pos.clone().setY(boss.pos.y + 1), 4, 0xe0a23a);
+      }
+      // 範圍傷害：玩家若在近處被震到
+      const pd = new THREE.Vector3().subVectors(player.position, boss.pos); pd.y = 0;
+      if (pd.length() < 8 && playerState.invuln <= 0 && !playerState.inMusou) damagePlayer(16);
+      boss.state = 'recover'; boss.stateTimer = 0.9; boss.gammaCd = 3.5 + Math.random() * 2;
+    }
+  } else if (boss.state === 'gammaCharge') {
+    // 蓄力：對準玩家，嘴部能量球漸亮
+    g.rotation.y = Math.atan2(toPlayer.x, toPlayer.z);
+    if (lubuModel.mouthGlow) {
+      const k = 1 - boss.stateTimer / 1.2;
+      lubuModel.mouthGlow.material.opacity = k;
+      lubuModel.mouthGlow.scale.setScalar(0.5 + k * 1.2);
+    }
+    boss.chargeDir.copy(toPlayer);
+    if (boss.stateTimer <= 0) { boss.state = 'gammaFire'; boss.stateTimer = 0.7; addShake(0.5); sfxKill(); }
+  } else if (boss.state === 'gammaFire') {
+    // 發射 gamma 射線：從嘴沿斜下方向射出一長束，打到遠方地面
+    g.rotation.y = Math.atan2(boss.chargeDir.x, boss.chargeDir.z);
+    const mouth = boss.pos.clone(); mouth.y += 16;            // 嘴的世界高度（放大後）
+    const flat = boss.chargeDir.clone().normalize();
+    // 命中點：朝前方遠處的地面（取一段距離後的地表）
+    const reach = 70;
+    const hitX = boss.pos.x + flat.x * reach;
+    const hitZ = boss.pos.z + flat.z * reach;
+    const hitY = terrainSurfaceY(hitX, hitZ);
+    const impact = new THREE.Vector3(hitX, hitY + 0.2, hitZ);
+    const beamVec = new THREE.Vector3().subVectors(impact, mouth);
+    const beamLen = beamVec.length();
+    const dir = beamVec.clone().normalize();
+    // 擺放光束（從嘴一路斜射到地面命中點）
+    gammaBeam.visible = true;
+    gammaBeam.material.opacity = 0.85 + Math.sin(boss.stateTimer * 40) * 0.15;
+    const mid = mouth.clone().addScaledVector(dir, beamLen / 2);
+    gammaBeam.position.copy(mid);
+    gammaBeam.scale.set(2.0, beamLen, 2.0);                   // 加粗一長束
+    gammaBeam.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+    // 地面命中光暈 + 噴濺
+    gammaImpact.visible = true;
+    gammaImpact.position.set(hitX, hitY + 0.1, hitZ);
+    gammaImpact.material.opacity = 0.5 + Math.sin(clock.elapsedTime * 18) * 0.3;
+    const is = 1 + Math.sin(clock.elapsedTime * 14) * 0.25;
+    gammaImpact.scale.set(is, is, is);
+    if (Math.random() < 0.8) spawnParticles(impact.clone(), 4, 0x9affc0);
+    if (Math.random() < 0.4) spawnParticles(mouth.clone().addScaledVector(dir, beamLen*Math.random()), 2, 0xeaffe8);
+    // 命中判定：玩家若在光束沿線細長範圍內，或站在地面命中點附近 → 持續傷害
+    const toP = new THREE.Vector3().subVectors(player.position, mouth);
+    const along = toP.dot(dir);
+    const perp = toP.clone().addScaledVector(dir, -along).length();
+    const nearImpact = player.position.distanceTo(impact) < 4;
+    if (((along > 0 && perp < 2.5) || nearImpact) && playerState.invuln <= 0 && !playerState.inMusou) damagePlayer(2);
+    if (boss.stateTimer <= 0) {
+      gammaBeam.visible = false;
+      gammaImpact.visible = false;
+      if (lubuModel.mouthGlow) lubuModel.mouthGlow.material.opacity = 0;
+      boss.state = 'recover'; boss.stateTimer = 1.0; boss.gammaCd = 4.5 + Math.random() * 2;
+    }
+  } else if (boss.state === 'windup') {
+    lubuModel.arm.rotation.x = -1.2;
+    g.rotation.y = Math.atan2(boss.chargeDir.x, boss.chargeDir.z);
+    if (boss.stateTimer <= 0) { boss.state = 'charge'; boss.stateTimer = 0.9; addShake(0.2); }
+  } else if (boss.state === 'charge') {
+    lubuModel.arm.rotation.x = 0.3 + Math.sin(boss.stateTimer * 30) * 0.5;
+    boss.pos.addScaledVector(boss.chargeDir, 16 * delta);
+    boss.gait += delta * 20;
+    if (dist < 3 && playerState.invuln <= 0 && !playerState.inMusou) {
+      damagePlayer(isGoz ? 30 : 18); addShake(0.3);
+    }
+    spawnParticles(boss.pos, 3, 0xcaa46a);
+    if (boss.stateTimer <= 0) { boss.state = 'recover'; boss.stateTimer = 0.8; }
+  } else if (boss.state === 'recover') {
+    lubuModel.arm.rotation.x *= 0.85;
+    if (boss.stateTimer <= 0) { boss.state = 'chase'; boss.attackCd = 2.0 + Math.random(); }
+  }
+
+  // 戰場邊界
+  boss.pos.x = Math.max(-HALF+1, Math.min(HALF-1, boss.pos.x));
+  boss.pos.z = Math.max(-HALF+1, Math.min(HALF-1, boss.pos.z));
+
+  // 馬腿擺動
+  for (let i = 0; i < lubuModel.legs.length; i++) {
+    lubuModel.legs[i].rotation.x = Math.sin(boss.gait + (i % 2) * Math.PI) * 0.6;
+  }
+
+  g.position.copy(boss.pos);
+}
+
+/* =========================================================
+   6.5 波次關卡系統
+   ========================================================= */
+const TOTAL_WAVES = 6;         // 六關（第六關為魔王 Gozilla）
+
+// === 難易度設定 ===
+// hp/dmg/spd：敵兵屬性倍率；boss：BOSS 血量倍率；cap：場上小兵上限；bun：包子掉落率；interval：生成間隔倍率
+const DIFFICULTY = {
+  rookie: { name:'新手村', hp:0.6, dmg:0.5, spd:0.85, boss:0.6, cap:14, bun:0.40, interval:1.4 },
+  master: { name:'高手',   hp:1.0, dmg:1.0, spd:1.0,  boss:1.0, cap:24, bun:0.22, interval:1.0 },
+  hell:   { name:'地獄',   hp:1.6, dmg:1.6, spd:1.25, boss:1.5, cap:36, bun:0.12, interval:0.6 },
+};
+let currentDifficulty = 'master';
+function diff() { return DIFFICULTY[currentDifficulty]; }
+let CONCURRENT_CAP = 24;     // 場上同時最多的活躍小兵數（依難度設定）
+
+const waveState = {
+  current: 0,            // 目前關卡（0 = 尚未開始）
+  target: 0,            // 本關小兵目標
+  killedThisWave: 0,    // 本關已擊破小兵
+  spawnedThisWave: 0,   // 本關已生成小兵
+  spawnTimer: 0,        // 生成節流計時
+  bossWave: false,      // 本關是否有 BOSS
+  cleared: false,       // 本關是否已通關（城門已開）
+  gameOver: false,
+};
+
+// 每關的設定：小兵擊破目標數 + 敵兵屬性（隨關卡變強，再乘難度倍率）
+function getWaveConfig(n) {
+  const d = diff();
+  return {
+    target: 10 + n * 3,
+    hp: Math.max(1, Math.round((2 + Math.floor((n - 1) / 2)) * d.hp)),
+    speed: (2.2 + (n - 1) * 0.25) * d.spd,
+    damage: Math.max(1, Math.round((6 + (n - 1) * 2) * d.dmg)),
+    spawnInterval: Math.max(0.18, (0.6 - n * 0.06) * d.interval),
+  };
+}
+
+const waveNumEl = document.getElementById('waveNum');
+const waveTargetEl = document.getElementById('waveTarget');
+const bannerEl = document.getElementById('banner');
+const bannerBig = bannerEl.querySelector('.big');
+const bannerSub = bannerEl.querySelector('.sub');
+const resultEl = document.getElementById('result');
+
+function showBanner(big, sub) {
+  bannerBig.textContent = big;
+  bannerSub.textContent = sub;
+  bannerEl.classList.remove('show');
+  void bannerEl.offsetWidth;
+  bannerEl.classList.add('show');
+}
+
+const cnNum = ['零','一','二','三','四','五','六','七','八','九','十'];
+
+// 過五關斬六將：每一關都有一名 BOSS（依關卡對應 BOSS_GENERALS）
+// n=1→呂布, 2→曹操, 3→孫策, 4→典韋, 5→夏侯惇
+function bossForLevel(n) { return BOSS_GENERALS[n - 1] || null; }
+
+// 開始某一關
+function startWave(n) {
+  waveState.current = n;
+  applyLevelTheme(n);                    // 切換該關場景天色/霧/光線
+  const cfg = getWaveConfig(n);
+  waveState.target = cfg.target;
+  waveState.killedThisWave = 0;
+  waveState.spawnedThisWave = 0;
+  waveState.cleared = false;
+  waveState.spawnTimer = 0;
+  const bcfg = bossForLevel(n);
+  waveState.bossWave = !!bcfg;
+  waveNumEl.textContent = `第 ${n} 關 · ${diff().name}`;
+  updateWaveTargetUI();
+  if (bcfg) {
+    showBanner(`第${cnNum[n] || n}關`, `斬 ${bcfg.name}`);
+    spawnBoss(bcfg);     // 召喚該關 BOSS 武將
+  } else {
+    showBanner(`第${cnNum[n] || n}關`, '敵軍來襲');
+  }
+  // 每關補充 2 隻小動物友軍
+  if (n > 1) { spawnAlly(); spawnAlly(); }
+}
+
+function updateWaveTargetUI() {
+  if (waveState.cleared) {
+    waveTargetEl.innerHTML = `關主已斬・<b>走進城門</b>`;
+  } else if (waveState.bossWave) {
+    waveTargetEl.innerHTML = `擊殺關主以過關 · 已斬小兵 <b>${waveState.killedThisWave}</b>`;
+  } else {
+    waveTargetEl.innerHTML = `已斬小兵 <b>${waveState.killedThisWave}</b>`;
+  }
+}
+
+// 每幀更新關卡：控制生成與「開門過關」判定
+function updateWaves(delta) {
+  if (waveState.gameOver || levelTransition) return;
+
+  // 尚未開始 → 開第一關
+  if (waveState.current === 0) {
+    startWave(1);
+    return;
+  }
+
+  const cfg = getWaveConfig(waveState.current);
+  const bossAlive = waveState.bossWave && boss.active && !boss.dead;
+
+  // 關主還活著 → 小兵源源不絕地補充（維持場上一定數量的壓力）
+  if (bossAlive) {
+    const activeCount = soldiers.filter(s => s.active && !s.dead).length;
+    if (activeCount < CONCURRENT_CAP) {
+      waveState.spawnTimer -= delta;
+      if (waveState.spawnTimer <= 0) {
+        activateSoldier(cfg);
+        waveState.spawnedThisWave++;
+        waveState.spawnTimer = cfg.spawnInterval;
+      }
+    }
+  }
+
+  // 關主已斬 → 開啟城門（玩家走進去才進下一關）
+  const bossCleared = !waveState.bossWave || (!boss.active);
+  if (bossCleared && !waveState.cleared) {
+    waveState.cleared = true;
+    openGate();
+    updateWaveTargetUI();
+    if (waveState.current >= TOTAL_WAVES) {
+      showBanner('魔王已討', '走進城門・凱旋');
+    } else {
+      showBanner('斬將過關', '城門已開・走進前方關門');
+    }
+  }
+}
+
+/* =========================================================
+   排行榜（綜合分數：闖關速度 高權重 / 擊殺數 中權重 / 剩餘武將 低權重）
+   以 localStorage 持久化（file:// 下比 cookie 可靠），存取失敗則退回記憶體
+   ========================================================= */
+const LB_KEY = 'sanguo_leaderboard_v1';
+let lbMemory = [];   // 萬一 localStorage 不可用時的後備
+function lbLoad() {
+  try {
+    const raw = localStorage.getItem(LB_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return lbMemory.slice(); }
+}
+function lbSave(list) {
+  lbMemory = list.slice();
+  try { localStorage.setItem(LB_KEY, JSON.stringify(list)); } catch (e) { /* file:// 受限時退回記憶體 */ }
+}
+// 綜合分數：速度(高) + 擊殺(中) + 剩餘武將(低)
+function computeScore(timeSec, kills, survivors) {
+  const speedPts = Math.max(0, 1800 - timeSec) * 5;   // 高權重：越快分越高（上限 1800 秒）
+  const killPts  = kills * 3;                          // 中權重
+  const survPts  = survivors * 80;                     // 低權重
+  return Math.round(speedPts + killPts + survPts);
+}
+function fmtTime(sec) {
+  const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+// 通關時記錄一筆成績
+function recordResult() {
+  const timeSec = Math.max(1, (performance.now() - gameStartTime) / 1000);
+  const survivors = Object.keys(GENERALS).filter(k => unlockedGenerals.has(k) && !deadGenerals.has(k)).length;
+  const score = computeScore(timeSec, killCount, survivors);
+  let name = '';
+  try { name = (prompt('🏆 通關成功！輸入你的名字登上排行榜：', '無名英雄') || '').trim(); } catch (e) {}
+  if (!name) name = '無名英雄';
+  name = name.slice(0, 12);
+  const entry = { name, score, kills: killCount, time: timeSec, survivors, diff: diff().name, date: Date.now() };
+  const list = lbLoad();
+  list.push(entry);
+  list.sort((a, b) => b.score - a.score);
+  const top = list.slice(0, 20);
+  lbSave(top);
+  return { entry, top };
+}
+
+// 顯示排行榜面板；highlightEntry 為剛達成的成績（高亮）
+const lbEl = document.getElementById('leaderboard');
+const lbBodyEl = document.getElementById('lbBody');
+function showLeaderboard(highlightEntry) {
+  const list = lbLoad();
+  if (list.length === 0) {
+    lbBodyEl.innerHTML = `<div class="lbEmpty">尚無紀錄 — 通關後即可登榜！</div>`;
+  } else {
+    let html = `<div class="lbRow lbHead"><span>#</span><span>名稱</span><span>難度</span><span>時間</span><span>擊殺</span><span>存活</span><span>總分</span></div>`;
+    list.forEach((e, i) => {
+      const hot = highlightEntry && e.name === highlightEntry.name && e.score === highlightEntry.score && e.date === highlightEntry.date;
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+      html += `<div class="lbRow${hot ? ' lbHot' : ''}"><span>${medal}</span><span>${e.name}</span><span>${e.diff || '-'}</span><span>${fmtTime(e.time)}</span><span>${e.kills}</span><span>${e.survivors}</span><span class="lbScore">${e.score}</span></div>`;
+    });
+    lbBodyEl.innerHTML = html;
+  }
+  lbEl.classList.add('show');
+}
+function hideLeaderboard() { lbEl.classList.remove('show'); }
+
+function winGame() {
+  waveState.gameOver = true;
+  endGame(true);
+}
+
+let gameEnded = false;
+function endGame(win) {
+  if (gameEnded) return;     // 只結算一次，避免重複記錄/重複彈出排行榜
+  gameEnded = true;
+  document.exitPointerLock();
+  document.body.classList.remove('playing');   // 收起遊戲 HUD / 觸控按鈕
+  resultEl.querySelector('h1').textContent = win ? '討伐魔王・天下太平' : '力 竭 陣 亡';
+  resultEl.querySelector('h1').className = win ? 'win' : 'lose';
+  resultEl.querySelector('h1').style.fontSize = win ? '40px' : '';
+  document.getElementById('resultKills').textContent = killCount;
+  resultEl.classList.add('show');
+  // 通關 → 記錄成績並顯示排行榜
+  if (win) {
+    const { entry } = recordResult();
+    setTimeout(() => showLeaderboard(entry), 600);
+  }
+}
+
+// 重新開始（點擊結算畫面）
+resultEl.addEventListener('click', () => location.reload());
+
+/* =========================================================
+   7. 攻擊系統：普攻連段 + 命中判定
+   ========================================================= */
+const ATTACK_RANGE = 3.2;       // 普攻範圍半徑
+const ATTACK_ARC = Math.PI * 0.7; // 攻擊扇形角度（前方）
+const COMBO_RESET = 0.9;        // 連段中斷時間
+
+let killCount = 0;
+const killEl = document.getElementById('killCount');
+const musouBar = document.getElementById('musouBar');
+const flashEl = document.getElementById('flash');
+const hurtEl = document.getElementById('hurt');
+
+/* =========================================================
+   打擊感系統：粒子 / 刀光 / 飄字 / 頓幀 / 相機震動 / 連段
+   ========================================================= */
+
+// --- 方塊碎裂粒子（共用 InstancedMesh 池）---
+const PARTICLE_MAX = 400;
+const particleGeo = new THREE.BoxGeometry(0.18, 0.18, 0.18);
+const particleMat = new THREE.MeshStandardMaterial({ vertexColors: true });
+const particleMesh = new THREE.InstancedMesh(particleGeo, particleMat, PARTICLE_MAX);
+particleMesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(PARTICLE_MAX * 3), 3);
+particleMesh.frustumCulled = false;
+scene.add(particleMesh);
+const particles = [];
+for (let i = 0; i < PARTICLE_MAX; i++) {
+  particles.push({ active:false, pos:new THREE.Vector3(), vel:new THREE.Vector3(), life:0, maxLife:0, color:new THREE.Color() });
+}
+const pDummy = new THREE.Object3D();
+function spawnParticles(pos, n, baseColor) {
+  let spawned = 0;
+  for (const p of particles) {
+    if (p.active) continue;
+    p.active = true;
+    p.pos.copy(pos); p.pos.y += 0.8;
+    p.vel.set((Math.random()-0.5)*6, Math.random()*7+2, (Math.random()-0.5)*6);
+    p.maxLife = p.life = 0.5 + Math.random()*0.4;
+    p.color.setHex(baseColor).offsetHSL(0, 0, (Math.random()-0.5)*0.2);
+    if (++spawned >= n) break;
+  }
+}
+function updateParticles(delta) {
+  for (let i = 0; i < PARTICLE_MAX; i++) {
+    const p = particles[i];
+    if (!p.active) { pDummy.scale.setScalar(0); pDummy.position.set(0,-999,0); }
+    else {
+      p.life -= delta;
+      if (p.life <= 0) { p.active = false; pDummy.scale.setScalar(0); pDummy.position.set(0,-999,0); }
+      else {
+        p.vel.y -= 22 * delta;
+        p.pos.addScaledVector(p.vel, delta);
+        if (p.pos.y < 0.1) { p.pos.y = 0.1; p.vel.y *= -0.4; p.vel.x *= 0.7; p.vel.z *= 0.7; }
+        pDummy.position.copy(p.pos);
+        const s = Math.max(0.01, p.life / p.maxLife);
+        pDummy.scale.setScalar(s);
+        pDummy.rotation.set(p.life*8, p.life*6, 0);
+        particleMesh.setColorAt(i, p.color);
+      }
+    }
+    pDummy.updateMatrix();
+    particleMesh.setMatrixAt(i, pDummy.matrix);
+  }
+  particleMesh.instanceMatrix.needsUpdate = true;
+  if (particleMesh.instanceColor) particleMesh.instanceColor.needsUpdate = true;
+}
+
+// --- 刀光殘影（揮砍時地面上方的扇形面片）---
+const slashMat = new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false });
+const slashMesh = new THREE.Mesh(new THREE.RingGeometry(1.6, ATTACK_RANGE, 24, 1, 0, ATTACK_ARC), slashMat);
+slashMesh.rotation.x = -Math.PI / 2;
+scene.add(slashMesh);
+let slashLife = 0;
+function showSlash(color) {
+  slashLife = 0.22;
+  slashMat.opacity = 0.7;
+  slashMat.color.setHex(color !== undefined ? color : 0xffffff);
+}
+function updateSlash(delta) {
+  if (slashLife > 0) {
+    slashLife -= delta;
+    slashMat.opacity = Math.max(0, slashLife / 0.22) * 0.7;
+    slashMesh.position.set(player.position.x, player.position.y + 1.0, player.position.z);
+    slashMesh.rotation.z = -playerAim - Math.PI/2 + ATTACK_ARC/2;
+  } else slashMat.opacity = 0;
+}
+
+/* =========================================================
+   無雙大絕的華麗視覺物件（旋轉刀光環 / 衝擊波 / 金光柱 / 龍捲）
+   ========================================================= */
+
+// 1) 雙層旋轉刀光環：環繞角色高速旋轉的金色弧形刀光
+const musouRingGroup = new THREE.Group();
+musouRingGroup.visible = false;
+const ringMatA = new THREE.MeshBasicMaterial({ color:0xffe08a, transparent:true, opacity:0.85, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending });
+const ringMatB = new THREE.MeshBasicMaterial({ color:0xff7b2e, transparent:true, opacity:0.7, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending });
+// 兩道扇形刀光（相對 180 度，營造雙刀旋風）
+const ringA = new THREE.Mesh(new THREE.RingGeometry(2.0, 5.5, 40, 1, 0, Math.PI*0.55), ringMatA);
+const ringB = new THREE.Mesh(new THREE.RingGeometry(2.0, 5.5, 40, 1, Math.PI, Math.PI*0.55), ringMatB);
+ringA.rotation.x = ringB.rotation.x = -Math.PI/2;
+musouRingGroup.add(ringA); musouRingGroup.add(ringB);
+// 內圈光環
+const ringInner = new THREE.Mesh(new THREE.RingGeometry(1.2, 1.6, 40), new THREE.MeshBasicMaterial({ color:0xffffff, transparent:true, opacity:0.6, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending }));
+ringInner.rotation.x = -Math.PI/2;
+musouRingGroup.add(ringInner);
+scene.add(musouRingGroup);
+
+// 2) 衝擊波擴散圈（池：放大絕時持續向外擴散的能量環）
+const shockwaves = [];
+const SHOCK_MAX = 6;
+for (let i = 0; i < SHOCK_MAX; i++) {
+  const m = new THREE.Mesh(
+    new THREE.RingGeometry(0.9, 1.2, 48),
+    new THREE.MeshBasicMaterial({ color:0xffd76b, transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending })
+  );
+  m.rotation.x = -Math.PI/2;
+  m.visible = false;
+  scene.add(m);
+  shockwaves.push({ mesh: m, active:false, t:0 });
+}
+function spawnShockwave() {
+  const sw = shockwaves.find(s => !s.active);
+  if (!sw) return;
+  sw.active = true; sw.t = 0;
+  sw.mesh.visible = true;
+  sw.mesh.position.set(player.position.x, 0.15, player.position.z);
+}
+function updateShockwaves(delta) {
+  for (const sw of shockwaves) {
+    if (!sw.active) continue;
+    sw.t += delta;
+    const r = 1 + sw.t * 14;          // 向外擴散
+    sw.mesh.scale.set(r, r, r);
+    sw.mesh.material.opacity = Math.max(0, 0.8 * (1 - sw.t / 0.7));
+    if (sw.t > 0.7) { sw.active = false; sw.mesh.visible = false; }
+  }
+}
+
+// 3) 金色光柱：放大絕啟動瞬間從角色腳下衝天的光束
+const pillarMat = new THREE.MeshBasicMaterial({ color:0xffe08a, transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending });
+const pillar = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 1.2, 16, 24, 1, true), pillarMat);
+pillar.visible = false;
+scene.add(pillar);
+let pillarLife = 0;
+function firePillar() {
+  pillarLife = 0.6;
+  pillar.visible = true;
+  pillar.position.set(player.position.x, 8, player.position.z);
+}
+function updatePillar(delta) {
+  if (pillarLife > 0) {
+    pillarLife -= delta;
+    const k = pillarLife / 0.6;
+    pillarMat.opacity = k * 0.7;
+    pillar.scale.set(1 + (1-k)*0.5, 1, 1 + (1-k)*0.5);
+    pillar.rotation.y += delta * 4;
+    pillar.position.x = player.position.x;
+    pillar.position.z = player.position.z;
+    if (pillarLife <= 0) pillar.visible = false;
+  }
+}
+
+// 4) 角色金光暈：放大絕期間角色周身的發光球
+const auraMat = new THREE.MeshBasicMaterial({ color:0xffd76b, transparent:true, opacity:0, depthWrite:false, blending:THREE.AdditiveBlending });
+const aura = new THREE.Mesh(new THREE.SphereGeometry(2.4, 20, 16), auraMat);
+aura.visible = false;
+scene.add(aura);
+
+/* === 各武將無雙專屬主視覺（不再共用刀光環，使每招外觀完全不同）=== */
+// 張飛：腳下紅色震地圓盤
+const fxQuakeDisc = new THREE.Mesh(
+  new THREE.CircleGeometry(6, 32),
+  new THREE.MeshBasicMaterial({ color:0xff6a2a, transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending })
+);
+fxQuakeDisc.rotation.x = -Math.PI/2; fxQuakeDisc.visible = false; scene.add(fxQuakeDisc);
+
+// 趙雲：前方藍色長槍光束（突刺軌跡）
+const fxLance = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.35, 0.1, 1, 10),
+  new THREE.MeshBasicMaterial({ color:0xdce8ff, transparent:true, opacity:0, depthWrite:false, blending:THREE.AdditiveBlending })
+);
+fxLance.visible = false; scene.add(fxLance);
+
+// 馬超：身前紅色衝鋒光錐
+const fxCone = new THREE.Mesh(
+  new THREE.ConeGeometry(2.2, 6, 16, 1, true),
+  new THREE.MeshBasicMaterial({ color:0xff5a4a, transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending })
+);
+fxCone.visible = false; scene.add(fxCone);
+
+// 黃忠：地面金色瞄準大圓圈（箭雨落點）
+const fxArrowTarget = new THREE.Mesh(
+  new THREE.RingGeometry(8.5, 9.5, 40),
+  new THREE.MeshBasicMaterial({ color:0xffe08a, transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending })
+);
+fxArrowTarget.rotation.x = -Math.PI/2; fxArrowTarget.visible = false; scene.add(fxArrowTarget);
+
+// 犀利鴨蛋：彩虹龍捲（垂直圓柱，多層）
+const fxTornado = new THREE.Group();
+const tornadoCols = [0xff5a5a, 0xffd24a, 0x5ad07a, 0x4ab8ff, 0x9a6aff];
+for (let i = 0; i < 5; i++) {
+  const ring = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.8 + i*0.5, 0.5 + i*0.4, 1.4, 16, 1, true),
+    new THREE.MeshBasicMaterial({ color:tornadoCols[i], transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending })
+  );
+  ring.position.y = 0.8 + i * 1.2;
+  fxTornado.add(ring);
+}
+fxTornado.visible = false; scene.add(fxTornado);
+
+// 把所有專屬視覺一次性隱藏（無雙開始時依 mode 開啟對應的）
+function hideAllMusouFx() {
+  musouRingGroup.visible = false; aura.visible = false;
+  fxQuakeDisc.visible = false; fxLance.visible = false; fxCone.visible = false;
+  fxArrowTarget.visible = false; fxTornado.visible = false;
+  fxQuakeDisc.material.opacity = 0; fxLance.material.opacity = 0; fxCone.material.opacity = 0;
+  fxArrowTarget.material.opacity = 0;
+  fxTornado.children.forEach(c => c.material.opacity = 0);
+}
+
+// 放大絕期間環繞上升的金色粒子（額外的金光碎屑，借用粒子池但指定金色）
+function spawnGoldSwirl() {
+  spawnParticles(player.position, 5, 0xffd76b);
+}
+
+// 5) 前方刀氣波：衝鋒無雙時朝關羽面向射出的彎月刀光，視覺上「劈開前路」
+const bladeWaves = [];
+const BLADE_WAVE_MAX = 10;
+const bladeWaveGeo = new THREE.RingGeometry(1.4, 3.4, 28, 1, Math.PI * 0.15, Math.PI * 0.7);
+for (let i = 0; i < BLADE_WAVE_MAX; i++) {
+  const m = new THREE.Mesh(
+    bladeWaveGeo,
+    new THREE.MeshBasicMaterial({ color:0xfff0c0, transparent:true, opacity:0, side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending })
+  );
+  m.rotation.x = -Math.PI / 2;  // 平躺
+  m.visible = false;
+  scene.add(m);
+  bladeWaves.push({ mesh: m, active:false, t:0, dir:new THREE.Vector3(), start:new THREE.Vector3() });
+}
+function fireBladeWave(color) {
+  const bw = bladeWaves.find(b => !b.active);
+  if (!bw) return;
+  bw.active = true; bw.t = 0;
+  bw.dir.copy(getPlayerForward());
+  bw.start.set(player.position.x, player.position.y + 0.6, player.position.z);
+  bw.mesh.visible = true;
+  bw.mesh.material.color.setHex(color !== undefined ? color : 0xfff0c0);
+  // 讓彎月開口朝前
+  bw.mesh.rotation.z = -Math.atan2(bw.dir.x, bw.dir.z) - Math.PI/2 + Math.PI*0.35;
+}
+// 武士刀藍白刀氣波
+function fireKatanaWave() {
+  fireBladeWave(0x9fe8ff);
+  // 額外噴一些藍白星塵在身前
+  const fwd = getPlayerForward();
+  const p = new THREE.Vector3(player.position.x + fwd.x*2, player.position.y + 1.6, player.position.z + fwd.z*2);
+  spawnParticles(p, 6, 0xbfeeff);
+}
+function updateBladeWaves(delta) {
+  for (const bw of bladeWaves) {
+    if (!bw.active) continue;
+    bw.t += delta;
+    const travel = bw.t * 22;  // 往前飛
+    bw.mesh.position.set(
+      bw.start.x + bw.dir.x * travel,
+      bw.start.y,
+      bw.start.z + bw.dir.z * travel
+    );
+    const k = 1 - bw.t / 0.5;
+    bw.mesh.material.opacity = Math.max(0, k) * 0.9;
+    const sc = 1 + bw.t * 1.5;
+    bw.mesh.scale.set(sc, sc, 1);
+    if (bw.t > 0.5) { bw.active = false; bw.mesh.visible = false; }
+  }
+}
+
+/* =========================================================
+   箭矢投射物（黃忠遠距射箭）
+   ========================================================= */
+const arrows = [];
+const ARROW_MAX = 24;
+const arrowGeo = new THREE.BoxGeometry(0.08, 0.08, 1.0);
+const arrowMat = new THREE.MeshBasicMaterial({ color: 0x6b4a2a });
+const arrowHeadMat = new THREE.MeshBasicMaterial({ color: 0xcfd6dd });
+for (let i = 0; i < ARROW_MAX; i++) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(arrowGeo, arrowMat));
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.18), arrowHeadMat);
+  head.position.z = 0.55; g.add(head);
+  g.visible = false;
+  scene.add(g);
+  arrows.push({ mesh: g, active: false, vel: new THREE.Vector3(), life: 0 });
+}
+
+// 敵方箭矢（弓兵射向玩家，命中玩家造成傷害）
+const enemyArrows = [];
+const ENEMY_ARROW_MAX = 30;
+const eArrowMat = new THREE.MeshBasicMaterial({ color: 0x3a6b3a });
+const eArrowHeadMat = new THREE.MeshBasicMaterial({ color: 0xb0d0a0 });
+for (let i = 0; i < ENEMY_ARROW_MAX; i++) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(arrowGeo, eArrowMat));
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.18), eArrowHeadMat);
+  head.position.z = 0.55; g.add(head);
+  g.visible = false;
+  scene.add(g);
+  enemyArrows.push({ mesh: g, active: false, vel: new THREE.Vector3(), life: 0, dmg: 5 });
+}
+
+// 弓兵朝玩家射一支箭
+function enemyFireArrow(fromPos, dmg) {
+  const a = enemyArrows.find(x => !x.active);
+  if (!a) return;
+  const dir = new THREE.Vector3().subVectors(player.position.clone().setY(player.position.y + 1), fromPos);
+  dir.normalize();
+  a.active = true; a.life = 0; a.dmg = dmg;
+  a.mesh.position.copy(fromPos);
+  a.vel.copy(dir).multiplyScalar(26);
+  a.mesh.rotation.y = Math.atan2(dir.x, dir.z);
+  a.mesh.visible = true;
+}
+
+function updateEnemyArrows(delta) {
+  for (const a of enemyArrows) {
+    if (!a.active) continue;
+    a.life += delta;
+    a.mesh.position.addScaledVector(a.vel, delta);
+    a.vel.y -= 8 * delta;   // 輕微重力弧線
+    // 命中玩家
+    if (a.mesh.position.distanceTo(player.position.clone().setY(player.position.y + 1)) < 1.1) {
+      if (playerState.invuln <= 0 && !playerState.inMusou) damagePlayer(a.dmg);
+      a.active = false; a.mesh.visible = false; continue;
+    }
+    if (a.life > 2.5 || a.mesh.position.y < terrainSurfaceY(a.mesh.position.x, a.mesh.position.z) - 1
+        || Math.abs(a.mesh.position.x) > HALF || Math.abs(a.mesh.position.z) > HALF) {
+      a.active = false; a.mesh.visible = false;
+    }
+  }
+}
+
+// 從黃忠面向發射一支箭
+function fireArrow(dmg) {
+  const a = arrows.find(x => !x.active);
+  if (!a) return;
+  const fwd = getPlayerForward();
+  a.active = true; a.life = 0; a.dmg = dmg;
+  a.mesh.position.set(
+    player.position.x + fwd.x * 1.5,
+    player.position.y + 2.2,
+    player.position.z + fwd.z * 1.5
+  );
+  a.vel.set(fwd.x, 0, fwd.z).multiplyScalar(38);  // 高速直線飛行
+  a.mesh.rotation.y = Math.atan2(fwd.x, fwd.z);
+  a.mesh.visible = true;
+}
+
+function updateArrows(delta) {
+  for (const a of arrows) {
+    if (!a.active) continue;
+    a.life += delta;
+    a.mesh.position.addScaledVector(a.vel, delta);
+    // 命中偵測：碰到任何活躍敵兵
+    let hit = false;
+    for (const s of soldiers) {
+      if (s.dead || !s.active) continue;
+      if (a.mesh.position.distanceTo(s.mesh.position) < 1.0) {
+        const dir = new THREE.Vector3().subVectors(s.mesh.position, a.mesh.position); dir.y = 0; dir.normalize();
+        hitSoldier(s, a.dmg, dir, 6);
+        hit = true; break;
+      }
+    }
+    // 命中 BOSS
+    if (!hit && boss.active && !boss.dead && a.mesh.position.distanceTo(boss.pos) < 2.0) {
+      const dir = new THREE.Vector3().subVectors(boss.pos, a.mesh.position); dir.y = 0; dir.normalize();
+      damageBoss(a.dmg, dir);
+      hit = true;
+    }
+    // 出界或逾時或命中 → 回收
+    if (hit || a.life > 1.5 || Math.abs(a.mesh.position.x) > HALF || Math.abs(a.mesh.position.z) > HALF) {
+      a.active = false; a.mesh.visible = false;
+    }
+  }
+}
+
+// --- 飄字（傷害數字 / 擊殺）---
+const floatersEl = document.getElementById('floaters');
+function spawnFloater(worldPos, text, color, size) {
+  const v = worldPos.clone(); v.y += 1.6;
+  v.project(camera);
+  if (v.z > 1) return;
+  const x = (v.x * 0.5 + 0.5) * innerWidth;
+  const y = (-v.y * 0.5 + 0.5) * innerHeight;
+  const el = document.createElement('div');
+  el.className = 'floater';
+  el.textContent = text;
+  el.style.left = x + 'px'; el.style.top = y + 'px';
+  el.style.color = color; el.style.fontSize = (size||24) + 'px';
+  el.style.animation = 'floatUp 0.8s ease-out forwards';
+  floatersEl.appendChild(el);
+  setTimeout(() => el.remove(), 800);
+}
+
+// --- 頓幀 hit-stop ---
+let hitStopTimer = 0;
+function hitStop(d) { hitStopTimer = Math.max(hitStopTimer, d); }
+
+// --- 相機震動 ---
+let shakeAmount = 0;
+function addShake(a) { shakeAmount = Math.min(0.6, shakeAmount + a); }
+
+// --- 連段顯示 ---
+const comboEl = document.getElementById('combo');
+const comboNumEl = comboEl.querySelector('.num');
+let comboHits = 0, comboDecay = 0;
+function addComboHit() {
+  comboHits++; comboDecay = 2.0;
+  comboNumEl.textContent = comboHits;
+  comboEl.classList.add('show');
+  comboEl.classList.remove('bump');
+  void comboEl.offsetWidth;
+  comboEl.classList.add('bump');
+}
+function updateCombo(delta) {
+  if (comboDecay > 0) {
+    comboDecay -= delta;
+    if (comboDecay <= 0) { comboHits = 0; comboEl.classList.remove('show'); }
+  }
+}
+
+function tryAttack() {
+  if (playerState.inMusou) return;
+  if (playerState.attacking && playerState.attackTimer > 0.25) return; // 連段節奏
+  playerState.attacking = true;
+  playerState.attackTimer = 0;
+  playerState.comboStep = (playerState.comboStep % 3) + 1; // 1→2→3 循環
+
+  if (currentGeneral === 'huangzhong') {
+    // === 弓箭・遠距射擊 ===
+    sfxBow();
+    fireArrow(Math.round(3 * playerState.atkMul));   // 射出飛行箭矢（傷害較高）
+    addShake(0.05);
+    playerState.attacking = true; playerState.attackTimer = 0;
+    return;
+  }
+
+  if (currentGeneral === 'raymond67') {
+    // === 武士刀・居合斬 ===
+    sfxKatana();
+    showSlash(0x9fe8ff);                 // 藍白刀氣
+    fireKatanaWave();                    // 藍白刀氣波往前射
+    // 居合突進：朝面向小幅前衝
+    const fwd = getPlayerForward();
+    player.position.x += fwd.x * 1.2;
+    player.position.z += fwd.z * 1.2;
+    player.position.x = Math.max(-(HALF-0.5), Math.min(HALF-0.5, player.position.x));
+    player.position.z = Math.max(-(HALF-0.5), Math.min(HALF-0.5, player.position.z));
+    // 快速雙段斬：較窄但較遠，命中兩次
+    dealDamageArc(ATTACK_RANGE + 1.5, ATTACK_ARC * 0.7, Math.round(2 * playerState.atkMul), 8);
+    setTimeout(() => { if (pointerLocked) dealDamageArc(ATTACK_RANGE + 1.5, ATTACK_ARC * 0.7, Math.round(2 * playerState.atkMul), 8); }, 70);
+    addShake(0.08);
+    return;
+  }
+
+  sfxSwing();
+  showSlash();
+  // 命中判定（前方扇形範圍）
+  dealDamageArc(ATTACK_RANGE, ATTACK_ARC, Math.round(2 * playerState.atkMul), 7);
+}
+
+// 對前方扇形範圍內的小兵造成傷害並擊飛
+function dealDamageArc(range, arc, dmg, knockForce) {
+  const forward = getPlayerForward();
+  for (const s of soldiers) {
+    if (s.dead) continue;
+    const to = new THREE.Vector3().subVectors(s.mesh.position, player.position);
+    to.y = 0;
+    const dist = to.length();
+    if (dist > range) continue;
+    to.normalize();
+    const angle = forward.angleTo(to);
+    if (angle > arc / 2) continue;   // 不在攻擊扇形內
+    hitSoldier(s, dmg, to, knockForce);
+  }
+  // 也可命中 BOSS 呂布（範圍放大一點，因為他體型大）
+  if (boss.active && !boss.dead) {
+    const to = new THREE.Vector3().subVectors(boss.pos, player.position); to.y = 0;
+    const dist = to.length();
+    if (dist <= range + 1.5) {
+      to.normalize();
+      if (forward.angleTo(to) <= arc / 2) damageBoss(dmg, to);
+    }
+  }
+}
+
+function hitSoldier(s, dmg, dir, knockForce) {
+  s.hp -= dmg;
+  updateSoldierHpBar(s);
+  // 擊飛效果
+  s.knockback.copy(dir).multiplyScalar(knockForce);
+  s.yVel = 5;
+  // 打擊感
+  sfxHit();
+  hitStop(0.04);
+  addShake(0.12);
+  addComboHit();
+  spawnParticles(s.mesh.position, 6, 0xff5544);
+  spawnFloater(s.mesh.position, '-' + dmg, '#ffec99', 22);
+  if (s.hp <= 0) killSoldier(s);
+}
+
+function killSoldier(s) {
+  s.dead = true;
+  s.hpBg.visible = false; s.hpFg.visible = false; // 死亡隱藏血條
+  killCount++;
+  killEl.firstChild.textContent = killCount + ' ';
+  // 計入本波擊破
+  waveState.killedThisWave++;
+  updateWaveTargetUI();
+  // 累積無雙槽
+  if (!playerState.inMusou) {
+    playerState.musou = Math.min(playerState.musouMax, playerState.musou + 4);
+  }
+  // 擊殺特效
+  sfxKill();
+  hitStop(0.06);
+  addShake(0.2);
+  spawnParticles(s.mesh.position, 14, 0x8a5a3a);
+  spawnFloater(s.mesh.position, 'KILL', '#ff6b3c', 28);
+  // 機率掉落補血包子
+  if (Math.random() < diff().bun) dropBun(s.mesh.position);
+  // 死亡動畫計時器
+  s.deathTimer = 0;
+}
+
+/* =========================================================
+   8. 無雙亂舞（放大絕）：全螢幕範圍攻擊 + 特效
+   ========================================================= */
+function tryMusou() {
+  if (playerState.inMusou) return;
+  if (playerState.musou < playerState.musouMax) return; // 槽未滿不能放
+  playerState.inMusou = true;
+  playerState.musouTimer = 0;
+  playerState.musou = 0;
+  playerState.shockTimer = 0;
+  playerState.swirlTimer = 0;
+  playerState.bladeWaveTimer = 0;
+  playerState.iaiTimer = 0;
+  playerState.dashTimer = 0;
+  playerState.quakeTimer = 0;
+  playerState.arrowRainTimer = 0;
+
+  const m = MUSOU[currentGeneral] || MUSOU.guanyu;
+  playerState.musouMode = m.mode;
+  // 配色套到刀光環與光暈
+  ringMatA.color.setHex(m.c1); ringMatB.color.setHex(m.c2);
+  auraMat.color.setHex(m.c1);
+  // 武士刀走藍白 CSS 暈染，其餘維持金色暈染
+  document.body.classList.toggle('katana-musou', m.mode === 'iai');
+
+  flashEl.style.opacity = '1';
+  setTimeout(() => flashEl.style.opacity = '0', 280);
+  document.body.classList.add('musou-active');
+  if (m.mode === 'iai') sfxKatana(); else sfxMusou();
+  addShake(0.6);
+  hitStop(0.12);
+  // 依招式開啟「專屬主視覺」（不再每位都用旋轉刀光環）
+  hideAllMusouFx();
+  if (m.mode === 'whirl') { musouRingGroup.visible = true; aura.visible = true; }   // 關羽：旋轉刀光環
+  else if (m.mode === 'quake')   { fxQuakeDisc.visible = true; }
+  else if (m.mode === 'dash')    { fxLance.visible = true; }
+  else if (m.mode === 'cavalry') { fxCone.visible = true; }
+  else if (m.mode === 'arrows')  { fxArrowTarget.visible = true; }
+  else if (m.mode === 'tornado') { fxTornado.visible = true; }
+  else if (m.mode === 'iai')     { aura.visible = true; }                            // Raymond：只留藍光暈 + 刀氣
+  firePillar();
+  spawnShockwave();
+  // 起手把周圍敵人全部強力擊飛（共通起手）
+  for (const s of soldiers) {
+    if (s.dead || !s.active) continue;
+    const to = new THREE.Vector3().subVectors(s.mesh.position, player.position);
+    to.y = 0;
+    if (to.length() < 9) { to.normalize(); hitSoldier(s, 2, to, 16); }
+  }
+  showSwitchHud(m.name);   // 報招式名
+}
+
+// 無雙範圍傷害（多數模式共用）：對半徑內小兵 + BOSS 造成傷害
+const MUSOU_DMG_MUL = 0.5;   // 無雙傷害倍率（整體調弱）
+function musouAoE(radius, dmg, knock, frontBias) {
+  const d = dmg * MUSOU_DMG_MUL;
+  const forward = getPlayerForward();
+  for (const s of soldiers) {
+    if (s.dead || !s.active) continue;
+    const to = new THREE.Vector3().subVectors(s.mesh.position, player.position); to.y = 0;
+    if (to.length() < radius) {
+      to.normalize();
+      const k = knock + (frontBias ? Math.max(0, to.dot(forward)) * 10 : 0);
+      hitSoldier(s, d, to, k);
+    }
+  }
+  if (boss.active && !boss.dead) {
+    const bd = new THREE.Vector3().subVectors(boss.pos, player.position); bd.y = 0;
+    if (bd.length() < radius + 1.5) damageBoss(d, bd.normalize());
+  }
+}
+
+// 從天而降的箭雨（黃忠無雙）：在玩家周圍隨機落點射下箭並造成傷害
+function rainArrows() {
+  for (let i = 0; i < 3; i++) {
+    const a = arrows.find(x => !x.active);
+    if (!a) break;
+    const ang = Math.random() * Math.PI * 2, r = Math.random() * 9;
+    const tx = player.position.x + Math.cos(ang) * r;
+    const tz = player.position.z + Math.sin(ang) * r;
+    a.active = true; a.life = 0; a.dmg = 1.5;
+    a.mesh.position.set(tx, player.position.y + 12, tz);
+    a.vel.set(0, -34, 0);            // 垂直落下
+    a.mesh.rotation.set(Math.PI/2, 0, 0);
+    a.mesh.visible = true;
+  }
+}
+
+// 無雙期間：依武將 mode 展現不同招式機制
+function updateMusou(delta) {
+  if (!playerState.inMusou) return;
+  playerState.musouTimer += delta;
+  const t = playerState.musouTimer;
+  const DURATION = 4.5;
+  const mode = playerState.musouMode;
+  const mc = MUSOU[currentGeneral] || MUSOU.guanyu;
+
+  // 旋轉刀光環只屬於關羽（whirl）；其餘各有專屬視覺
+  if (mode === 'whirl') {
+    musouRingGroup.position.set(player.position.x, player.position.y + 1.0, player.position.z);
+    ringA.rotation.z -= delta * 20; ringB.rotation.z -= delta * 20; ringInner.rotation.z += delta * 10;
+    const pulse = 1 + Math.sin(t * 18) * 0.08;
+    musouRingGroup.scale.set(pulse, pulse, pulse);
+  }
+  // 光暈只在關羽 / Raymond 出現
+  if (mode === 'whirl' || mode === 'iai') {
+    aura.position.set(player.position.x, player.position.y + 2.4, player.position.z);
+    auraMat.opacity = 0.35 + Math.sin(t * 22) * 0.15;
+    const aps = 1 + Math.sin(t * 22) * 0.12;
+    aura.scale.set(aps, aps, aps);
+  }
+
+  // 環繞粒子：用各招主色（不再都是金色）
+  playerState.swirlTimer -= delta;
+  if (playerState.swirlTimer <= 0) {
+    spawnParticles(player.position, 5, mc.c1);
+    playerState.swirlTimer = 0.06;
+  }
+
+  const fwd = getPlayerForward();
+
+  // ===== 各武將獨特機制 =====
+  if (mode === 'whirl') {
+    // 關羽・旋風斬：原地高速旋刀，把周圍敵人不斷往外轟 + 沿腳噴衝擊波
+    weaponArm.rotation.y += delta * 26;
+    weaponArm.rotation.x = -0.5;
+    player.rotation.y += delta * 6;                 // 角色自轉
+    playerState.shockTimer -= delta;
+    if (playerState.shockTimer <= 0) { spawnShockwave(); playerState.shockTimer = 0.2; }
+    if (Math.floor(t * 20) % 2 === 0) musouAoE(7.5, 3, 16, false);
+
+  } else if (mode === 'quake') {
+    // 張飛・震地咆哮：定點重踩，週期性放出環形震波把全場震飛 + 大範圍傷害
+    playerState.quakeTimer -= delta;
+    if (playerState.quakeTimer <= 0) {
+      playerState.quakeTimer = 0.5;
+      spawnShockwave(); spawnShockwave();
+      addShake(0.35); hitStop(0.04);
+      musouAoE(9, 5, 22, false);                    // 全方位強力擊飛
+      for (let i = 0; i < 10; i++) spawnParticles(player.position, 3, mc.c2);
+    }
+    weaponArm.rotation.x = -1.4 + Math.sin(t * 30) * 0.3;  // 高舉蛇矛猛砸
+    // 專屬視覺：腳下紅色震地圓盤（隨砸地脈動）
+    fxQuakeDisc.position.set(player.position.x, terrainSurfaceY(player.position.x, player.position.z) + 0.1, player.position.z);
+    const qs = 1 + Math.sin(t * 8) * 0.25 + (0.5 - playerState.quakeTimer) * 0.5;
+    fxQuakeDisc.scale.set(qs, qs, 1);
+    fxQuakeDisc.material.opacity = 0.3 + Math.sin(t * 10) * 0.2;
+
+  } else if (mode === 'dash') {
+    // 趙雲・百突連刺：高速向面向連續突刺，留殘影，貫穿一直線
+    weaponArm.rotation.x = -1.3;                    // 持槍前刺
+    weaponArm.rotation.y = Math.sin(t * 50) * 0.3;
+    playerState.dashTimer -= delta;
+    if (playerState.dashTimer <= 0) {
+      playerState.dashTimer = 0.12;                 // 很頻繁的小突刺
+      player.position.x += fwd.x * 1.4;
+      player.position.z += fwd.z * 1.4;
+      player.position.x = Math.max(-(HALF-0.5), Math.min(HALF-0.5, player.position.x));
+      player.position.z = Math.max(-(HALF-0.5), Math.min(HALF-0.5, player.position.z));
+      spawnParticles(player.position.clone().setY(player.position.y+1.5), 3, mc.c1);
+      musouAoE(3.5, 3, 10, true);                   // 前方穿刺
+    }
+    // 專屬視覺：身前藍色長槍光束（指向面向）
+    {
+      const len = 6;
+      const origin = player.position.clone().setY(player.position.y + 1.6);
+      const mid = origin.clone().addScaledVector(fwd, len/2);
+      fxLance.position.copy(mid);
+      fxLance.scale.set(1, len, 1);
+      fxLance.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), fwd.clone().normalize());
+      fxLance.material.opacity = 0.6 + Math.sin(t * 40) * 0.3;
+    }
+
+  } else if (mode === 'cavalry') {
+    // 馬超・西涼鐵騎：持續高速衝鋒，沿路輾飛敵兵 + 揚塵
+    player.position.x += fwd.x * 14 * delta;
+    player.position.z += fwd.z * 14 * delta;
+    player.position.x = Math.max(-(HALF-0.5), Math.min(HALF-0.5, player.position.x));
+    player.position.z = Math.max(-(HALF-0.5), Math.min(HALF-0.5, player.position.z));
+    weaponArm.rotation.x = -0.8 + Math.sin(t * 20) * 0.3;
+    if (Math.floor(t * 30) % 2 === 0) { spawnParticles(player.position, 3, 0xcaa46a); musouAoE(3.5, 4, 18, true); }
+    playerState.shockTimer -= delta;
+    if (playerState.shockTimer <= 0) { spawnShockwave(); playerState.shockTimer = 0.15; }
+    // 專屬視覺：身前紅色衝鋒光錐（錐尖朝前）
+    {
+      const origin = player.position.clone().setY(player.position.y + 1.4).addScaledVector(fwd, 3);
+      fxCone.position.copy(origin);
+      // ConeGeometry 預設尖端朝 +y，旋轉成朝前
+      fxCone.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), fwd.clone().normalize());
+      fxCone.material.opacity = 0.4 + Math.sin(t * 30) * 0.2;
+    }
+
+  } else if (mode === 'arrows') {
+    // 黃忠・萬箭齊發：原地仰射，箭如雨下覆蓋大範圍
+    weaponArm.rotation.x = -2.0;                    // 仰弓朝天
+    playerState.arrowRainTimer -= delta;
+    if (playerState.arrowRainTimer <= 0) {
+      playerState.arrowRainTimer = 0.1;
+      rainArrows();
+    }
+    // 箭雨落地的範圍傷害（隨機點已由 arrow 命中處理；這裡補一個周身壓制）
+    if (Math.floor(t * 12) % 3 === 0) musouAoE(10, 2, 8, false);
+    // 專屬視覺：地面金色瞄準大圓圈（箭雨覆蓋範圍）
+    fxArrowTarget.position.set(player.position.x, terrainSurfaceY(player.position.x, player.position.z) + 0.1, player.position.z);
+    fxArrowTarget.rotation.z += delta * 0.6;
+    fxArrowTarget.material.opacity = 0.4 + Math.sin(t * 8) * 0.2;
+
+  } else if (mode === 'tornado') {
+    // 犀利鴨蛋・繽紛旋風：撐傘高速轉，把敵人吸近再轟飛，邊移動邊掃
+    weaponArm.rotation.x = -1.2;
+    weaponArm.children.forEach(c => { if (c.userData && c.userData.canopy) c.userData.canopy.rotation.y += delta * 22; });
+    player.rotation.y += delta * 5;
+    // 吸引：把附近敵人往自己拉一點
+    for (const s of soldiers) {
+      if (s.dead || !s.active) continue;
+      const to = new THREE.Vector3().subVectors(player.position, s.mesh.position); to.y = 0;
+      const d = to.length();
+      if (d > 2.5 && d < 8) { to.normalize(); s.mesh.position.addScaledVector(to, 3 * delta); }
+    }
+    if (Math.floor(t * 20) % 2 === 0) musouAoE(4.5, 3, 14, false);
+    playerState.swirlTimer2 = (playerState.swirlTimer2 || 0) - delta;
+    if (playerState.swirlTimer2 <= 0) { playerState.swirlTimer2 = 0.05; spawnParticles(player.position.clone().setY(player.position.y+2), 4, [0xff5a5a,0xffd24a,0x4ab8ff,0x5ad07a,0x9a6aff][Math.floor(Math.random()*5)]); }
+    // 專屬視覺：彩虹龍捲（跟隨玩家，各層反向旋轉 + 脈動）
+    fxTornado.position.set(player.position.x, terrainSurfaceY(player.position.x, player.position.z), player.position.z);
+    fxTornado.rotation.y += delta * 4;
+    fxTornado.children.forEach((c, i) => {
+      c.material.opacity = 0.4 + Math.sin(t * 6 + i) * 0.2;
+      c.rotation.y += delta * (i % 2 ? -3 : 3);
+      const ts = 1 + Math.sin(t * 5 + i) * 0.12;
+      c.scale.set(ts, 1, ts);
+    });
+
+  } else if (mode === 'iai') {
+    // Raymond67・居合一閃：藍白瞬步連斬（前方刀氣 + 週期瞬步）
+    playerState.bladeWaveTimer -= delta;
+    if (playerState.bladeWaveTimer <= 0) { fireBladeWave(mc.c1); playerState.bladeWaveTimer = 0.12; }
+    const fast = Math.sin(t * 40);
+    weaponArm.rotation.y = fast * 1.8;
+    weaponArm.rotation.x = -0.4 - Math.abs(fast) * 0.7;
+    playerState.iaiTimer -= delta;
+    if (playerState.iaiTimer <= 0) {
+      playerState.iaiTimer = 0.45;
+      player.position.x += fwd.x * 3.2; player.position.z += fwd.z * 3.2;
+      player.position.x = Math.max(-(HALF-0.5), Math.min(HALF-0.5, player.position.x));
+      player.position.z = Math.max(-(HALF-0.5), Math.min(HALF-0.5, player.position.z));
+      for (let k = -1; k <= 1; k++) {
+        const w = bladeWaves.find(b => !b.active);
+        if (w) {
+          w.active = true; w.t = 0;
+          const ang = Math.atan2(fwd.x, fwd.z) + k * 0.4;
+          w.dir.set(Math.sin(ang), 0, Math.cos(ang));
+          w.start.set(player.position.x, player.position.y + 0.6, player.position.z);
+          w.mesh.visible = true; w.mesh.material.color.setHex(mc.c1);
+          w.mesh.rotation.z = -ang - Math.PI/2 + Math.PI*0.35;
+        }
+      }
+      sfxKatana(); addShake(0.18); hitStop(0.05);
+      spawnParticles(player.position, 8, mc.c1);
+      musouAoE(4, 3, 8, true);
+    }
+  }
+
+  // ===== 結束收尾 =====
+  if (t > DURATION) {
+    playerState.inMusou = false;
+    weaponArm.rotation.set(0, 0, 0);
+    player.rotation.y = playerAim;     // 角色轉向歸正
+    auraMat.opacity = 0;
+    hideAllMusouFx();
+    hitStopTimer = 0;
+    document.body.classList.remove('musou-active');
+    document.body.classList.remove('katana-musou');
+    addShake(0.3);
+    spawnShockwave();
+  }
+}
+
+/* =========================================================
+   工具：玩家朝向
+   ========================================================= */
+let playerAim = 0;  // 玩家面向角度（隨移動/視角）
+function getPlayerForward() {
+  return new THREE.Vector3(Math.sin(playerAim), 0, Math.cos(playerAim)).normalize();
+}
+
+/* =========================================================
+   主迴圈
+   ========================================================= */
+const clock = new THREE.Clock();
+const tmpDir = new THREE.Vector3();
+
+function animate() {
+  requestAnimationFrame(animate);
+  let delta = Math.min(clock.getDelta(), 0.05); // 防止卡頓造成物理爆掉
+
+  // 頓幀 hit-stop：命中瞬間把遊戲時間縮到極慢，特效仍照常更新
+  let gameDelta = delta;
+  if (hitStopTimer > 0) {
+    hitStopTimer -= delta;
+    gameDelta = delta * 0.06; // 幾乎凍結
+  }
+
+  // 無雙期間：放大絕自己的時間流（輕度慢動作運鏡），不受連續命中的 hit-stop 卡死
+  let musouDelta = gameDelta;
+  if (playerState.inMusou) {
+    musouDelta = delta * 0.9;   // 輕度慢動作運鏡，但保持衝鋒的操控手感
+    gameDelta = musouDelta;     // 玩家/敵人也跟著進入慢動作
+  }
+
+  if (pointerLocked) {
+    updateWaves(delta);          // 波次生成與過關判定（用真實時間）
+    updatePlayer(gameDelta);
+    updateSoldiers(gameDelta);
+    updateBoss(gameDelta);       // BOSS 呂布 AI
+    updateAllies(gameDelta);     // 小動物友軍 AI
+    updateMusou(musouDelta);
+    updateTimers(delta);
+    updateCombo(delta);
+  }
+  // 特效不受 hit-stop 影響，用真實 delta 更新
+  updateParticles(delta);
+  updateSlash(delta);
+  updateShockwaves(delta);
+  updatePillar(delta);
+  updateBladeWaves(delta);
+  updateArrows(delta);
+  updateEnemyArrows(delta);
+  updateBanners(clock.elapsedTime);   // 旗幟隨風飄動
+  updateCampfires(clock.elapsedTime); // 篝火閃爍
+  updateBuns(delta);                  // 補血包子浮動 + 拾取
+  updateGate(delta);                  // 關隘城門開啟 + 過關偵測
+  updateCamera();
+  updateBuildPreview();   // 建造模式：準心變色 + 目標輪廓 + 放置預覽
+  renderer.render(scene, camera);
+}
+
+function updatePlayer(delta) {
+  // --- 移動輸入：鍵盤（數位）+ 觸控搖桿（類比）合併 ---
+  let moveX = (keys.r ? 1 : 0) - (keys.l ? 1 : 0);
+  let moveZ = (keys.f ? 1 : 0) - (keys.b ? 1 : 0);
+  // 觸控搖桿覆蓋（有推桿時優先採用其類比值）
+  if (touchAxis.active && (touchAxis.x !== 0 || touchAxis.z !== 0)) {
+    moveX = touchAxis.x;
+    moveZ = touchAxis.z;
+  }
+  let isMoving = false;
+
+  if (moveX !== 0 || moveZ !== 0) {
+    isMoving = true;
+    // 輸入強度（類比搖桿可小於 1，輕推走得慢）
+    const inputMag = Math.min(1, Math.hypot(moveX, moveZ));
+    // 相機 yaw 為基準的移動方向
+    const camForward = new THREE.Vector3(-Math.sin(camOrbit.yaw), 0, -Math.cos(camOrbit.yaw));
+    const camRight = new THREE.Vector3(Math.cos(camOrbit.yaw), 0, -Math.sin(camOrbit.yaw));
+    tmpDir.set(0,0,0)
+      .addScaledVector(camForward, moveZ)
+      .addScaledVector(camRight, moveX)
+      .normalize();
+
+    const speed = playerState.inMusou ? 11 : 9;  // 無雙時高速衝鋒，開路割草
+    const step = speed * delta * inputMag;
+    // 目前腳底高度（用來判斷能不能爬上去）
+    const footY = player.position.y;
+
+    // 分別嘗試 X 與 Z 方向移動，各自做碰撞判定（可沿牆滑行）
+    const tryAxis = (nx, nz) => {
+      const gx = Math.round(nx - 0.5);
+      const gz = Math.round(nz - 0.5);
+      const floor = columnTopY(gx, gz);          // 目的地的地面高度
+      // 高度差 > 1（且玩家不在空中飛過）→ 視為牆，擋住
+      if (floor - footY > 1.0 && playerState.yVel <= 0.1) return false;
+      return true;
+    };
+
+    const nextX = player.position.x + tmpDir.x * step;
+    const nextZ = player.position.z + tmpDir.z * step;
+    if (tryAxis(nextX, player.position.z)) player.position.x = nextX;
+    if (tryAxis(player.position.x, nextZ)) player.position.z = nextZ;
+
+    // 角色面向移動方向（無雙時也轉向，因為改成「自由前進的衝鋒無雙」）
+    playerAim = Math.atan2(tmpDir.x, tmpDir.z);
+    player.rotation.y = playerAim;
+
+    // 限制在戰場內
+    const lim = HALF - 0.5;
+    player.position.x = Math.max(-lim, Math.min(lim, player.position.x));
+    player.position.z = Math.max(-lim, Math.min(lim, player.position.z));
+
+    // --- 馬衝撞：持續移動累積衝鋒，達一定速度後撞飛沿路小兵 ---
+    playerState.chargeTime += delta * inputMag;
+    // 全速移動 0.5 秒後進入衝鋒態（搖桿輕推不算）
+    const charging = inputMag > 0.7 && playerState.chargeTime > 0.5 && !playerState.inMusou;
+    if (charging) {
+      const forward = getPlayerForward();
+      for (const s of soldiers) {
+        if (s.dead || !s.active) continue;
+        const to = new THREE.Vector3().subVectors(s.mesh.position, player.position);
+        to.y = 0;
+        const dd = to.length();
+        if (dd > 2.4) continue;                 // 撞擊半徑（人馬範圍）
+        // 只撞前方扇形內的（避免把身後的也撞了）
+        const dir = to.clone().normalize();
+        if (dir.dot(forward) < 0.2) continue;
+        // 撞飛！沿馬前進方向轟出去
+        const knockDir = forward.clone().multiplyScalar(0.7).add(dir.clone().multiplyScalar(0.3)).normalize();
+        hitSoldier(s, 2, knockDir, 18);         // 高擊飛力道
+      }
+      // 衝撞特效節流（揚塵 + 輕震 + 音效）
+      playerState.trampleCd -= delta;
+      if (playerState.trampleCd <= 0) {
+        playerState.trampleCd = 0.12;
+        addShake(0.08);
+        spawnParticles(player.position, 4, 0xcaa46a);  // 揚起塵土
+      }
+    }
+  } else if (playerState.inMusou) {
+    // 無雙中沒有按方向鍵 → 維持原朝向，仍算「移動中」讓馬跑動
+    isMoving = true;
+    playerState.chargeTime = 0;
+  } else {
+    playerState.chargeTime = 0;   // 停止移動 → 衝鋒歸零
+  }
+
+  // --- 馬匹奔跑 / 待機動畫 ---
+  updateHorseGait(delta, isMoving);
+
+  // --- 重力與跳躍（站在地形/方塊頂面）---
+  const groundFloor = columnTopY(
+    Math.round(player.position.x - 0.5),
+    Math.round(player.position.z - 0.5)
+  );
+  playerState.yVel -= 30 * delta;
+  player.position.y += playerState.yVel * delta;
+  if (player.position.y <= groundFloor) {
+    // 自動爬坡：若落地高度比目前高（≤1），直接抬上去
+    player.position.y = groundFloor;
+    playerState.yVel = 0;
+    playerState.canJump = true;
+  }
+
+  // --- 普攻揮砍動畫 ---
+  if (playerState.attacking) {
+    playerState.attackTimer += delta;
+    const t = playerState.attackTimer;
+    // 依連段步驟做不同揮舞
+    const swing = Math.sin(Math.min(t / 0.3, 1) * Math.PI);
+    weaponArm.rotation.x = -swing * 2.2;
+    weaponArm.rotation.z = (playerState.comboStep === 2 ? swing * 1.2 : 0);
+    if (t > 0.35) {
+      playerState.attacking = false;
+      weaponArm.rotation.set(0, 0, 0);
+    }
+    // 連段過久未接續 → 重置
+    if (t > COMBO_RESET) playerState.comboStep = 0;
+  }
+}
+
+function updateSoldiers(delta) {
+  for (const s of soldiers) {
+    if (!s.active) continue;           // 池中未啟用的小兵跳過
+
+    if (s.dead) {
+      // 死亡動畫：倒下並下沉，之後回收進池
+      s.deathTimer += delta;
+      s.mesh.rotation.x = Math.min(s.deathTimer * 6, Math.PI / 2);
+      s.mesh.position.y -= delta * 0.8;   // 從倒下處往下沉
+      s.mesh.position.addScaledVector(s.knockback, delta);
+      s.knockback.multiplyScalar(0.9);
+      if (s.deathTimer > 1.0) deactivateSoldier(s);  // 回收，不再自動重生
+      continue;
+    }
+
+    // 擊飛位移
+    if (s.knockback.lengthSq() > 0.01) {
+      s.mesh.position.addScaledVector(s.knockback, delta);
+      s.knockback.multiplyScalar(0.85);
+      // 限制在戰場內
+      s.mesh.position.x = Math.max(-HALF, Math.min(HALF, s.mesh.position.x));
+      s.mesh.position.z = Math.max(-HALF, Math.min(HALF, s.mesh.position.z));
+    }
+    // 該位置的地形地面高度
+    const floorY = terrainSurfaceY(s.mesh.position.x, s.mesh.position.z) - 1; // 小兵腳底基準
+    // 擊飛時的彈跳（落到地形表面）
+    s.yVel -= 30 * delta;
+    s.mesh.position.y += s.yVel * delta;
+    if (s.mesh.position.y < floorY) { s.mesh.position.y = floorY; s.yVel = 0; }
+
+    // AI：依兵種行動
+    const to = new THREE.Vector3().subVectors(player.position, s.mesh.position);
+    to.y = 0;
+    const dist = to.length();
+
+    if (s.type === 'archer') {
+      // 弓兵：保持距離（約 8~12），太近會後退，並週期性射箭
+      to.normalize();
+      s.mesh.rotation.y = Math.atan2(to.x, to.z);
+      let moveDir = 0;
+      if (dist < 8) moveDir = -1;        // 太近 → 後退
+      else if (dist > 12) moveDir = 1;   // 太遠 → 靠近
+      if (moveDir !== 0 && s.knockback.lengthSq() < 0.05) {
+        s.mesh.position.addScaledVector(to, s.speed * delta * moveDir);
+        const fy = terrainSurfaceY(s.mesh.position.x, s.mesh.position.z) - 1;
+        s.walkPhase += delta * 8;
+        s.mesh.position.y = fy + Math.abs(Math.sin(s.walkPhase)) * 0.1;
+      }
+      // 射箭
+      s.shootCd -= delta;
+      if (s.shootCd <= 0 && dist < 16 && !playerState.inMusou) {
+        const from = s.mesh.position.clone().setY(s.mesh.position.y + 1.2);
+        enemyFireArrow(from, s.damage);
+        sfxBow();
+        s.shootCd = 1.6 + Math.random() * 1.0;
+      }
+    } else {
+      // 近戰 / 騎兵：衝向玩家近身攻擊（騎兵更快更痛，已由 stats 設定）
+      if (dist > 1.6) {
+        to.normalize();
+        s.mesh.position.addScaledVector(to, s.speed * delta);
+        s.mesh.rotation.y = Math.atan2(to.x, to.z);
+        if (s.knockback.lengthSq() < 0.05 && Math.abs(s.mesh.position.y - floorY) < 0.3) {
+          const fy = terrainSurfaceY(s.mesh.position.x, s.mesh.position.z) - 1;
+          s.walkPhase += delta * (s.type === 'cavalry' ? 16 : 10);
+          s.mesh.position.y = fy + Math.abs(Math.sin(s.walkPhase)) * 0.12;
+          s.mesh.rotation.z = Math.sin(s.walkPhase) * 0.06;
+        }
+      } else {
+        s.attackCooldown -= delta;
+        if (s.attackCooldown <= 0 && playerState.invuln <= 0 && !playerState.inMusou) {
+          damagePlayer(s.damage);
+          s.attackCooldown = 1.2;
+        }
+      }
+    }
+
+    // 頭頂血條永遠面向相機（billboard）
+    s.hpBg.quaternion.copy(camera.quaternion);
+    s.hpFg.quaternion.copy(camera.quaternion);
+  }
+}
+
+function damagePlayer(dmg) {
+  if (waveState.gameOver) return;
+  playerState.hp -= dmg;
+  playerState.invuln = 0.6;
+  hurtEl.style.opacity = '1';
+  sfxHurt();
+  addShake(0.18);
+  setTimeout(() => hurtEl.style.opacity = '0', 250);
+  if (playerState.hp < 0) playerState.hp = 0;
+  generalHp[currentGeneral] = playerState.hp;   // 同步該武將的獨立血量
+  updatePlayerHpUI();
+  if (playerState.hp <= 0) {
+    onGeneralFallen();
+  }
+}
+
+// 當前武將陣亡：標記陣亡 → 若還有存活武將則自動換上，否則 Game Over
+function onGeneralFallen() {
+  deadGenerals.add(currentGeneral);
+  generalHp[currentGeneral] = 0;
+  // 找一位「已解鎖且尚未陣亡」的武將
+  const alive = Object.keys(GENERALS).filter(k => unlockedGenerals.has(k) && !deadGenerals.has(k));
+  if (alive.length > 0) {
+    // 陣亡演出 + 換上下一位
+    spawnParticles(player.position.clone().setY(player.position.y + 1.5), 16, 0xff5a3a);
+    spawnFloater(player.position.clone().setY(player.position.y + 3), `${GENERALS[currentGeneral].name} 陣亡`, '#ff6b3c', 30);
+    addShake(0.4); hitStop(0.1);
+    const next = alive[0];
+    assemblePlayer(next);
+    applyGeneralStats(next);   // 載入接替武將的血量（其自己的剩餘血）
+    playerState.invuln = 1.2;  // 換將後短暫無敵，避免立刻又被打死
+    updatePlayerHpUI();
+    showSwitchHud(`${GENERALS[next].name} 接替上陣！（剩 ${alive.length} 員）`);
+    sfxMusou();
+  } else {
+    // 全員陣亡 → Game Over
+    waveState.gameOver = true;
+    endGame(false);
+  }
+}
+
+// 更新左上玩家血條
+const hpBarEl = document.getElementById('hpBar');
+function updatePlayerHpUI() {
+  const pct = Math.max(0, (playerState.hp / playerState.maxHp) * 100);
+  hpBarEl.style.width = pct + '%';
+}
+updatePlayerHpUI();  // 初始化血條為滿
+
+function updateTimers(delta) {
+  if (playerState.invuln > 0) playerState.invuln -= delta;
+  // 更新無雙能量條 UI
+  const pct = (playerState.musou / playerState.musouMax) * 100;
+  musouBar.style.width = pct + '%';
+  const full = playerState.musou >= playerState.musouMax;
+  musouBar.classList.toggle('full', full);
+  // 觸控無雙鈕：滿了就發光提示
+  if (isTouch && btnMusouEl) btnMusouEl.classList.toggle('ready', full && !playerState.inMusou);
+}
+const btnMusouEl = document.getElementById('btnMusou');
+
+function updateCamera() {
+  // 第三人稱：相機環繞玩家
+  const tx = player.position.x;
+  const ty = player.position.y + 3.0;
+  const tz = player.position.z;
+  const horiz = Math.cos(camOrbit.pitch) * camOrbit.dist;
+  camera.position.set(
+    tx + Math.sin(camOrbit.yaw) * horiz,
+    ty + Math.sin(camOrbit.pitch) * camOrbit.dist,
+    tz + Math.cos(camOrbit.yaw) * horiz
+  );
+  // 相機震動：在位置上疊加隨機抖動，命中/擊殺/無雙時有打擊回饋
+  if (shakeAmount > 0.001) {
+    camera.position.x += (Math.random() - 0.5) * shakeAmount;
+    camera.position.y += (Math.random() - 0.5) * shakeAmount;
+    camera.position.z += (Math.random() - 0.5) * shakeAmount;
+    shakeAmount *= 0.85; // 衰減
+  } else shakeAmount = 0;
+  camera.lookAt(tx, ty, tz);
+}
+
+animate();
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+</script>
+</body>
+</html>
