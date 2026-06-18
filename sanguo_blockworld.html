@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>三國方塊無雙 v1.1</title>
+<title>三國方塊無雙 v1.2</title>
 <style>
   /* ===== 全域樣式 ===== */
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -541,7 +541,7 @@
 
 <!-- 準心（建造模式顯示）-->
 <div id="crosshair"></div>
-<div id="verBadge">三國方塊無雙 v1.1</div>
+<div id="verBadge">三國方塊無雙 v1.2</div>
 
 <!-- 模式 + 方塊選擇 -->
 <div id="buildHud">
@@ -594,7 +594,7 @@
 
 <!-- 開始畫面 / 選角 -->
 <div id="overlay">
-  <h1>三國方塊無雙 <span class="ver">v1.1</span></h1>
+  <h1>三國方塊無雙 <span class="ver">v1.2</span></h1>
   <p style="margin-bottom:10px">選擇難度</p>
   <div id="diffSelect">
     <div class="diffBtn" data-diff="rookie">新手村<br><span>敵弱・包子多</span></div>
@@ -2807,81 +2807,226 @@ function makeBurger() {
 function buildBoss(cfg) {
   const g = new THREE.Group();
 
-  // ===== 特例：貓吉拉 / Gozilla（站立的貓怪獸）=====
+  // ===== 貓吉拉 / 哥吉拉：高細節方塊怪獸 =====
   if (cfg.catzilla) {
     const isGoz = cfg.gozilla;
-    const FUR = isGoz ? 0x3a5a3a : 0x5a6470;
-    const FUR_D = isGoz ? 0x294a29 : 0x434b55;
-    const BELLY = isGoz ? 0x7aa86a : 0x7a8490;
-    const FIN = isGoz ? 0x9affc0 : 0xeaeef2;   // Gozilla 背鰭發光綠
-    // 厚實身體（站立）
-    g.add(box(1.8, 2.0, 1.4, FUR, 0, 2.0, 0));
-    g.add(box(1.4, 1.4, 0.3, BELLY, 0, 1.8, 0.72));        // 淺色肚子
-    // 頭（大貓頭）
-    g.add(box(1.7, 1.5, 1.5, FUR, 0, 3.7, 0.1));
-    g.add(box(1.3, 0.6, 0.3, BELLY, 0, 3.35, 0.86));       // 口鼻淺色
-    // 尖耳
-    const earL = box(0.5, 0.7, 0.3, FUR, -0.6, 4.6, 0.1); earL.rotation.z = 0.2; g.add(earL);
-    const earR = box(0.5, 0.7, 0.3, FUR,  0.6, 4.6, 0.1); earR.rotation.z = -0.2; g.add(earR);
-    g.add(box(0.24, 0.34, 0.16, 0xe7b0c0, -0.6, 4.5, 0.2));// 內耳
-    g.add(box(0.24, 0.34, 0.16, 0xe7b0c0,  0.6, 4.5, 0.2));
-    // 凶眼（黃）+ 怒眉
-    g.add(box(0.4, 0.4, 0.1, 0xf2d23a, -0.42, 3.95, 0.82));
-    g.add(box(0.4, 0.4, 0.1, 0xf2d23a,  0.42, 3.95, 0.82));
-    g.add(box(0.22, 0.24, 0.06, 0x111111, -0.42, 3.95, 0.88)); // 瞳
-    g.add(box(0.22, 0.24, 0.06, 0x111111,  0.42, 3.95, 0.88));
-    const browL = box(0.5, 0.12, 0.06, FUR_D, -0.42, 4.22, 0.84); browL.rotation.z = -0.3; g.add(browL);
-    const browR = box(0.5, 0.12, 0.06, FUR_D,  0.42, 4.22, 0.84); browR.rotation.z = 0.3; g.add(browR);
-    // 鼻 + 白獠牙
-    g.add(box(0.18, 0.14, 0.08, 0xe7889a, 0, 3.5, 0.9));
-    g.add(box(0.14, 0.3, 0.1, 0xffffff, -0.3, 3.15, 0.85));
-    g.add(box(0.14, 0.3, 0.1, 0xffffff,  0.3, 3.15, 0.85));
-    // 鬍鬚
-    g.add(box(0.7, 0.03, 0.03, 0xeeeeee, -0.7, 3.4, 0.8));
-    g.add(box(0.7, 0.03, 0.03, 0xeeeeee,  0.7, 3.4, 0.8));
-    // 哥吉拉背鰭（沿背一排尖鰭，由大到小；Gozilla 發光綠且更大）
-    const finCount = isGoz ? 8 : 6;
-    for (let i = 0; i < finCount; i++) {
-      const s = (isGoz ? 1.0 : 0.7) - i * 0.08;
-      const fin = box(0.2, s, s, FIN, 0, 3.2 - i * 0.5, -0.75 - i * 0.02);
-      fin.rotation.x = 0.2; g.add(fin);
-    }
-    // 粗腿（站姿）
-    const luLegs = [];
-    const mkPaw = (x) => {
-      const leg = new THREE.Group();
-      leg.add(box(0.6, 1.2, 0.8, FUR, 0, -0.6, 0));
-      leg.add(box(0.66, 0.3, 0.95, FUR_D, 0, -1.15, 0.1));   // 腳掌
-      leg.position.set(x, 1.1, 0.1); g.add(leg); luLegs.push(leg);
-    };
-    mkPaw(-0.55); mkPaw(0.55);
-    // 粗尾
-    const tail = box(0.5, 0.5, 1.6, FUR, 0, 1.4, -1.2); tail.rotation.x = 0.3; g.add(tail);
+    // ── 色票 ──────────────────────────────────────────
+    const FUR   = isGoz ? 0x3a5c3a : 0x545f6a;   // 主體毛色
+    const FUR_D = isGoz ? 0x27401e : 0x3a4450;   // 深色細節
+    const FUR_L = isGoz ? 0x5a8050 : 0x7a8fa0;   // 淺色高光
+    const BELLY = isGoz ? 0x7aaa62 : 0x8fa8b8;   // 肚子
+    const SKIN  = isGoz ? 0x4a7040 : 0x6a8090;   // 臉部皮膚
+    const SCALE = isGoz ? 0x2a4828 : 0x404e58;   // 鱗片暗紋
+    const FIN   = isGoz ? 0xaaffd4 : 0xcce8f8;   // 背鰭
+    const FIN_D = isGoz ? 0x4adc90 : 0x80b8d8;   // 背鰭深
+    const CLAW  = 0xd8d8c8;                       // 爪子
+    const FANG  = 0xf8f8f0;                       // 獠牙
+    const NOSE  = isGoz ? 0xa07060 : 0xc08878;   // 鼻子
+    const EYE   = 0xf0d020;                       // 眼睛黃
+    const PUPIL = 0x101010;                       // 瞳孔
+    const EAR_I = isGoz ? 0xd09080 : 0xf0b8c0;   // 耳內粉
 
-    // 雙手 + 武器
-    g.add(box(0.45, 1.1, 0.45, FUR, -1.0, 2.3, 0.3));        // 左臂
+    // ══════════════════════════════════════════════════
+    // 1. 身體（多層分段，比單一大塊更有立體感）
+    // ══════════════════════════════════════════════════
+    // 腰部
+    g.add(box(1.6, 0.55, 1.1, FUR,   0, 0.70, 0));
+    g.add(box(1.2, 0.55, 0.85, BELLY, 0, 0.70, 0.55)); // 前腰肚子
+    // 下腹
+    g.add(box(1.4, 0.55, 1.0, FUR,   0, 1.20, 0));
+    g.add(box(1.0, 0.55, 0.75, BELLY, 0, 1.20, 0.52));
+    // 胸腔（最寬）
+    g.add(box(1.7, 0.60, 1.15, FUR,   0, 1.72, 0));
+    g.add(box(1.1, 0.60, 0.70, BELLY, 0, 1.72, 0.60));
+    // 胸上段
+    g.add(box(1.55, 0.55, 1.05, FUR,  0, 2.25, 0));
+    g.add(box(1.0, 0.55, 0.65, BELLY, 0, 2.25, 0.55));
+    // 鱗片暗紋（點綴在背部）
+    for (let i = 0; i < 4; i++) {
+      g.add(box(0.18, 0.18, 0.12, SCALE, -0.6 + i * 0.4, 1.5 + i * 0.35, -0.5));
+    }
+    // 脖子
+    g.add(box(1.1, 0.55, 0.85, FUR,  0, 2.75, 0.05));
+    g.add(box(0.9, 0.28, 0.65, BELLY, 0, 2.75, 0.48));
+
+    // ══════════════════════════════════════════════════
+    // 2. 頭部（更多分段，做出立體貓臉）
+    // ══════════════════════════════════════════════════
+    // 頭顱主體
+    g.add(box(1.50, 0.55, 1.30, FUR,  0, 3.25, 0.02));
+    g.add(box(1.50, 0.55, 1.30, FUR,  0, 3.75, 0.00));
+    g.add(box(1.40, 0.50, 1.20, FUR,  0, 4.22, -0.04));  // 頭頂收窄
+    // 臉頰鼓起（兩側）
+    g.add(box(0.28, 0.65, 0.85, FUR_L, -0.72, 3.55, 0.15));
+    g.add(box(0.28, 0.65, 0.85, FUR_L,  0.72, 3.55, 0.15));
+    // 下巴
+    g.add(box(1.0, 0.30, 0.80, SKIN, 0, 3.05, 0.50));
+    g.add(box(0.80, 0.22, 0.60, BELLY, 0, 2.88, 0.55));
+    // 口鼻部（突出）
+    g.add(box(0.90, 0.50, 0.45, SKIN, 0, 3.48, 0.82));
+    g.add(box(0.70, 0.35, 0.28, SKIN, 0, 3.25, 0.95));
+    // 鼻樑
+    g.add(box(0.30, 0.22, 0.20, SKIN, 0, 3.78, 0.85));
+    // 鼻尖（小方塊做出立體感）
+    g.add(box(0.22, 0.16, 0.14, NOSE, 0, 3.55, 1.04));
+    g.add(box(0.10, 0.10, 0.08, FUR_D, -0.08, 3.50, 1.09));  // 鼻孔 L
+    g.add(box(0.10, 0.10, 0.08, FUR_D,  0.08, 3.50, 1.09));  // 鼻孔 R
+    // 上唇溝
+    g.add(box(0.06, 0.30, 0.10, FUR_D, 0, 3.28, 1.00));
+
+    // ── 眼睛（多層：眼眶凹陷 + 眼白 + 虹膜 + 瞳孔 + 高光）──
+    for (const sx of [-0.42, 0.42]) {
+      g.add(box(0.46, 0.38, 0.12, FUR_D, sx, 3.88, 0.82));    // 眼眶凹陷
+      g.add(box(0.38, 0.30, 0.10, EYE,   sx, 3.88, 0.88));    // 虹膜
+      g.add(box(0.20, 0.22, 0.08, PUPIL, sx, 3.85, 0.93));    // 瞳孔（豎橢圓）
+      g.add(box(0.08, 0.08, 0.06, 0xffffff, sx - 0.08, 3.93, 0.96)); // 高光
+    }
+    // 怒眉（傾斜）
+    const browL = box(0.50, 0.13, 0.08, FUR_D, -0.44, 4.12, 0.82); browL.rotation.z = -0.45; g.add(browL);
+    const browR = box(0.50, 0.13, 0.08, FUR_D,  0.44, 4.12, 0.82); browR.rotation.z =  0.45; g.add(browR);
+    // 眉骨凸起
+    g.add(box(0.38, 0.12, 0.10, FUR_L, -0.44, 4.08, 0.80));
+    g.add(box(0.38, 0.12, 0.10, FUR_L,  0.44, 4.08, 0.80));
+
+    // ── 嘴巴（張口 / 獠牙）──
+    g.add(box(0.80, 0.18, 0.20, FUR_D, 0, 3.22, 0.88));       // 上唇線
+    g.add(box(0.60, 0.18, 0.20, FUR_D, 0, 3.08, 0.88));       // 下唇線
+    // 獠牙（4 根，大小交錯）
+    g.add(box(0.12, 0.34, 0.10, FANG, -0.28, 3.15, 1.02));
+    g.add(box(0.12, 0.34, 0.10, FANG,  0.28, 3.15, 1.02));
+    g.add(box(0.09, 0.22, 0.08, FANG, -0.50, 3.18, 0.98));
+    g.add(box(0.09, 0.22, 0.08, FANG,  0.50, 3.18, 0.98));
+    // 鬍鬚（哥吉拉無鬍鬚，只有貓吉拉）
+    if (!isGoz) {
+      for (const [mx, my, mz, rz] of [
+        [-0.85, 3.42, 0.92,  0.12], [-1.00, 3.38, 0.88,  0.22],
+        [ 0.85, 3.42, 0.92, -0.12], [ 1.00, 3.38, 0.88, -0.22],
+      ]) {
+        const w = box(0.65, 0.035, 0.035, 0xe8e8e0, mx, my, mz);
+        w.rotation.z = rz; g.add(w);
+      }
+    }
+
+    // ── 尖耳（多層，有內耳粉色）──
+    for (const sx of [-1, 1]) {
+      const ex = sx * 0.62;
+      // 外耳三層
+      g.add(box(0.42, 0.55, 0.32, FUR,   ex, 4.65, 0.00));
+      g.add(box(0.34, 0.45, 0.26, FUR,   ex, 4.95, 0.00));  // 耳尖收窄
+      g.add(box(0.22, 0.32, 0.18, FUR,   ex, 5.22, 0.00));  // 更尖
+      // 內耳
+      g.add(box(0.20, 0.40, 0.15, EAR_I, ex, 4.72, 0.10));
+    }
+
+    // ══════════════════════════════════════════════════
+    // 3. 背鰭（哥吉拉更大更多，貓吉拉較小）
+    // ══════════════════════════════════════════════════
+    const finCount = isGoz ? 9 : 7;
+    const finBase  = isGoz ? 1.1 : 0.75;
+    for (let i = 0; i < finCount; i++) {
+      const s  = Math.max(0.12, finBase - i * (isGoz ? 0.10 : 0.08));
+      const yw = isGoz ? 3.4 - i * 0.46 : 3.2 - i * 0.40;
+      const zw = -0.65 - i * 0.025;
+      // 主鰭（兩個方塊拼出菱形感）
+      g.add(box(0.18, s, s, FIN,   0, yw, zw));
+      g.add(box(0.12, s * 0.7, s * 0.7, FIN_D, 0, yw - s * 0.12, zw - 0.06));
+      // 哥吉拉每個鰭旁加小副鰭
+      if (isGoz && i % 2 === 0) {
+        g.add(box(0.10, s * 0.45, s * 0.45, FIN_D, -0.22, yw, zw));
+        g.add(box(0.10, s * 0.45, s * 0.45, FIN_D,  0.22, yw, zw));
+      }
+    }
+
+    // ══════════════════════════════════════════════════
+    // 4. 腿與腳爪（分段）
+    // ══════════════════════════════════════════════════
+    const luLegs = [];
+    const mkPaw = (sx) => {
+      const leg = new THREE.Group();
+      // 大腿（上粗下細）
+      leg.add(box(0.58, 0.70, 0.68, FUR,   0,  0.0, 0));
+      leg.add(box(0.52, 0.62, 0.60, FUR_L, 0, -0.08, 0.06)); // 腿前亮面
+      // 小腿
+      leg.add(box(0.50, 0.52, 0.60, FUR,   0, -0.62, 0));
+      leg.add(box(0.44, 0.50, 0.54, FUR_D, 0, -0.62,-0.04)); // 後側深色
+      // 腳掌（寬扁）
+      leg.add(box(0.68, 0.24, 0.78, FUR_D, 0, -1.10, 0.12));
+      leg.add(box(0.62, 0.16, 0.70, FUR,   0, -1.05, 0.14)); // 掌心
+      // 爪子（3 根細方塊）
+      for (const cx of [-0.20, 0, 0.20]) {
+        const claw = box(0.09, 0.12, 0.22, CLAW, cx, -1.22, 0.50);
+        claw.rotation.x = -0.3; leg.add(claw);
+      }
+      leg.position.set(sx * 0.56, 1.00, 0.06);
+      g.add(leg); luLegs.push(leg);
+    };
+    mkPaw(-1); mkPaw(1);
+
+    // ── 尾巴（分三段，越後越細，微微翹起）──
+    const tailSegs = [
+      { w:0.58, h:0.50, d:0.55, y:1.30, z:-0.85, rx: 0.20 },
+      { w:0.46, h:0.40, d:0.50, y:1.08, z:-1.45, rx: 0.35 },
+      { w:0.32, h:0.28, d:0.40, y:0.90, z:-1.95, rx: 0.50 },
+    ];
+    for (const s of tailSegs) {
+      const t = box(s.w, s.h, s.d, FUR, 0, s.y, s.z);
+      t.rotation.x = s.rx; g.add(t);
+      // 尾巴下面一條淺色
+      const t2 = box(s.w * 0.6, s.h * 0.5, s.d * 0.6, BELLY, 0, s.y + 0.04, s.z + 0.06);
+      t2.rotation.x = s.rx; g.add(t2);
+    }
+
+    // ══════════════════════════════════════════════════
+    // 5. 雙臂（左臂固定、右臂可揮動 = arm group）
+    // ══════════════════════════════════════════════════
+    // 左臂（固定）
+    const mkArm = (g2, sx) => {
+      g2.add(box(0.42, 0.52, 0.38, FUR,   0,  0.00, 0));   // 上臂
+      g2.add(box(0.36, 0.46, 0.32, FUR_L, 0,  0.02, 0.06));
+      g2.add(box(0.36, 0.48, 0.34, FUR,   0, -0.50, 0));   // 前臂
+      // 手掌
+      g2.add(box(0.48, 0.28, 0.42, FUR_D, 0, -0.90, 0.05));
+      // 手指爪（3 根）
+      for (const cx of [-0.14, 0, 0.14]) {
+        const c = box(0.09, 0.22, 0.10, CLAW, cx, -1.12, 0.18);
+        c.rotation.x = -0.4; g2.add(c);
+      }
+    };
+    const leftArm = new THREE.Group();
+    leftArm.position.set(-1.05, 2.42, 0.18); mkArm(leftArm, -1); g.add(leftArm);
     const arm = new THREE.Group();
-    arm.position.set(0.95, 2.5, 0.3);
-    arm.add(box(0.45, 1.0, 0.45, FUR, 0, -0.4, 0));          // 右臂
+    arm.position.set(1.05, 2.42, 0.18); mkArm(arm, 1);
+
+    // ── 武器 ──
     let halberd, mouthGlow = null;
     if (isGoz) {
-      // Gozilla：嘴中 gamma 能量球（蓄力時發亮）
-      arm.add(box(0.4, 0.3, 0.4, FUR_D, 0, -0.7, 0));        // 空手（無漢堡）
+      // 哥吉拉：嘴中 gamma 能量球（蓄力時發亮）
       mouthGlow = new THREE.Mesh(
-        new THREE.SphereGeometry(0.5, 16, 12),
-        new THREE.MeshBasicMaterial({ color: 0x9affc0, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })
+        new THREE.SphereGeometry(0.45, 16, 12),
+        new THREE.MeshBasicMaterial({ color: 0xaaffcc, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })
       );
-      mouthGlow.position.set(0, 3.3, 1.0);   // 嘴部位置
+      mouthGlow.position.set(0, 3.22, 1.05);
       g.add(mouthGlow);
-      halberd = new THREE.Group();           // 佔位（Gozilla 無持武器）
+      halberd = new THREE.Group();
     } else {
-      halberd = makeBurger();                // 貓吉拉：漢堡當「武器」
-      halberd.position.set(0, -0.9, 0.5);
+      halberd = makeBurger();
+      halberd.position.set(0.05, -1.0, 0.45);
       arm.add(halberd);
     }
     g.add(arm);
 
-    g.scale.setScalar(isGoz ? 4.5 : 1.5);    // Gozilla 約貓吉拉 3 倍大
+    // ── 哥吉拉特有：脖子鱗片排 + 腹部橫紋 ──
+    if (isGoz) {
+      for (let i = 0; i < 5; i++) {
+        g.add(box(0.16, 0.14, 0.08, SCALE, -0.3 + i * 0.15, 2.80 + i * 0.10, -0.45));
+      }
+      for (let i = 0; i < 4; i++) {
+        g.add(box(0.90, 0.08, 0.14, SCALE, 0, 1.30 + i * 0.38, 0.65));
+      }
+    }
+
+    // 縮放：哥吉拉 60% of 4.5 = 2.7，貓吉拉維持 1.5
+    g.scale.setScalar(isGoz ? 2.7 : 1.5);
     g.visible = false;
     scene.add(g);
     g.traverse(o => { if (o.isMesh && o.material.blending !== THREE.AdditiveBlending) o.castShadow = true; });
@@ -3180,7 +3325,7 @@ function updateBoss(delta) {
   } else if (boss.state === 'gammaFire') {
     // 發射 gamma 射線：從嘴沿斜下方向射出一長束，打到遠方地面
     g.rotation.y = Math.atan2(boss.chargeDir.x, boss.chargeDir.z);
-    const mouth = boss.pos.clone(); mouth.y += 16;            // 嘴的世界高度（放大後）
+    const mouth = boss.pos.clone(); mouth.y += 12;            // 嘴的世界高度（哥吉拉縮小後）
     const flat = boss.chargeDir.clone().normalize();
     // 命中點：朝前方遠處的地面（取一段距離後的地表）
     const reach = 70;
