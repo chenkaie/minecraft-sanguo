@@ -3,11 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>三國方塊無雙 · 觸控版 · Sanguo Musou BlockWorld (Touch)</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<title>三國方塊無雙 v1.1</title>
 <style>
   /* ===== 全域樣式 ===== */
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { width: 100%; height: 100%; overflow: hidden; background: #87CEEB; }
+  html, body {
+    width: 100%; height: 100%; overflow: hidden; background: #87CEEB;
+    /* iOS Safari 防止橡皮筋反彈與選取 */
+    overscroll-behavior: none; -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y; -webkit-user-select: none; user-select: none;
+    position: fixed;   /* 防止 iOS Safari 網址列跑版 */
+  }
   canvas { display: block; }
 
   /* ===== 開始畫面 ===== */
@@ -532,7 +541,7 @@
 
 <!-- 準心（建造模式顯示）-->
 <div id="crosshair"></div>
-<div id="verBadge">三國方塊無雙 v1.0</div>
+<div id="verBadge">三國方塊無雙 v1.1</div>
 
 <!-- 模式 + 方塊選擇 -->
 <div id="buildHud">
@@ -585,7 +594,7 @@
 
 <!-- 開始畫面 / 選角 -->
 <div id="overlay">
-  <h1>三國方塊無雙 <span class="ver">v1.0</span></h1>
+  <h1>三國方塊無雙 <span class="ver">v1.1</span></h1>
   <p style="margin-bottom:10px">選擇難度</p>
   <div id="diffSelect">
     <div class="diffBtn" data-diff="rookie">新手村<br><span>敵弱・包子多</span></div>
@@ -630,7 +639,7 @@
       <div class="cStat">氣力120 · 攻擊★★★★</div>
     </div>
   </div>
-  <p class="hint">點選武將後開始 · 闖六關：貓吉拉→曹操→孫策→呂布→夏侯惇→魔王哥吉拉 · 每位武將無雙招式各不同 · 每過一關招降新武將</p>
+  <p class="hint">點選武將後開始 · 闖六關：貓吉拉→曹操→孫策→夏侯惇→呂布→魔王哥吉拉 · 每位武將無雙招式各不同 · 每過一關招降新武將</p>
   <button id="lbOpen">🏆 查看排行榜</button>
 </div>
 
@@ -658,19 +667,44 @@ scene.fog = new THREE.Fog(0x87CEEB, 30, 80);
 
 const camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 1000);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+// iOS Safari 偵測
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: !isIOS,              // iOS 上關 AA 提升效能（Retina 已有足夠密度）
+  powerPreference: 'high-performance',
+  alpha: false,
+});
 renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
+renderer.setPixelRatio(Math.min(devicePixelRatio, isIOS ? 2 : 2));
+renderer.shadowMap.enabled = !isIOS;   // iOS 上關陰影（大幅提升幀率）
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
+
+// iOS Safari 旋轉/resize（包含網址列顯示/消失）— 用 visualViewport 最準確
+function onResize() {
+  const w = window.visualViewport ? window.visualViewport.width  : innerWidth;
+  const h = window.visualViewport ? window.visualViewport.height : innerHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', onResize);
+} else {
+  window.addEventListener('resize', onResize);
+}
 
 /* =========================================================
    音效系統（WebAudio，即時合成，免外部檔案）
    ========================================================= */
 let audioCtx = null;
 function initAudio() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  // iOS Safari 需要在 user gesture 後 resume（否則 state='suspended'）
+  if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 // 通用音效播放：振盪器 + 音量包絡
 function playTone({ freq = 200, type = 'square', dur = 0.12, vol = 0.2, slideTo = null }) {
@@ -726,19 +760,59 @@ scene.add(ambLight);
 
 /* === 各關場景主題（天色 / 霧 / 光線）=== */
 const LEVEL_THEMES = [
-  { name:'晴空草原',  sky:0x87CEEB, fog:0x87CEEB, amb:0xffffff, ai:0.65, sun:0xffffff, si:1.0 },   // 1 貓吉拉
-  { name:'黃昏戰場',  sky:0xf0a868, fog:0xe8b07a, amb:0xffd9b0, ai:0.6,  sun:0xffb060, si:1.05 },  // 2 曹操
-  { name:'翠谷密林',  sky:0x9fd8a0, fog:0x8fc890, amb:0xe0ffe0, ai:0.6,  sun:0xfff0c0, si:0.95 },  // 3 孫策
-  { name:'赤焰沙場',  sky:0xd86848, fog:0xc06040, amb:0xffc0a0, ai:0.62, sun:0xff8050, si:1.0 },    // 4 呂布
-  { name:'幽暗夜戰',  sky:0x2a3358, fog:0x1f2742, amb:0x9098c0, ai:0.5,  sun:0x8090d0, si:0.7 },    // 5 夏侯惇
-  { name:'核爆紅天',  sky:0x4a2a3a, fog:0x3a1f2a, amb:0xc090a0, ai:0.55, sun:0xff6a8a, si:0.85 },   // 6 哥吉拉
+  { name:'草原平野',  sky:0x87CEEB, fog:0x9ad4eb, amb:0xffffff, ai:0.70, sun:0xffffff,  si:1.10, groundPalette:'plain'    }, // 1 貓吉拉
+  { name:'中原大地',  sky:0x7ab8e8, fog:0x8cc4e8, amb:0xfff8f0, ai:0.72, sun:0xfff0d0,  si:1.15, groundPalette:'wheat'    }, // 2 曹操
+  { name:'江南翠嶺',  sky:0x68c8de, fog:0x78c8d8, amb:0xf0fff4, ai:0.68, sun:0xf8ffe0,  si:1.05, groundPalette:'lush'     }, // 3 孫策
+  { name:'北方荒原',  sky:0xaad8e6, fog:0xb4d8e4, amb:0xfff8f0, ai:0.70, sun:0xffeedd,  si:1.10, groundPalette:'arid'     }, // 4 夏侯惇
+  { name:'關西高原',  sky:0x98b8de, fog:0xa4c0e0, amb:0xfff4e8, ai:0.72, sun:0xffe8cc,  si:1.15, groundPalette:'highland' }, // 5 呂布
+  { name:'蒼茫邊塞',  sky:0xb0cce0, fog:0xb8cee0, amb:0xffffff, ai:0.68, sun:0xfff5e0,  si:1.05, groundPalette:'steppe'   }, // 6 哥吉拉
 ];
+
+// 六種地面色調（全都是明亮白天色系，但地形有不同風格）
+const GROUND_PALETTES = {
+  plain:    { low:0x78c850, mid:0x6aaa3c, dirt:0x9a7050, rock:0x888888, snow:0xeef2f5 }, // 草原綠
+  wheat:    { low:0xc8a850, mid:0xb89840, dirt:0xaa8858, rock:0x9a9080, snow:0xf0ece0 }, // 小麥黃
+  lush:     { low:0x50c860, mid:0x3ab050, dirt:0x887050, rock:0x708070, snow:0xd8f0e0 }, // 翠綠濃
+  arid:     { low:0xc0a870, mid:0xb09860, dirt:0xb08850, rock:0xa09070, snow:0xf0e8d8 }, // 乾燥黃土
+  highland: { low:0x98b870, mid:0x88a860, dirt:0x907860, rock:0x808888, snow:0xe8eef0 }, // 高原草黃
+  steppe:   { low:0xa8b888, mid:0x98a878, dirt:0x987860, rock:0x888888, snow:0xf0f0ec }, // 草原灰綠
+};
+
+function applyTerrainPalette(theme) {
+  const p = GROUND_PALETTES[theme.groundPalette] || GROUND_PALETTES.plain;
+  let gi2 = 0;
+  const col2 = new THREE.Color();
+  for (let gx = 0; gx < WORLD_SIZE; gx++) {
+    for (let gz = 0; gz < WORLD_SIZE; gz++) {
+      const top = heightMap[hIndex(gx, gz)];
+      const depth = Math.min(RENDER_DEPTH, top + 1);
+      // 依高度選色（同樣的分層邏輯，換成當關調色板）
+      let baseHex;
+      if (top <= 1)      baseHex = p.low;
+      else if (top <= 3) baseHex = p.mid;
+      else if (top <= 6) baseHex = p.dirt;
+      else if (top <= 9) baseHex = p.rock;
+      else               baseHex = p.snow;
+      for (let d = 0; d < depth; d++) {
+        col2.setHex(baseHex);
+        if (d > 0) col2.multiplyScalar(0.8);
+        col2.offsetHSL(0, 0, (hashRand(gx * 7 + d, gz * 13) - 0.5) * 0.08);
+        groundMesh.setColorAt(gi2, col2);
+        gi2++;
+      }
+    }
+  }
+  groundMesh.instanceColor.needsUpdate = true;
+}
+
 function applyLevelTheme(n) {
   const th = LEVEL_THEMES[(n - 1) % LEVEL_THEMES.length] || LEVEL_THEMES[0];
   scene.background.setHex(th.sky);
   scene.fog.color.setHex(th.fog);
   ambLight.color.setHex(th.amb); ambLight.intensity = th.ai;
   dirLight.color.setHex(th.sun); dirLight.intensity = th.si;
+  applyTerrainLevel(n);       // 切換地形形狀
+  applyTerrainPalette(th);    // 切換地面配色
 }
 
 /* =========================================================
@@ -768,48 +842,88 @@ function valueNoise(x, z) {
 }
 
 // --- 高度圖：每個格座標的地形頂層 y（整數）---
+// 預先生成六套不同的地形高度圖，每關切換一套
 const heightMap = new Int8Array(WORLD_SIZE * WORLD_SIZE);
-const hIndex = (gx, gz) => gx * WORLD_SIZE + gz;  // gx,gz 為 0..WORLD_SIZE-1 的陣列索引
+const hIndex = (gx, gz) => gx * WORLD_SIZE + gz;
 
-function computeHeight(worldX, worldZ) {
-  // 多層雜訊疊加（fBm 風格）+ 一點 sin/cos 做大尺度丘陵
-  let h = 0;
-  h += valueNoise(worldX * 0.06, worldZ * 0.06) * 8;   // 大丘陵
-  h += valueNoise(worldX * 0.15, worldZ * 0.15) * 3;   // 中起伏
-  h += valueNoise(worldX * 0.4,  worldZ * 0.4)  * 1;   // 細節
-  h += (Math.sin(worldX * 0.08) + Math.cos(worldZ * 0.08)) * 1.5; // 大尺度波浪
-  return Math.max(0, Math.round(h));
+// 六套地形風格：[大丘陵幅度, 頻率, 中起伏, 細節, sin幅度, 額外fn]
+const TERRAIN_STYLES = [
+  { a:6,  f:0.06, b:2.5, c:0.8, sw:1.2, ridge:false },   // 1 草原平野：緩坡低丘
+  { a:9,  f:0.05, b:3.0, c:0.8, sw:0.5, ridge:true  },   // 2 中原大地：高低錯落山脈
+  { a:5,  f:0.08, b:4.0, c:1.2, sw:0.8, ridge:false },   // 3 江南翠嶺：密集小丘
+  { a:10, f:0.04, b:2.0, c:0.5, sw:0.5, ridge:true  },   // 4 北方荒原：大幅度高原台地
+  { a:12, f:0.05, b:2.5, c:0.6, sw:1.5, ridge:true  },   // 5 關西高原：高聳山峰
+  { a:7,  f:0.07, b:1.5, c:1.0, sw:0.3, ridge:false },   // 6 蒼茫邊塞：開闊平原略有起伏
+];
+// 六套高度圖，一次全部算好
+const allHeightMaps = TERRAIN_STYLES.map((ts, li) => {
+  const hm = new Int8Array(WORLD_SIZE * WORLD_SIZE);
+  for (let gx = 0; gx < WORLD_SIZE; gx++) {
+    for (let gz = 0; gz < WORLD_SIZE; gz++) {
+      const wx = gx - HALF + 0.5, wz = gz - HALF + 0.5;
+      // 用不同 seed offset 做差異
+      const ox = li * 37.3, oz = li * 53.7;
+      let h = 0;
+      h += valueNoise((wx + ox) * ts.f,        (wz + oz) * ts.f)        * ts.a;
+      h += valueNoise((wx + ox) * ts.f * 2.5,  (wz + oz) * ts.f * 2.5) * ts.b;
+      h += valueNoise((wx + ox) * ts.f * 6,    (wz + oz) * ts.f * 6)   * ts.c;
+      h += (Math.sin(wx * 0.08) + Math.cos(wz * 0.09)) * ts.sw;
+      if (ts.ridge) {
+        // 山脊效果：讓高處更高、低處更低（誇張化）
+        h = h * (1 + Math.abs(valueNoise((wx+ox)*ts.f*3, (wz+oz)*ts.f*3) - 0.5));
+      }
+      hm[hIndex(gx, gz)] = Math.max(0, Math.round(h));
+    }
+  }
+  return hm;
+});
+// 初始用第一關的地形
+for (let i = 0; i < heightMap.length; i++) heightMap[i] = allHeightMaps[0][i];
+
+// 切換地形：重設高度圖 + 重新定位所有 instance 矩陣
+function applyTerrainLevel(levelN) {
+  const li = Math.min(levelN - 1, allHeightMaps.length - 1);
+  const hm = allHeightMaps[li];
+  for (let i = 0; i < heightMap.length; i++) heightMap[i] = hm[i];
+  // 重新定位 instance（矩陣）
+  const d2 = new THREE.Object3D();
+  let gi2 = 0;
+  for (let gx = 0; gx < WORLD_SIZE; gx++) {
+    for (let gz = 0; gz < WORLD_SIZE; gz++) {
+      const top = heightMap[hIndex(gx, gz)];
+      const wx = gx - HALF + 0.5, wz = gz - HALF + 0.5;
+      const depth = Math.min(RENDER_DEPTH, top + 1);
+      for (let d = 0; d < depth; d++) {
+        const y = top - d;
+        d2.position.set(wx, y + 0.5, wz);
+        d2.updateMatrix();
+        groundMesh.setMatrixAt(gi2, d2.matrix);
+        gi2++;
+      }
+    }
+  }
+  groundMesh.instanceMatrix.needsUpdate = true;
 }
 
-// 地形配色：依高度分層（草→泥→石→雪）
+// 地形配色（預設，各關會透過 applyTerrainPalette 換色）
 function terrainColorFor(topY) {
-  if (topY <= 1) return 0x66b347;       // 低地草
+  if (topY <= 1) return 0x78c850;       // 低地草
   if (topY <= 3) return 0x5a8f3a;       // 高草
   if (topY <= 6) return 0x8a6a45;       // 泥土
   if (topY <= 9) return 0x8b8b8b;       // 岩石
   return 0xeef2f5;                       // 雪頂
 }
 
-// 計算高度圖，並決定需要渲染的方塊數量
-// 效能關鍵：每個 column 只渲染頂部數塊（看得見的表層），不渲染深埋方塊
-const RENDER_DEPTH = 3;  // 每column渲染頂部幾層（含頂層）
-let maxTopY = 0;
-for (let gx = 0; gx < WORLD_SIZE; gx++) {
-  for (let gz = 0; gz < WORLD_SIZE; gz++) {
-    const wx = gx - HALF + 0.5, wz = gz - HALF + 0.5;
-    const top = computeHeight(wx, wz);
-    heightMap[hIndex(gx, gz)] = top;
-    if (top > maxTopY) maxTopY = top;
-  }
-}
-
-// 統計實際要渲染的方塊總數
+// 決定渲染方塊總數（以所有六套高度圖的最大值為基準，確保 buffer 夠大）
+const RENDER_DEPTH = 3;
 let terrainCount = 0;
-for (let gx = 0; gx < WORLD_SIZE; gx++) {
-  for (let gz = 0; gz < WORLD_SIZE; gz++) {
-    const top = heightMap[hIndex(gx, gz)];
-    terrainCount += Math.min(RENDER_DEPTH, top + 1); // 從 top 往下最多 RENDER_DEPTH 層
-  }
+// 用所有地形中最大高度圖計算最大可能方塊數（取最大值避免 buffer 太小）
+for (const hm of allHeightMaps) {
+  let cnt = 0;
+  for (let gx = 0; gx < WORLD_SIZE; gx++)
+    for (let gz = 0; gz < WORLD_SIZE; gz++)
+      cnt += Math.min(RENDER_DEPTH, hm[hIndex(gx, gz)] + 1);
+  if (cnt > terrainCount) terrainCount = cnt;
 }
 
 // 單一 InstancedMesh 渲染整個地形（一個 draw call）
@@ -833,11 +947,18 @@ for (let gx = 0; gx < WORLD_SIZE; gx++) {
       dummy.position.set(wx, y + 0.5, wz);
       dummy.updateMatrix();
       groundMesh.setMatrixAt(gi, dummy.matrix);
-      // 頂層用地形色，下層稍微加深，做出層次
       col.setHex(baseColor);
       if (d > 0) col.multiplyScalar(0.8);
-      // 加一點隨機明暗讓表面不死板
       col.offsetHSL(0, 0, (hashRand(gx * 7 + d, gz * 13) - 0.5) * 0.08);
+      groundMesh.setColorAt(gi, col);
+      gi++;
+    }
+    // 把剩餘的 buffer slots（給高關卡更高地形用）藏在地下
+    for (let d = depth; d < RENDER_DEPTH; d++) {
+      dummy.position.set(wx, -50, wz);
+      dummy.updateMatrix();
+      groundMesh.setMatrixAt(gi, dummy.matrix);
+      col.setHex(0x000000);
       groundMesh.setColorAt(gi, col);
       gi++;
     }
@@ -1878,11 +1999,11 @@ function updateGate(delta) {
     gateBeam.material.opacity = k * (0.18 + Math.sin(t * 4) * 0.08);
     gateBeam.rotation.y += delta * 0.5;
 
-    // 門開到底 → 偵測玩家是否走進門口
-    if (gateOpenAmount >= 1) {
+    // 門開到 80% 以上就可觸發（不必等完全開，避免玩家等太久）
+    if (gateOpenAmount >= 0.8) {
       const dx = player.position.x - 0;
       const dz = player.position.z - GATE_Z;
-      if (Math.abs(dx) < 2.6 && Math.abs(dz) < 2.4 && !levelTransition) {
+      if (Math.abs(dx) < 3.5 && Math.abs(dz) < 3.2 && !levelTransition) {
         enterGate();
       }
     }
@@ -2297,6 +2418,10 @@ if (isTouch) {
   // 判斷觸點是否落在某個 UI 元素上（搖桿/按鈕）→ 是則不轉視角
   function onUI(target) { return target.closest('#joy, .btn'); }
 
+  // iOS Safari：阻止 canvas 上的預設觸控行為（防止縮放/捲動干擾遊戲）
+  renderer.domElement.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+  renderer.domElement.addEventListener('touchmove',  (e) => e.preventDefault(), { passive: false });
+  renderer.domElement.addEventListener('touchend',   (e) => e.preventDefault(), { passive: false });
   renderer.domElement.addEventListener('touchstart', (e) => {
     if (!pointerLocked) return;
     const t = e.changedTouches[0];
@@ -2648,8 +2773,8 @@ const BOSS_GENERALS = [
   { name:'貓吉拉', subtitle:'飛將天下無雙', armor:0x5a6470, cloak:0x3a4250, plume:0x2a2f38, crown:0x4a5460, weapon:'burger', hp:60,  horse:0x4a5460, catzilla:true },
   { name:'曹操', subtitle:'亂世之奸雄', armor:0x1f3a6b, cloak:0xd4af37, plume:0xd4af37, crown:0xd4af37, weapon:'sword',   hp:75,  horse:0x2a2a2a },
   { name:'孫策', subtitle:'江東小霸王', armor:0x1f6b4a, cloak:0xe8e8ee, plume:0xe8e8ee, crown:0xd4af37, weapon:'spear',   hp:85,  horse:0x6b4a2a },
-  { name:'呂布', subtitle:'古之惡來',   armor:0x4b2e83, cloak:0xb8232f, plume:0xb8232f, crown:0xd4af37, weapon:'halberd', hp:100, horse:0x4a3528 },
-  { name:'夏侯惇', subtitle:'獨眼盲夏侯', armor:0x3a3a44, cloak:0x7a2a2a, plume:0x2a2a2a, crown:0xc0c8d0, weapon:'spear',  hp:120, horse:0x222222 },
+  { name:'夏侯惇', subtitle:'獨眼盲夏侯', armor:0x3a3a44, cloak:0x7a2a2a, plume:0x2a2a2a, crown:0xc0c8d0, weapon:'spear',  hp:100, horse:0x222222 },
+  { name:'呂布', subtitle:'古之惡來',   armor:0x4b2e83, cloak:0xb8232f, plume:0xb8232f, crown:0xd4af37, weapon:'halberd', hp:120, horse:0x4a3528 },
   { name:'哥吉拉', subtitle:'終極魔王・核爆咆哮', armor:0x2a3a2a, cloak:0x1a261a, plume:0x6ad08a, crown:0x3a4a3a, weapon:'gamma', hp:500, horse:0x2a3a2a, catzilla:true, gozilla:true },
 ];
 
