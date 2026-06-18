@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>三國方塊無雙 v1.2</title>
+<title>三國方塊無雙 v1.3</title>
 <style>
   /* ===== 全域樣式 ===== */
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -476,11 +476,18 @@
     width: 150px; padding: 16px 10px; border-radius: 12px; cursor: pointer;
     background: rgba(20,14,8,0.6); border: 2px solid rgba(232,193,112,0.4);
     transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+    display: flex; flex-direction: column; align-items: center;
   }
   .charCard:hover { transform: translateY(-6px) scale(1.04); border-color: #e8c170; box-shadow: 0 0 22px rgba(232,193,112,0.6); }
-  .charCard .cName { font-size: 30px; font-weight: 900; color: #ffd76b; letter-spacing: 4px; }
+  .charCard .cName {
+    font-size: 28px; font-weight: 900; color: #ffd76b;
+    letter-spacing: 2px; width: 100%; text-align: center;
+    /* 自動縮小以防溢出 */
+    overflow: hidden; white-space: nowrap;
+    display: block; font-size: clamp(14px, 3.8vw, 28px);
+  }
   .charCard .cTitle { font-size: 14px; color: #c9a05a; margin: 2px 0 10px; }
-  .charCard .cDesc { font-size: 14px; color: #f5e6c8; line-height: 1.5; min-height: 42px; }
+  .charCard .cDesc { font-size: 14px; color: #f5e6c8; line-height: 1.5; min-height: 42px; text-align: center; }
   .charCard .cStat { font-size: 12px; color: #9fd0ff; margin-top: 10px; }
   .charCard.locked { opacity: 0.4; filter: grayscale(0.8); cursor: not-allowed; }
   .charCard.locked::after { content: "🔒 未解鎖"; display:block; color:#bbb; font-size:12px; margin-top:6px; }
@@ -497,8 +504,8 @@
     .diffBtn span { font-size: 10px; }
     #charSelect { gap: 10px; max-width: 100%; }
     .charCard { width: 44vw; max-width: 200px; padding: 12px 8px; }
-    .charCard .cName { font-size: 24px; letter-spacing: 2px; }
-    .charCard .cName[style] { font-size: 20px !important; }
+    .charCard .cName { font-size: clamp(12px, 5.5vw, 22px); letter-spacing: 1px; }
+    .charCard .cName[style] { font-size: clamp(12px, 5vw, 20px) !important; }
     .charCard .cTitle { font-size: 12px; margin: 2px 0 6px; }
     .charCard .cDesc { font-size: 12px; min-height: 36px; }
     .charCard .cStat { font-size: 11px; margin-top: 6px; }
@@ -581,7 +588,7 @@
 
 <!-- 準心（建造模式顯示）-->
 <div id="crosshair"></div>
-<div id="verBadge">三國方塊無雙 v1.2</div>
+<div id="verBadge">三國方塊無雙 v1.3</div>
 
 <!-- 模式 + 方塊選擇 -->
 <div id="buildHud">
@@ -634,7 +641,7 @@
 
 <!-- 開始畫面 / 選角 -->
 <div id="overlay">
-  <h1>三國方塊無雙 <span class="ver">v1.2</span></h1>
+  <h1>三國方塊無雙 <span class="ver">v1.3</span></h1>
   <p style="margin-bottom:10px">選擇難度</p>
   <div id="diffSelect">
     <div class="diffBtn" data-diff="rookie">新手村<br><span>敵弱・包子多</span></div>
@@ -701,12 +708,16 @@
     <h2>📋 版本紀錄</h2>
     <div class="verList">
       <a class="verItem cur" href="https://chenkaie.github.io/minecraft-sanguo/" target="_blank">
-        <span class="vTag">v1.2 (最新)</span>
-        <span class="vDesc">哥吉拉/貓吉拉細節升級 · 三段形態 · 晴天場景 · iOS優化</span>
+        <span class="vTag">v1.3 (最新)</span>
+        <span class="vDesc">機械哥吉拉紅眼金屬感 · 多束gamma射線 · 武將卡自適應 · 跳關</span>
+      </a>
+      <a class="verItem" href="https://chenkaie.github.io/minecraft-sanguo/v1.2/index.html" target="_blank">
+        <span class="vTag">v1.2</span>
+        <span class="vDesc">正宗哥吉拉造型 · 三段形態(紅蓮/機械) · 通關大特效</span>
       </a>
       <a class="verItem" href="https://chenkaie.github.io/minecraft-sanguo/v1.1/index.html" target="_blank">
         <span class="vTag">v1.1</span>
-        <span class="vDesc">傳送門修復 · 全白天場景 · BOSS對調 · iOS優化</span>
+        <span class="vDesc">傳送門修復 · 全白天場景 · iOS優化</span>
       </a>
       <a class="verItem" href="https://chenkaie.github.io/minecraft-sanguo/v1.0/index.html" target="_blank">
         <span class="vTag">v1.0</span>
@@ -3257,7 +3268,7 @@ function spawnBoss(cfg) {
   boss.hp = boss.maxHp = Math.round(cfg.hp * diff().boss);
   boss.yVel = 0; boss.deathTimer = 0;
   boss.attackCd = 2.5; boss.state = 'chase'; boss.stateTimer = 0;
-  boss.gammaCd = 4.0; boss.gozPhase = 0;
+  boss.gammaCd = 4.0; boss.gozPhase = 0; boss.gammaBeams = null;
   gammaBeam.visible = false; gammaBeam.material.opacity = 0; gammaImpact.visible = false;
   const a = Math.random() * Math.PI * 2;
   const bx = Math.max(-HALF+2, Math.min(HALF-2, player.position.x + Math.cos(a)*18));
@@ -3321,22 +3332,49 @@ function applyGozillaPhase(phase) {
     for (let i = 0; i < 4; i++) setTimeout(()=>{ spawnShockwave(); spawnParticles(boss.pos.clone().setY(boss.pos.y+3), 16, 0xff6622); addShake(0.4); }, i*180);
     boss.gammaCd = Math.min(boss.gammaCd, 1.5);   // 紅蓮：更頻繁的射線
   } else if (phase === 2) {
-    // 機械哥吉拉：金屬銀色
+    // 機械哥吉拉（MonsterVerse 風格）：炭黑金屬 + 眼睛/嘴巴紅光
+    // 先把全身染成深炭黑（機械外殼），再對「眼睛」位置的 mesh 加紅色發光
+    let eyeIdx = 0;
     lubuModel.group.traverse(o => {
       if (!o.isMesh || o.material.blending === THREE.AdditiveBlending) return;
-      const v = 0.65 + Math.random() * 0.25;
-      o.material.color.setRGB(v, v, v);
-      o.material.emissive = new THREE.Color(0.0, 0.15, 0.3);
-      o.material.emissiveIntensity = 0.8;
-      o.material.metalness = 0.9; o.material.roughness = 0.2;
+      o.material = o.material.clone(); // 複製材質避免共享
+      const r = o.material.color.r, gb = (o.material.color.g + o.material.color.b) * 0.5;
+      // 判斷是否為「眼睛」（黃色 r 高 g 高 b 低）或「牙齒」（高亮）
+      const isEyeColor  = r > 0.7 && o.material.color.g > 0.6 && o.material.color.b < 0.4;
+      const isTeethColor = r > 0.8 && o.material.color.g > 0.8 && o.material.color.b > 0.7;
+      if (isEyeColor) {
+        // 眼睛：改成鮮紅發光（機械哥吉拉招牌紅眼）
+        o.material.color.setHex(0xff1a1a);
+        o.material.emissive = new THREE.Color(1.0, 0.0, 0.0);
+        o.material.emissiveIntensity = 2.5;
+      } else if (isTeethColor) {
+        // 牙齒：銀白金屬
+        o.material.color.setHex(0xc0c8d0);
+        o.material.emissive = new THREE.Color(0.1, 0.2, 0.4);
+        o.material.emissiveIntensity = 0.8;
+      } else {
+        // 其餘全部：近黑的炭色金屬，帶微藍電光
+        const v = 0.12 + (r * 0.08); // 保留微弱明暗差異感
+        o.material.color.setRGB(v, v + 0.01, v + 0.03);
+        o.material.emissive = new THREE.Color(0.0, 0.05, 0.18);
+        o.material.emissiveIntensity = 0.6;
+      }
     });
-    gammaBeam.material.color.setHex(0x40ffff);
-    gammaImpact.material.color.setHex(0x40ffff);
-    if (lubuModel.mouthGlow) lubuModel.mouthGlow.material.color.setHex(0x40ffff);
-    showBanner('機械哥吉拉合體', '最終兵器模式啟動');
+    // 嘴發光改紅色
+    if (lubuModel.mouthGlow) {
+      lubuModel.mouthGlow.material.color.setHex(0xff2200);
+    }
+    // 質子射線改紅橙色（Proton Scream）
+    gammaBeam.material.color.setHex(0xff3300);
+    gammaImpact.material.color.setHex(0xff4400);
+    showBanner('機械哥吉拉覺醒', 'Proton Scream 全力開火');
     addShake(1.0); hitStop(0.15);
-    for (let i = 0; i < 6; i++) setTimeout(()=>{ spawnShockwave(); spawnParticles(boss.pos.clone().setY(boss.pos.y+4), 12, 0x40ffff); addShake(0.5); sfxKatana(); }, i*150);
-    boss.gammaCd = Math.min(boss.gammaCd, 0.8);   // 機械：更頻繁、更快
+    for (let i = 0; i < 6; i++) setTimeout(()=>{
+      spawnShockwave();
+      spawnParticles(boss.pos.clone().setY(boss.pos.y+4), 14, i%2===0?0xff3300:0xff9944);
+      addShake(0.5); sfxKatana();
+    }, i*140);
+    boss.gammaCd = Math.min(boss.gammaCd, 0.6);   // 機械：最頻繁射線
   }
 }
 
@@ -3344,6 +3382,10 @@ function killBoss() {
   boss.dead = true;
   bossBarEl.classList.remove('show');
   gammaBeam.visible = false; gammaBeam.material.opacity = 0; gammaImpact.visible = false;
+  if (boss.gammaBeams) {
+    for (const gb of boss.gammaBeams) { scene.remove(gb.beam); scene.remove(gb.impact); }
+    boss.gammaBeams = null;
+  }
   if (lubuModel.mouthGlow) lubuModel.mouthGlow.material.opacity = 0;
   sfxKill(); hitStop(0.12); addShake(0.5);
   for (let i = 0; i < 6; i++) spawnParticles(lubuModel.group.position, 12, 0xd4af37);
@@ -3475,45 +3517,79 @@ function updateBoss(delta) {
     boss.chargeDir.copy(toPlayer);
     if (boss.stateTimer <= 0) { boss.state = 'gammaFire'; boss.stateTimer = 0.7; addShake(0.5); sfxKill(); }
   } else if (boss.state === 'gammaFire') {
-    // 發射 gamma 射線：從嘴沿斜下方向射出一長束，打到遠方地面
+    // 發射 gamma 射線：3~5 束扇形，從嘴向地面斜射，打到近地面
     g.rotation.y = Math.atan2(boss.chargeDir.x, boss.chargeDir.z);
-    const mouth = boss.pos.clone(); mouth.y += 9;            // 嘴部世界高度（scale 1.8 下的頭部 y≈5.6*1.8=10）
+    const mouth = boss.pos.clone(); mouth.y += 9;
     const flat = boss.chargeDir.clone().normalize();
-    // 命中點：朝前方遠處的地面（取一段距離後的地表）
-    const reach = 70;
-    const hitX = boss.pos.x + flat.x * reach;
-    const hitZ = boss.pos.z + flat.z * reach;
-    const hitY = terrainSurfaceY(hitX, hitZ);
-    const impact = new THREE.Vector3(hitX, hitY + 0.2, hitZ);
-    const beamVec = new THREE.Vector3().subVectors(impact, mouth);
-    const beamLen = beamVec.length();
-    const dir = beamVec.clone().normalize();
-    // 擺放光束（從嘴一路斜射到地面命中點）
-    gammaBeam.visible = true;
-    gammaBeam.material.opacity = 0.85 + Math.sin(boss.stateTimer * 40) * 0.15;
-    const mid = mouth.clone().addScaledVector(dir, beamLen / 2);
-    gammaBeam.position.copy(mid);
-    gammaBeam.scale.set(2.0, beamLen, 2.0);                   // 加粗一長束
-    gammaBeam.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
-    // 地面命中光暈 + 噴濺
-    gammaImpact.visible = true;
-    gammaImpact.position.set(hitX, hitY + 0.1, hitZ);
-    gammaImpact.material.opacity = 0.5 + Math.sin(clock.elapsedTime * 18) * 0.3;
-    const is = 1 + Math.sin(clock.elapsedTime * 14) * 0.25;
-    gammaImpact.scale.set(is, is, is);
-    if (Math.random() < 0.8) spawnParticles(impact.clone(), 4, 0x9affc0);
-    if (Math.random() < 0.4) spawnParticles(mouth.clone().addScaledVector(dir, beamLen*Math.random()), 2, 0xeaffe8);
-    // 命中判定：玩家若在光束沿線細長範圍內，或站在地面命中點附近 → 持續傷害
-    const toP = new THREE.Vector3().subVectors(player.position, mouth);
-    const along = toP.dot(dir);
-    const perp = toP.clone().addScaledVector(dir, -along).length();
-    const nearImpact = player.position.distanceTo(impact) < 4;
-    if (((along > 0 && perp < 2.5) || nearImpact) && playerState.invuln <= 0 && !playerState.inMusou) damagePlayer(2);
+    // 計算「近地面」的命中點（reach 縮短讓角度更陡）
+    const reach = 28;
+    // 每幀更新多條射線（利用 boss.gammaBeams 陣列，首幀建立）
+    if (!boss.gammaBeams) {
+      const count = 3 + Math.floor(Math.random() * 3); // 3~5 束
+      boss.gammaBeams = [];
+      const beamColor = (boss.gozPhase === 2) ? 0xff3300 : (boss.gozPhase === 1) ? 0xff6622 : 0x9ae8ff;
+      const impactColor = (boss.gozPhase === 2) ? 0xff4400 : (boss.gozPhase === 1) ? 0xff7733 : 0xaaffd0;
+      for (let i = 0; i < count; i++) {
+        const bm = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.5, 0.5, 1, 8, 1, true),
+          new THREE.MeshBasicMaterial({ color: beamColor, transparent: true, opacity: 0.9, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })
+        );
+        const im = new THREE.Mesh(
+          new THREE.CircleGeometry(3.0, 24),
+          new THREE.MeshBasicMaterial({ color: impactColor, transparent: true, opacity: 0.7, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending })
+        );
+        im.rotation.x = -Math.PI/2;
+        scene.add(bm); scene.add(im);
+        // 隨機扇形角度（在朝向玩家的方向兩側展開）
+        const spreadAng = (i / (count-1||1) - 0.5) * 0.7; // -0.35 ~ +0.35 rad 扇形
+        boss.gammaBeams.push({ beam: bm, impact: im, spreadAng });
+      }
+    }
+    let hitPlayer = false;
+    for (const gb of boss.gammaBeams) {
+      // 各束射線有偏角
+      const ang = Math.atan2(flat.x, flat.z) + gb.spreadAng;
+      const beamFlat = new THREE.Vector3(Math.sin(ang), 0, Math.cos(ang));
+      const hitX = boss.pos.x + beamFlat.x * reach;
+      const hitZ = boss.pos.z + beamFlat.z * reach;
+      const hitY = terrainSurfaceY(hitX, hitZ);
+      const impact = new THREE.Vector3(hitX, hitY + 0.2, hitZ);
+      const beamVec = new THREE.Vector3().subVectors(impact, mouth);
+      const beamLen = beamVec.length();
+      const dir = beamVec.clone().normalize();
+      // 擺放光束
+      gb.beam.visible = true;
+      gb.beam.material.opacity = 0.8 + Math.sin(clock.elapsedTime * 40 + gb.spreadAng * 10) * 0.2;
+      gb.beam.scale.set(1.8, beamLen, 1.8);
+      gb.beam.position.copy(mouth.clone().addScaledVector(dir, beamLen/2));
+      gb.beam.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir);
+      // 地面光暈
+      gb.impact.visible = true;
+      gb.impact.position.set(hitX, hitY + 0.1, hitZ);
+      const is = 1 + Math.sin(clock.elapsedTime * 12 + gb.spreadAng * 5) * 0.3;
+      gb.impact.scale.set(is, is, 1);
+      if (Math.random() < 0.6) spawnParticles(impact.clone(), 3, gammaBeam.material.color.getHex());
+      // 命中判定（每束）
+      const toP = new THREE.Vector3().subVectors(player.position, mouth);
+      const along = toP.dot(dir);
+      const perp = toP.clone().addScaledVector(dir, -along).length();
+      if ((along > 0 && perp < 2.2) || player.position.distanceTo(impact) < 3.5) hitPlayer = true;
+    }
+    // 玩家中一束即扣半血（機械哥吉拉第三形態傷害最高）
+    if (hitPlayer && playerState.invuln <= 0 && !playerState.inMusou) {
+      const dmg = boss.gozPhase === 2 ? Math.round(playerState.maxHp * 0.25) : boss.gozPhase === 1 ? Math.round(playerState.maxHp * 0.18) : Math.round(playerState.maxHp * 0.12);
+      damagePlayer(dmg);
+    }
     if (boss.stateTimer <= 0) {
-      gammaBeam.visible = false;
-      gammaImpact.visible = false;
+      // 清除多束射線
+      if (boss.gammaBeams) {
+        for (const gb of boss.gammaBeams) { scene.remove(gb.beam); scene.remove(gb.impact); }
+        boss.gammaBeams = null;
+      }
+      gammaBeam.visible = false; gammaImpact.visible = false;
       if (lubuModel.mouthGlow) lubuModel.mouthGlow.material.opacity = 0;
-      boss.state = 'recover'; boss.stateTimer = 1.0; boss.gammaCd = 4.5 + Math.random() * 2;
+      boss.state = 'recover'; boss.stateTimer = 1.0;
+      boss.gammaCd = boss.gozPhase === 2 ? 1.5 + Math.random() : boss.gozPhase === 1 ? 2.5 + Math.random() : 4.0 + Math.random() * 2;
     }
   } else if (boss.state === 'windup') {
     lubuModel.arm.rotation.x = -1.2;
