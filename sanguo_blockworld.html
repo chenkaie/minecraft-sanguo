@@ -447,6 +447,20 @@
 
   /* ===== 選角畫面 ===== */
   #diffSelect { display: flex; gap: 12px; justify-content: center; margin-bottom: 6px; }
+  #levelSelect {
+    display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;
+    margin-bottom: 6px; max-width: 620px;
+  }
+  .lvlBtn {
+    min-width: 82px; padding: 8px 10px; border-radius: 10px; cursor: pointer;
+    background: rgba(20,14,8,0.6); border: 2px solid rgba(232,193,112,0.25);
+    color: #f5e6c8; font-weight: 700; font-size: 14px; text-align: center;
+    transition: transform 0.12s, border-color 0.12s, background 0.12s;
+  }
+  .lvlBtn span { display: block; font-size: 11px; font-weight: 400; color: #c9a05a; margin-top: 3px; }
+  .lvlBtn:hover { transform: translateY(-2px); border-color: rgba(232,193,112,0.6); }
+  .lvlBtn.selected { border-color: #ffd76b; background: rgba(90,50,20,0.7); box-shadow: 0 0 14px rgba(255,160,0,0.35); }
+  .lvlBtn[data-level="6"].selected { border-color: #ff5a5a; box-shadow: 0 0 14px rgba(255,60,60,0.45); }
   .diffBtn {
     min-width: 130px; padding: 10px 16px; border-radius: 12px; cursor: pointer;
     background: rgba(20,14,8,0.6); border: 2px solid rgba(232,193,112,0.35);
@@ -478,6 +492,8 @@
     #overlay .hint { font-size: 13px; margin-top: 16px; padding: 0 6px; }
     #diffSelect { flex-wrap: wrap; gap: 8px; }
     .diffBtn { min-width: 0; flex: 1 1 28%; padding: 8px 8px; font-size: 16px; }
+    #levelSelect { gap: 6px; }
+    .lvlBtn { min-width: 72px; font-size: 12px; padding: 6px 8px; }
     .diffBtn span { font-size: 10px; }
     #charSelect { gap: 10px; max-width: 100%; }
     .charCard { width: 44vw; max-width: 200px; padding: 12px 8px; }
@@ -624,6 +640,15 @@
     <div class="diffBtn" data-diff="rookie">新手村<br><span>敵弱・包子多</span></div>
     <div class="diffBtn selected" data-diff="master">高手<br><span>標準平衡</span></div>
     <div class="diffBtn" data-diff="hell">地獄<br><span>血厚・凶猛・包子少</span></div>
+  </div>
+  <p style="margin:12px 0 6px">選擇起始關卡</p>
+  <div id="levelSelect">
+    <div class="lvlBtn selected" data-level="1">第一關<br><span>貓吉拉</span></div>
+    <div class="lvlBtn" data-level="2">第二關<br><span>曹操</span></div>
+    <div class="lvlBtn" data-level="3">第三關<br><span>孫策</span></div>
+    <div class="lvlBtn" data-level="4">第四關<br><span>夏侯惇</span></div>
+    <div class="lvlBtn" data-level="5">第五關<br><span>呂布</span></div>
+    <div class="lvlBtn" data-level="6">第六關<br><span>哥吉拉</span></div>
   </div>
   <p style="margin:14px 0 18px">選擇你的武將 · 蜀國五虎將</p>
   <div id="charSelect">
@@ -2283,15 +2308,26 @@ let gameStarted = false;
 let gameStartTime = 0;
 
 // 啟動遊戲（選定武將後）
+let startLevel = 1;   // 玩家選擇的起始關卡
+
 function startGame(genKey) {
   if (gameStarted) return;
   gameStarted = true;
-  document.body.classList.add('playing');   // 顯示遊戲 HUD / 觸控按鈕
-  gameStartTime = performance.now();   // 計時起點（用於排行榜闖關速度）
-  CONCURRENT_CAP = diff().cap;     // 依難度設定場上小兵上限
+  document.body.classList.add('playing');
+  gameStartTime = performance.now();
+  CONCURRENT_CAP = diff().cap;
   unlockedGenerals.add(genKey);
+  // 跳關：解鎖「應已打倒的前幾關 BOSS 所招降的武將」
+  // 每關 BOSS 打倒後招降一個武將，跳到第 N 關 = 相當於已過 N-1 關
+  if (startLevel > 1) {
+    const allKeys = Object.keys(GENERALS).filter(k => k !== genKey);
+    for (let i = 0; i < startLevel - 1 && i < allKeys.length; i++) {
+      unlockedGenerals.add(allKeys[i]);
+    }
+    showBanner(`跳至第 ${startLevel} 關`, `已解鎖前 ${startLevel - 1} 位武將`);
+  }
   assemblePlayer(genKey);
-  applyGeneralStats(genKey);   // 套用該武將屬性（此時 playerState 已就緒）
+  applyGeneralStats(genKey);
   initAudio();
   overlay.classList.add('hidden');
   if (isTouch) {
@@ -2299,16 +2335,25 @@ function startGame(genKey) {
   } else {
     renderer.domElement.requestPointerLock();
   }
-  // 召喚初始小動物友軍
   for (let i = 0; i < 4; i++) spawnAlly();
 }
 
-// 難易度按鈕：點選切換（開始前）
+// 難易度按鈕
 document.querySelectorAll('#diffSelect .diffBtn').forEach(btn => {
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     currentDifficulty = btn.dataset.diff;
     document.querySelectorAll('#diffSelect .diffBtn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+});
+
+// 跳關按鈕
+document.querySelectorAll('#levelSelect .lvlBtn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    startLevel = parseInt(btn.dataset.level);
+    document.querySelectorAll('#levelSelect .lvlBtn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
   });
 });
@@ -3598,9 +3643,9 @@ function updateWaveTargetUI() {
 function updateWaves(delta) {
   if (waveState.gameOver || levelTransition) return;
 
-  // 尚未開始 → 開第一關
+  // 尚未開始 → 開指定關卡（支援跳關）
   if (waveState.current === 0) {
-    startWave(1);
+    startWave(startLevel);
     return;
   }
 
