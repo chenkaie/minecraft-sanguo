@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>三國方塊無雙 v1.3</title>
+<title>Three Kingdoms Voxel Warriors v1.4</title>
 <style>
   /* ===== 全域樣式 ===== */
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -19,6 +19,20 @@
   }
   canvas { display: block; }
 
+  /* ===== 語言切換器 ===== */
+  #langSwitcher {
+    position: absolute; top: 14px; right: 18px;
+    display: flex; gap: 6px; align-items: center;
+  }
+  .langBtn {
+    padding: 5px 12px; font-size: 13px; font-weight: 700; cursor: pointer;
+    background: rgba(20,14,8,0.7); color: #c9a05a;
+    border: 1.5px solid rgba(232,193,112,0.35); border-radius: 8px;
+    font-family: inherit; transition: all 0.12s;
+  }
+  .langBtn:hover { border-color: #ffd76b; color: #ffd76b; }
+  .langBtn.selected { border-color: #ffd76b; color: #ffd76b; background: rgba(80,50,10,0.7); }
+
   /* ===== 開始畫面 ===== */
   #overlay {
     position: fixed; inset: 0; z-index: 20;
@@ -29,8 +43,8 @@
     overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 24px 12px 48px;
   }
   /* 內容較短時垂直置中；較長時可由上往下捲動 */
-  #overlay > h1:first-child { margin-top: auto; }
-  #overlay > #lbOpen { margin-bottom: auto; }
+  #overlay > #langSwitcher { margin-top: 0; }   /* 語言切換器不參與 auto 間距 */
+  #overlay > h1 { margin-top: auto; }
   #overlay h1 {
     font-size: 50px; letter-spacing: 8px; margin-bottom: 14px;
     color: #e8c170; text-shadow: 0 0 18px rgba(232,193,112,0.6);
@@ -538,9 +552,9 @@
 
 <!-- 擊殺數 + 玩家血條 -->
 <div id="stats">
-  <div id="killCount">0 <span>擊殺</span></div>
+  <div id="killCount">0 <span data-i18n="kills">擊殺</span></div>
   <div id="playerHp">
-    <div id="playerHpLabel">主將氣力</div>
+    <div id="playerHpLabel" data-i18n="hp_label">主將氣力</div>
     <div id="hpBarBg"><div id="hpBar"></div></div>
   </div>
 </div>
@@ -548,7 +562,7 @@
 <!-- 關卡資訊 -->
 <div id="waveInfo">
   <div id="waveNum">第 1 關</div>
-  <div id="waveTarget">小兵 <b>0</b> / 0</div>
+  <div id="waveTarget"><span data-i18n="enemies">小兵</span> <b>0</b></div>
 </div>
 
 <!-- 波次橫幅 -->
@@ -556,56 +570,56 @@
 
 <!-- BOSS 血條（出場才顯示）-->
 <div id="bossBar">
-  <div id="bossName">呂 布</div>
+  <div id="bossName">CatZilla</div>
   <div id="bossHpBg"><div id="bossHpFg"></div></div>
 </div>
 
 <!-- 結算畫面 -->
 <div id="result">
-  <h1 class="win">大 獲 全 勝</h1>
-  <p>總擊殺數 <span class="stat" id="resultKills">0</span></p>
-  <p class="hint">▶ 點擊重新開始</p>
+  <h1 class="win" data-i18n="win_title">大 獲 全 勝</h1>
+  <p><span data-i18n="total_kills">總擊殺數</span> <span class="stat" id="resultKills">0</span></p>
+  <p class="hint" data-i18n="restart_hint">▶ 點擊重新開始</p>
 </div>
 
 <!-- 排行榜面板 -->
 <div id="leaderboard">
   <div class="lbBox">
-    <h2>🏆 英雄排行榜</h2>
+    <h2>🏆 <span data-i18n="lb_title">英雄排行榜</span></h2>
     <div id="lbBody"></div>
     <div class="lbBtns">
-      <button id="lbClose">關閉</button>
-      <button id="lbReset">清除紀錄</button>
+      <button id="lbClose" data-i18n="close">關閉</button>
+      <button id="lbReset" data-i18n="lb_reset">清除紀錄</button>
     </div>
-    <p class="lbNote">分數 = 闖關速度(高) + 擊殺數(中) + 剩餘武將(低)　·　紀錄保存在本機</p>
+    <p class="lbNote" data-i18n="lb_note">分數 = 闖關速度(高) + 擊殺數(中) + 剩餘武將(低)　·　紀錄保存在本機</p>
   </div>
 </div>
 
 <!-- 無雙能量條 -->
 <div id="musouWrap">
-  <div id="musouLabel">無 雙 槽</div>
+  <div id="musouLabel" data-i18n="musou_label">無 雙 槽</div>
   <div id="musouBarBg"><div id="musouBar"></div></div>
 </div>
 
 <!-- 準心（建造模式顯示）-->
 <div id="crosshair"></div>
-<div id="verBadge">三國方塊無雙 v1.3</div>
+<div id="verBadge">三國方塊無雙 v1.4</div>
 
 <!-- 模式 + 方塊選擇 -->
 <div id="buildHud">
-  <div id="modeTag" class="combat">戰鬥模式</div>
+  <div id="modeTag" class="combat" data-i18n="combat_mode">戰鬥模式</div>
   <div id="blockBar">
-    <div class="blockSlot sel" data-block="0"><div class="sw" style="background:#5fa83c"></div>1 草地</div>
-    <div class="blockSlot" data-block="1"><div class="sw" style="background:#8a5a3a"></div>2 泥土</div>
-    <div class="blockSlot" data-block="2"><div class="sw" style="background:#9a6b3a"></div>3 木頭</div>
+    <div class="blockSlot sel" data-block="0"><div class="sw" style="background:#5fa83c"></div><span data-i18n="block_grass">1 草地</span></div>
+    <div class="blockSlot" data-block="1"><div class="sw" style="background:#8a5a3a"></div><span data-i18n="block_dirt">2 泥土</span></div>
+    <div class="blockSlot" data-block="2"><div class="sw" style="background:#9a6b3a"></div><span data-i18n="block_wood">3 木頭</span></div>
   </div>
 </div>
 
 <!-- 操作提示 -->
 <div id="hud">
-  <b>B：切換 戰鬥／建造模式</b><br>
-  戰鬥：左鍵 普攻連段　|　Q／右鍵 無雙亂舞（發動後可用 WASD 自由衝鋒開路）<br>
-  建造：<b>右鍵 放置方塊</b>　左鍵 破壞　|　1/2/3 選方塊（白色預覽框顯示落點）<br>
-  WASD：移動　|　滑鼠：轉視角　|　Space：跳躍　|　SHIFT+F：全螢幕
+  <b data-i18n="hud_b">B：切換 戰鬥／建造模式</b><br>
+  <span data-i18n="hud_combat">戰鬥：左鍵 普攻連段　|　Q／右鍵 無雙亂舞（發動後可用 WASD 自由衝鋒開路）</span><br>
+  <span data-i18n="hud_build">建造：右鍵 放置方塊　左鍵 破壞　|　1/2/3 選方塊（白色預覽框顯示落點）</span><br>
+  <span data-i18n="hud_move">WASD：移動　|　滑鼠：轉視角　|　Space：跳躍　|　SHIFT+F：全螢幕</span>
 </div>
 
 <!-- 特效層 -->
@@ -616,99 +630,106 @@
 <!-- 暫停畫面（按 ESC 後顯示，點擊繼續）-->
 <div id="pauseOverlay">
   <div class="pauseBox">
-    <h2>遊戲暫停</h2>
-    <p>點擊畫面繼續遊戲</p>
-    <p class="psub">（滑鼠移動轉視角・WASD 移動）</p>
+    <h2 data-i18n="paused">遊戲暫停</h2>
+    <p data-i18n="click_resume">點擊畫面繼續遊戲</p>
+    <p class="psub" data-i18n="pause_sub">（滑鼠移動轉視角・WASD 移動）</p>
   </div>
 </div>
-<div id="combo"><div class="num">0</div><div class="lbl">連 段</div></div>
+<div id="combo"><div class="num">0</div><div class="lbl" data-i18n="combo">連 段</div></div>
 <div id="floaters"></div>
 
 <!-- ========== 觸控操作介面 ========== -->
 <div id="touchUI">
-  <!-- 左下虛擬搖桿 -->
   <div id="joy"><div id="joyKnob"></div></div>
-  <!-- 動作鈕 -->
-  <div id="btnAttack" class="btn">普攻</div>
-  <div id="btnMusou" class="btn">無雙</div>
-  <div id="btnJump" class="btn">跳</div>
-  <div id="btnMode" class="btn">建造<br>模式</div>
-  <div id="btnSwitch" class="btn">換將</div>
-  <!-- 建造模式專用 -->
-  <div id="btnBreak" class="btn">破壞</div>
-  <div id="btnPlace" class="btn">放置</div>
+  <div id="btnAttack" class="btn" data-i18n="btn_attack">普攻</div>
+  <div id="btnMusou" class="btn" data-i18n="btn_musou">無雙</div>
+  <div id="btnJump" class="btn" data-i18n="btn_jump">跳</div>
+  <div id="btnMode" class="btn" data-i18n-html="btn_mode">建造<br>模式</div>
+  <div id="btnSwitch" class="btn" data-i18n="btn_switch">換將</div>
+  <div id="btnBreak" class="btn" data-i18n="btn_break">破壞</div>
+  <div id="btnPlace" class="btn" data-i18n="btn_place">放置</div>
 </div>
 
 <!-- 開始畫面 / 選角 -->
 <div id="overlay">
-  <h1>三國方塊無雙 <span class="ver">v1.3</span></h1>
-  <p style="margin-bottom:10px">選擇難度</p>
+  <div id="langSwitcher">
+    <button class="langBtn selected" data-lang="auto" data-i18n="lang_auto">自動</button>
+    <button class="langBtn" data-lang="zh">中文</button>
+    <button class="langBtn" data-lang="en">EN</button>
+  </div>
+  <h1 data-i18n="game_title">三國方塊無雙 <span class="ver">v1.4</span></h1>
+  <p style="margin-bottom:10px" data-i18n="select_diff">選擇難度</p>
   <div id="diffSelect">
-    <div class="diffBtn" data-diff="rookie">新手村<br><span>敵弱・包子多</span></div>
-    <div class="diffBtn selected" data-diff="master">高手<br><span>標準平衡</span></div>
-    <div class="diffBtn" data-diff="hell">地獄<br><span>血厚・凶猛・包子少</span></div>
+    <div class="diffBtn" data-diff="rookie" data-i18n-html="diff_rookie">新手村<br><span>敵弱・包子多</span></div>
+    <div class="diffBtn selected" data-diff="master" data-i18n-html="diff_master">高手<br><span>標準平衡</span></div>
+    <div class="diffBtn" data-diff="hell" data-i18n-html="diff_hell">地獄<br><span>血厚・凶猛・包子少</span></div>
   </div>
-  <p style="margin:12px 0 6px">選擇起始關卡</p>
+  <p style="margin:12px 0 6px" data-i18n="select_level">選擇起始關卡</p>
   <div id="levelSelect">
-    <div class="lvlBtn selected" data-level="1">第一關<br><span>貓吉拉</span></div>
-    <div class="lvlBtn" data-level="2">第二關<br><span>曹操</span></div>
-    <div class="lvlBtn" data-level="3">第三關<br><span>孫策</span></div>
-    <div class="lvlBtn" data-level="4">第四關<br><span>夏侯惇</span></div>
-    <div class="lvlBtn" data-level="5">第五關<br><span>呂布</span></div>
-    <div class="lvlBtn" data-level="6">第六關<br><span>哥吉拉</span></div>
+    <div class="lvlBtn selected" data-level="1" data-i18n-html="lv1">第一關<br><span>貓吉拉</span></div>
+    <div class="lvlBtn" data-level="2" data-i18n-html="lv2">第二關<br><span>曹操</span></div>
+    <div class="lvlBtn" data-level="3" data-i18n-html="lv3">第三關<br><span>孫策</span></div>
+    <div class="lvlBtn" data-level="4" data-i18n-html="lv4">第四關<br><span>夏侯惇</span></div>
+    <div class="lvlBtn" data-level="5" data-i18n-html="lv5">第五關<br><span>呂布</span></div>
+    <div class="lvlBtn" data-level="6" data-i18n-html="lv6">第六關<br><span>哥吉拉</span></div>
   </div>
-  <p style="margin:14px 0 18px">選擇你的武將 · 蜀國五虎將</p>
+  <p style="margin:14px 0 18px" data-i18n="select_hero">選擇你的武將 · 蜀國五虎將</p>
   <div id="charSelect">
     <div class="charCard" data-gen="guanyu">
-      <div class="cName">關羽</div><div class="cTitle">美髯公</div>
-      <div class="cDesc">青龍偃月刀<br>攻守均衡</div>
-      <div class="cStat">氣力100 · 攻擊★★★</div>
+      <div class="cName" data-i18n="hero_guanyu">關羽</div><div class="cTitle" data-i18n="hero_guanyu_title">美髯公</div>
+      <div class="cDesc" data-i18n-html="hero_guanyu_desc">青龍偃月刀<br>攻守均衡</div>
+      <div class="cStat" data-i18n="hero_guanyu_stat">氣力100 · 攻擊★★★</div>
     </div>
     <div class="charCard" data-gen="zhangfei">
-      <div class="cName">張飛</div><div class="cTitle">猛張飛</div>
-      <div class="cDesc">丈八蛇矛<br>高血量重攻</div>
-      <div class="cStat">氣力130 · 攻擊★★★★</div>
+      <div class="cName" data-i18n="hero_zhangfei">張飛</div><div class="cTitle" data-i18n="hero_zhangfei_title">猛張飛</div>
+      <div class="cDesc" data-i18n-html="hero_zhangfei_desc">丈八蛇矛<br>高血量重攻</div>
+      <div class="cStat" data-i18n="hero_zhangfei_stat">氣力130 · 攻擊★★★★</div>
     </div>
     <div class="charCard" data-gen="zhaoyun">
-      <div class="cName">趙雲</div><div class="cTitle">常山趙子龍</div>
-      <div class="cDesc">亮銀槍<br>迅捷靈動</div>
-      <div class="cStat">氣力95 · 攻擊★★★</div>
+      <div class="cName" data-i18n="hero_zhaoyun">趙雲</div><div class="cTitle" data-i18n="hero_zhaoyun_title">常山趙子龍</div>
+      <div class="cDesc" data-i18n-html="hero_zhaoyun_desc">亮銀槍<br>迅捷靈動</div>
+      <div class="cStat" data-i18n="hero_zhaoyun_stat">氣力95 · 攻擊★★★</div>
     </div>
     <div class="charCard" data-gen="machao">
-      <div class="cName">馬超</div><div class="cTitle">錦馬超</div>
-      <div class="cDesc">長槍<br>西涼悍將</div>
-      <div class="cStat">氣力100 · 攻擊★★★</div>
+      <div class="cName" data-i18n="hero_machao">馬超</div><div class="cTitle" data-i18n="hero_machao_title">錦馬超</div>
+      <div class="cDesc" data-i18n-html="hero_machao_desc">長槍<br>西涼悍將</div>
+      <div class="cStat" data-i18n="hero_machao_stat">氣力100 · 攻擊★★★</div>
     </div>
     <div class="charCard" data-gen="huangzhong">
-      <div class="cName">黃忠</div><div class="cTitle">老當益壯</div>
-      <div class="cDesc">大刀<br>百步穿楊</div>
-      <div class="cStat">氣力90 · 攻擊★★★★</div>
+      <div class="cName" data-i18n="hero_huangzhong">黃忠</div><div class="cTitle" data-i18n="hero_huangzhong_title">老當益壯</div>
+      <div class="cDesc" data-i18n-html="hero_huangzhong_desc">大刀<br>百步穿楊</div>
+      <div class="cStat" data-i18n="hero_huangzhong_stat">氣力90 · 攻擊★★★★</div>
     </div>
     <div class="charCard" data-gen="yadan">
-      <div class="cName" style="font-size:24px">犀利鴨蛋</div><div class="cTitle">幼幼園戰神</div>
-      <div class="cDesc">彩繪雨傘<br>犀利又可愛</div>
-      <div class="cStat">氣力110 · 攻擊★★★</div>
+      <div class="cName" style="font-size:24px" data-i18n="hero_yadan">犀利鴨蛋</div><div class="cTitle" data-i18n="hero_yadan_title">幼幼園戰神</div>
+      <div class="cDesc" data-i18n-html="hero_yadan_desc">彩繪雨傘<br>犀利又可愛</div>
+      <div class="cStat" data-i18n="hero_yadan_stat">氣力110 · 攻擊★★★</div>
     </div>
     <div class="charCard" data-gen="raymond67">
-      <div class="cName" style="font-size:22px">Raymond67</div><div class="cTitle">夜煞騎士</div>
-      <div class="cDesc">武士刀<br>騎夜煞黑龍</div>
-      <div class="cStat">氣力120 · 攻擊★★★★</div>
+      <div class="cName" style="font-size:22px">Raymond67</div><div class="cTitle" data-i18n="hero_raymond_title">夜煞騎士</div>
+      <div class="cDesc" data-i18n-html="hero_raymond_desc">武士刀<br>騎夜煞黑龍</div>
+      <div class="cStat" data-i18n="hero_raymond_stat">氣力120 · 攻擊★★★★</div>
+    </div>
+    <div class="charCard" data-gen="taiwan_captain">
+      <div class="cName" style="font-size:20px" data-i18n="hero_taiwan_name">台灣隊長</div><div class="cTitle" data-i18n="hero_taiwan_title">寶島守護神</div>
+      <div class="cDesc" data-i18n-html="hero_taiwan_desc">大隻球棒<br>騎石虎・鎮守台灣</div>
+      <div class="cStat" data-i18n="hero_taiwan_stat">氣力115 · 攻擊★★★★</div>
     </div>
   </div>
-  <p class="hint">點選武將後開始 · 闖六關：貓吉拉→曹操→孫策→夏侯惇→呂布→魔王哥吉拉 · 每位武將無雙招式各不同 · 每過一關招降新武將</p>
+  <p class="hint" data-i18n="start_hint">點選武將後開始 · 闖六關：貓吉拉→曹操→孫策→夏侯惇→呂布→魔王哥吉拉 · 每位武將無雙招式各不同 · 每過一關招降新武將</p>
   <div style="display:flex;gap:10px;justify-content:center;align-items:stretch;flex-wrap:wrap;margin-top:16px;">
-    <button id="lbOpen">🏆 查看排行榜</button>
-    <button id="verMenuOpen">📋 版本紀錄</button>
+    <button id="lbOpen" data-i18n="lb_btn">🏆 查看排行榜</button>
+    <button id="verMenuOpen" data-i18n="ver_btn">📋 版本紀錄</button>
   </div>
 </div>
 
 <!-- 版本選單 -->
 <div id="verMenu">
   <div class="lbBox">
-    <h2>📋 版本紀錄</h2>
+    <h2>📋 <span data-i18n="ver_title">版本紀錄</span></h2>
     <div class="verList">
       <a class="verItem cur" href="https://chenkaie.github.io/minecraft-sanguo/" target="_blank">
-        <span class="vTag">v1.3 (最新)</span>
+        <span class="vTag">v1.4 (最新)</span>
         <span class="vDesc">機械哥吉拉紅眼金屬感 · 多束gamma射線 · 武將卡自適應 · 跳關</span>
       </a>
       <a class="verItem" href="https://chenkaie.github.io/minecraft-sanguo/v1.2/index.html" target="_blank">
@@ -743,6 +764,221 @@
 
 <script type="module">
 import * as THREE from 'three';
+
+/* =========================================================
+   🌐 國際化 (i18n) — 中文 / English，自動偵測瀏覽器語言
+   ========================================================= */
+const I18N = {
+  zh: {
+    // HUD
+    kills:'擊殺', hp_label:'主將氣力', enemies:'小兵', musou_label:'無 雙 槽',
+    combat_mode:'戰鬥模式', build_mode:'建造模式', combo:'連 段',
+    block_grass:'1 草地', block_dirt:'2 泥土', block_wood:'3 木頭',
+    // 操作提示
+    hud_b:'B：切換 戰鬥／建造模式',
+    hud_combat:'戰鬥：左鍵 普攻連段　|　Q／右鍵 無雙亂舞（發動後可用 WASD 自由衝鋒開路）',
+    hud_build:'建造：右鍵 放置方塊　左鍵 破壞　|　1/2/3 選方塊（白色預覽框顯示落點）',
+    hud_move:'WASD：移動　|　滑鼠：轉視角　|　Space：跳躍　|　SHIFT+F：全螢幕',
+    // 觸控按鈕
+    btn_attack:'普攻', btn_musou:'無雙', btn_jump:'跳',
+    btn_mode:'建造<br>模式', btn_switch:'換將', btn_break:'破壞', btn_place:'放置',
+    // 暫停
+    paused:'遊戲暫停', click_resume:'點擊畫面繼續遊戲', pause_sub:'（滑鼠移動轉視角・WASD 移動）',
+    // 結算
+    win_title:'討伐魔王・天下太平', lose_title:'力 竭 陣 亡',
+    total_kills:'總擊殺數', restart_hint:'▶ 點擊重新開始',
+    // 排行榜
+    lb_title:'英雄排行榜', lb_btn:'🏆 查看排行榜', lb_reset:'清除紀錄', close:'關閉',
+    lb_note:'分數 = 闖關速度(高) + 擊殺數(中) + 剩餘武將(低)　·　紀錄保存在本機',
+    lb_empty:'尚無紀錄 — 通關後即可登榜！', lb_head_rank:'#', lb_head_name:'名稱',
+    lb_head_diff:'難度', lb_head_time:'時間', lb_head_kills:'擊殺', lb_head_surv:'存活', lb_head_score:'總分',
+    lb_name_prompt:'🏆 通關成功！輸入你的名字登上排行榜：', lb_default_name:'無名英雄',
+    // 版本
+    ver_btn:'📋 版本紀錄', ver_title:'版本紀錄',
+    // 開始畫面
+    game_title:'三國方塊無雙', lang_auto:'自動',
+    select_diff:'選擇難度', select_level:'選擇起始關卡', select_hero:'選擇你的武將 · 蜀國五虎將',
+    diff_rookie:'新手村<br><span>敵弱・包子多</span>',
+    diff_master:'高手<br><span>標準平衡</span>',
+    diff_hell:'地獄<br><span>血厚・凶猛・包子少</span>',
+    lv1:'第一關<br><span>貓吉拉</span>', lv2:'第二關<br><span>曹操</span>',
+    lv3:'第三關<br><span>孫策</span>', lv4:'第四關<br><span>夏侯惇</span>',
+    lv5:'第五關<br><span>呂布</span>', lv6:'第六關<br><span>哥吉拉</span>',
+    start_hint:'點選武將後開始 · 闖六關：貓吉拉→曹操→孫策→夏侯惇→呂布→魔王哥吉拉 · 八位武將各有獨特無雙 · 每過一關招降新武將',
+    // 武將
+    hero_guanyu:'關羽', hero_guanyu_title:'美髯公',
+    hero_guanyu_desc:'青龍偃月刀<br>攻守均衡', hero_guanyu_stat:'氣力100 · 攻擊★★★',
+    hero_zhangfei:'張飛', hero_zhangfei_title:'猛張飛',
+    hero_zhangfei_desc:'丈八蛇矛<br>高血量重攻', hero_zhangfei_stat:'氣力130 · 攻擊★★★★',
+    hero_zhaoyun:'趙雲', hero_zhaoyun_title:'常山趙子龍',
+    hero_zhaoyun_desc:'亮銀槍<br>迅捷靈動', hero_zhaoyun_stat:'氣力95 · 攻擊★★★',
+    hero_machao:'馬超', hero_machao_title:'錦馬超',
+    hero_machao_desc:'長槍<br>西涼悍將', hero_machao_stat:'氣力100 · 攻擊★★★',
+    hero_huangzhong:'黃忠', hero_huangzhong_title:'老當益壯',
+    hero_huangzhong_desc:'大刀<br>百步穿楊', hero_huangzhong_stat:'氣力90 · 攻擊★★★★',
+    hero_yadan:'犀利鴨蛋', hero_yadan_title:'幼幼園戰神',
+    hero_yadan_desc:'彩繪雨傘<br>犀利又可愛', hero_yadan_stat:'氣力110 · 攻擊★★★',
+    hero_raymond_title:'夜煞騎士',
+    hero_raymond_desc:'武士刀<br>騎夜煞黑龍', hero_raymond_stat:'氣力120 · 攻擊★★★★',
+    hero_taiwan_name:'台灣隊長', hero_taiwan_title:'寶島守護神',
+    hero_taiwan_desc:'大隻球棒<br>騎石虎・鎮守台灣', hero_taiwan_stat:'氣力115 · 攻擊★★★★',
+    // 遊戲內動態字串
+    wave_label:'第', wave_unit:'關', boss_approach:'來襲',
+    boss_slain:'擊破', boss_slain_sub:'斬將立功',
+    gate_open:'斬將過關', gate_hint:'城門已開・走進前方城門',
+    final_gate:'魔王已討', final_gate_hint:'走進城門・凱旋',
+    switch_gen:'切換武將：', switch_hp:'氣力',
+    switch_no_others:'沒有其他存活武將可切換',
+    fallen:'陣亡', take_over:'接替上陣！（剩', take_over_end:'員）',
+    win_banner:'討伐魔王・天下太平', win_sub:'恭喜過關！六關全破！',
+    boss_godzilla_killed:'魔王討伐！', boss_godzilla_killed_sub:'世界得救了',
+    burning_awaken:'紅蓮形態覺醒', burning_sub:'體內核分裂失控・全力爆發',
+    mecha_awaken:'機械哥吉拉覺醒', mecha_sub:'Proton Scream 全力開火',
+    clear_gate:'走進城門・凱旋',
+    skip_banner_sub:'已解鎖前', skip_banner_sub2:'位武將',
+    killed_count_label:'擊殺關主以過關 · 已斬小兵',
+    killed_label:'關主已斬・走進城門',
+    diff_rookie_name:'新手村', diff_master_name:'高手', diff_hell_name:'地獄',
+    musou_name_whirl:'青龍偃月・旋風斬', musou_name_quake:'蛇矛震地・咆哮',
+    musou_name_dash:'龍膽・百突連刺', musou_name_cavalry:'西涼鐵騎・突陣',
+    musou_name_arrows:'萬箭齊發・箭雨', musou_name_tornado:'彩傘・繽紛旋風',
+    musou_name_iai:'武士刀・居合一閃',
+    musou_name_taipei101:'101 柱陣・台灣精神無敵',
+    confirm_reset:'確定清除所有排行榜紀錄？',
+  },
+  en: {
+    // HUD
+    kills:'Kills', hp_label:'HP', enemies:'Soldiers', musou_label:'MUSOU',
+    combat_mode:'Combat', build_mode:'Build', combo:'COMBO',
+    block_grass:'1 Grass', block_dirt:'2 Dirt', block_wood:'3 Wood',
+    // 操作提示
+    hud_b:'B: Toggle Combat / Build mode',
+    hud_combat:'Combat: LMB Attack combo  |  Q / RMB Musou (use WASD to dash freely)',
+    hud_build:'Build: RMB Place  LMB Break  |  1/2/3 Select block (white preview)',
+    hud_move:'WASD: Move  |  Mouse: Camera  |  Space: Jump  |  SHIFT+F: Fullscreen',
+    // 觸控按鈕
+    btn_attack:'Attack', btn_musou:'Musou', btn_jump:'Jump',
+    btn_mode:'Build<br>Mode', btn_switch:'Switch', btn_break:'Break', btn_place:'Place',
+    // 暫停
+    paused:'PAUSED', click_resume:'Click to Resume', pause_sub:'(Mouse to look · WASD to move)',
+    // 結算
+    win_title:'Godzilla Defeated · Peace Restored', lose_title:'GAME OVER',
+    total_kills:'Total Kills', restart_hint:'▶ Click to Restart',
+    // 排行榜
+    lb_title:'Hall of Fame', lb_btn:'🏆 Leaderboard', lb_reset:'Clear Records', close:'Close',
+    lb_note:'Score = Clear Speed (high) + Kills (mid) + Survivors (low)  ·  Saved locally',
+    lb_empty:'No records yet — clear the game to get on the board!',
+    lb_head_rank:'#', lb_head_name:'Name', lb_head_diff:'Diff',
+    lb_head_time:'Time', lb_head_kills:'Kills', lb_head_surv:'Surv', lb_head_score:'Score',
+    lb_name_prompt:'🏆 Victory! Enter your name for the leaderboard:',
+    lb_default_name:'Unknown Hero',
+    // 版本
+    ver_btn:'📋 Changelog', ver_title:'Changelog',
+    // 開始畫面
+    game_title:'3 Kingdoms Voxel Warriors', lang_auto:'Auto',
+    select_diff:'Select Difficulty', select_level:'Select Starting Stage', select_hero:'Choose Your General',
+    diff_rookie:'Rookie<br><span>Easy · More Buns</span>',
+    diff_master:'Master<br><span>Balanced</span>',
+    diff_hell:'Hell<br><span>Brutal · Scarce Buns</span>',
+    lv1:'Stage 1<br><span>CatZilla</span>', lv2:'Stage 2<br><span>Cao Cao</span>',
+    lv3:'Stage 3<br><span>Sun Ce</span>', lv4:'Stage 4<br><span>Xiahou Dun</span>',
+    lv5:'Stage 5<br><span>Lu Bu</span>', lv6:'Stage 6<br><span>Godzilla</span>',
+    start_hint:'Pick a general to start · 6 stages: CatZilla→Cao Cao→Sun Ce→Xiahou Dun→Lu Bu→Godzilla · 8 generals each with unique Musou · Defeat a boss to recruit a new general',
+    // 武將
+    hero_guanyu:'Guan Yu', hero_guanyu_title:'Lord of War',
+    hero_guanyu_desc:'Green Dragon Crescent Blade<br>Balanced offense & defense', hero_guanyu_stat:'HP 100 · ATK ★★★',
+    hero_zhangfei:'Zhang Fei', hero_zhangfei_title:'The Tiger',
+    hero_zhangfei_desc:'Serpent Spear<br>High HP heavy hitter', hero_zhangfei_stat:'HP 130 · ATK ★★★★',
+    hero_zhaoyun:'Zhao Yun', hero_zhaoyun_title:'Dragon of Changshan',
+    hero_zhaoyun_desc:'Silver Dragon Spear<br>Swift & agile', hero_zhaoyun_stat:'HP 95 · ATK ★★★',
+    hero_machao:'Ma Chao', hero_machao_title:'The Splendid',
+    hero_machao_desc:'Long Spear<br>Xiliang cavalry charge', hero_machao_stat:'HP 100 · ATK ★★★',
+    hero_huangzhong:'Huang Zhong', hero_huangzhong_title:'Veteran Hero',
+    hero_huangzhong_desc:'Great Bow<br>Hundred-step precision', hero_huangzhong_stat:'HP 90 · ATK ★★★★',
+    hero_yadan:'Yadan', hero_yadan_title:'Kindergarten God of War',
+    hero_yadan_desc:'Painted Umbrella<br>Ferocious & adorable', hero_yadan_stat:'HP 110 · ATK ★★★',
+    hero_raymond_title:'Night Fiend Knight',
+    hero_raymond_desc:'Katana<br>Rides the Black Dragon', hero_raymond_stat:'HP 120 · ATK ★★★★',
+    hero_taiwan_name:'Taiwan Captain', hero_taiwan_title:'Guardian of Formosa',
+    hero_taiwan_desc:'Giant Baseball Bat<br>Rides a Stone Tiger', hero_taiwan_stat:'HP 115 · ATK ★★★★',
+    // 遊戲內動態字串
+    wave_label:'Stage ', wave_unit:'', boss_approach:' Approaches',
+    boss_slain:'Defeated', boss_slain_sub:'General Vanquished',
+    gate_open:'Stage Cleared', gate_hint:'Gate Open · Enter the Gate',
+    final_gate:'Godzilla Slain', final_gate_hint:'Enter the Gate · Victory',
+    switch_gen:'Switch: ', switch_hp:'HP',
+    switch_no_others:'No other generals available',
+    fallen:'Fallen', take_over:' steps up! (', take_over_end:' remain)',
+    win_banner:'Godzilla Defeated · Peace Restored', win_sub:'Congratulations! All 6 Stages Clear!',
+    boss_godzilla_killed:'BOSS SLAIN!', boss_godzilla_killed_sub:'The World Is Saved',
+    burning_awaken:'Burning Godzilla Awakened', burning_sub:'Nuclear meltdown · Full power unleashed',
+    mecha_awaken:'Mechagodzilla Online', mecha_sub:'Proton Scream · Full Salvo',
+    clear_gate:'Enter Gate · Victory',
+    skip_banner_sub:'Unlocked ', skip_banner_sub2:' generals',
+    killed_count_label:'Defeat the boss to clear · Soldiers killed:',
+    killed_label:'Boss Defeated · Enter the Gate',
+    diff_rookie_name:'Rookie', diff_master_name:'Master', diff_hell_name:'Hell',
+    musou_name_whirl:'Blue Dragon · Whirlwind Slash', musou_name_quake:'Serpent Stomp · Shockwave',
+    musou_name_dash:'Dragon Lance · Rapid Thrust', musou_name_cavalry:'Xiliang Cavalry · Charge',
+    musou_name_arrows:'Ten Thousand Arrows · Rain', musou_name_tornado:'Rainbow Umbrella · Tornado',
+    musou_name_iai:'Katana · Iai Flash Step',
+    musou_name_taipei101:'101 Pillar Array · Taiwan Spirit Unbreakable',
+    confirm_reset:'Clear all leaderboard records?',
+  }
+};
+
+// 語言設定：auto 自動偵測，zh/en 強制
+let currentLang = 'auto';
+function detectLang() {
+  if (currentLang !== 'auto') return currentLang;
+  const nav = (navigator.language || navigator.userLanguage || 'zh').toLowerCase();
+  return nav.startsWith('zh') ? 'zh' : 'en';
+}
+function t(key) {
+  const lang = detectLang();
+  return (I18N[lang] && I18N[lang][key]) || (I18N.zh[key]) || key;
+}
+function applyLang() {
+  const lang = detectLang();
+  document.documentElement.lang = lang === 'zh' ? 'zh-TW' : 'en';
+  // 更新所有 data-i18n (textContent)
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (I18N[lang] && I18N[lang][key] !== undefined) el.textContent = I18N[lang][key];
+    else if (I18N.zh[key] !== undefined) el.textContent = I18N.zh[key];
+  });
+  // 更新所有 data-i18n-html (innerHTML，含 <br><span>)
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const key = el.dataset.i18nHtml;
+    if (I18N[lang] && I18N[lang][key] !== undefined) el.innerHTML = I18N[lang][key];
+    else if (I18N.zh[key] !== undefined) el.innerHTML = I18N.zh[key];
+  });
+  // 遊戲標題特殊處理（保留 <span class="ver"> tag）
+  const h1 = document.querySelector('#overlay h1');
+  if (h1) h1.innerHTML = t('game_title') + ' <span class="ver">v1.4</span>';
+  // 難度名稱 → waveNumEl 格式
+  document.getElementById('verBadge').textContent =
+    lang === 'zh' ? '三國方塊無雙 v1.4' : '3K Voxel Warriors v1.4';
+  document.title = lang === 'zh' ? '三國方塊無雙 v1.4' : '3 Kingdoms Voxel Warriors v1.4';
+  // 語言按鈕 active 狀態
+  document.querySelectorAll('.langBtn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.lang === currentLang);
+  });
+}
+// 語言按鈕 wire (DOM 已就緒因為 script 在 body 末)
+document.querySelectorAll('.langBtn').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    currentLang = btn.dataset.lang;
+    localStorage.setItem('sanguo_lang', currentLang);
+    applyLang();
+  });
+});
+// 從 localStorage 恢復語言設定
+const savedLang = localStorage.getItem('sanguo_lang');
+if (savedLang) currentLang = savedLang;
+// 初始套用
+applyLang();
 
 /* =========================================================
    1. 場景 / 相機 / 渲染器 / 光源 / 陰影
@@ -807,6 +1043,10 @@ function playTone({ freq = 200, type = 'square', dur = 0.12, vol = 0.2, slideTo 
   osc.start(t); osc.stop(t + dur);
 }
 function sfxSwing() { playTone({ freq: 700, slideTo: 200, type: 'sawtooth', dur: 0.12, vol: 0.12 }); }
+function sfxBat() {  // 球棒「鏗！」全壘打擊球聲
+  playTone({ freq: 1000, slideTo: 280, type: 'triangle', dur: 0.07, vol: 0.16 });
+  playTone({ freq: 180,  slideTo: 60,  type: 'square',   dur: 0.12, vol: 0.22 });
+}
 // 武士刀居合斬：清脆高頻金屬聲
 function sfxKatana() {
   playTone({ freq: 1400, slideTo: 500, type: 'sawtooth', dur: 0.1, vol: 0.13 });
@@ -1278,7 +1518,7 @@ function setBuildMode(on) {
   buildMode = on;
   crosshairEl.classList.toggle('show', on);
   blockBarEl.classList.toggle('show', on);
-  modeTagEl.textContent = on ? '建造模式' : '戰鬥模式';
+  modeTagEl.textContent = on ? t('build_mode') : t('combat_mode');
   modeTagEl.className = on ? 'build' : 'combat';
   document.body.classList.toggle('build-mode', on);  // 觸控版按鈕切換
   if (!on) { ghostBox.visible = false; outline.visible = false; }
@@ -1330,17 +1570,23 @@ const GENERALS = {
     face: 0xf0c89a, beard: 'none', headgear: 'kabuto', weapon: 'katana', mount: 'dragon',
     horse: 0x222222, maxHp: 120, atk: 1.3, desc: '武士刀・騎夜煞黑龍',
   },
+  taiwan_captain: {
+    name: '台灣隊長', title: '寶島守護神', robe: 0x2a5fd0, cloak: 0xd0202a, accent: 0xffffff,
+    face: 0xf5c89a, beard: 'none', headgear: 'baseball_cap', weapon: 'bat', mount: 'stone_tiger',
+    horse: 0x888070, maxHp: 115, atk: 1.2, desc: '大隻球棒・CT棒球衣・騎石虎', baseball: true,
+  },
 };
 
 // 每位武將的「無雙」招式設定：mode 決定機制，c1/c2 為主要配色，name 顯示用
 const MUSOU = {
-  guanyu:     { mode:'whirl',   c1:0xffe08a, c2:0xff7b2e, name:'青龍偃月・旋風斬' },
-  zhangfei:   { mode:'quake',   c1:0xff8a3a, c2:0x8a3a1a, name:'蛇矛震地・咆哮' },
-  zhaoyun:    { mode:'dash',    c1:0xdce8ff, c2:0x4a8fff, name:'龍膽・百突連刺' },
-  machao:     { mode:'cavalry', c1:0xffffff, c2:0xb8232f, name:'西涼鐵騎・突陣' },
-  huangzhong: { mode:'arrows',  c1:0xffe08a, c2:0x8a6a2a, name:'萬箭齊發・箭雨' },
-  yadan:      { mode:'tornado', c1:0xff8ad0, c2:0x9a6aff, name:'彩傘・繽紛旋風' },
-  raymond67:  { mode:'iai',     c1:0x9fe8ff, c2:0x3aa0ff, name:'武士刀・居合一閃' },
+  guanyu:     { mode:'whirl',   c1:0xffe08a, c2:0xff7b2e, name:'musou_name_whirl' },
+  zhangfei:   { mode:'quake',   c1:0xff8a3a, c2:0x8a3a1a, name:'musou_name_quake' },
+  zhaoyun:    { mode:'dash',    c1:0xdce8ff, c2:0x4a8fff, name:'musou_name_dash'  },
+  machao:     { mode:'cavalry', c1:0xffffff, c2:0xb8232f, name:'musou_name_cavalry'},
+  huangzhong: { mode:'arrows',  c1:0xffe08a, c2:0x8a6a2a, name:'musou_name_arrows'},
+  yadan:      { mode:'tornado', c1:0xff8ad0, c2:0x9a6aff, name:'musou_name_tornado'},
+  raymond67:      { mode:'iai',      c1:0x9fe8ff, c2:0x3aa0ff, name:'musou_name_iai'   },
+  taiwan_captain: { mode:'taipei101', c1:0x009b3a, c2:0xfe0000, name:'musou_name_taipei101' },
 };
 
 /* =========================================================
@@ -1425,6 +1671,16 @@ function buildRider(cfg) {
     // 護頸吹返（兩側下垂甲片）
     rider.add(box(0.16, 0.34, 0.42, 0x2a3038, -0.4, 1.95, 0));
     rider.add(box(0.16, 0.34, 0.42, 0x2a3038,  0.4, 1.95, 0));
+  } else if (cfg.headgear === 'baseball_cap') {
+    // CT 棒球帽：藍色帽冠 + 前帽簷 + 白色 CT 隊徽
+    rider.add(box(0.6,  0.28, 0.6,  0x2a5fd0, 0, 2.14, 0));        // 帽冠
+    rider.add(box(0.62, 0.07, 0.62, 0x1f47a8, 0, 1.99, 0));        // 帽冠下緣（深藍）
+    rider.add(box(0.5,  0.07, 0.36, 0x2a5fd0, 0, 1.99, 0.42));     // 前帽簷
+    rider.add(box(0.09, 0.09, 0.09, 0x1f47a8, 0, 2.3,  0));        // 帽頂鈕
+    // 帽前白色 CT logo（白底 + 紅線條）
+    rider.add(box(0.2,  0.18, 0.04, 0xffffff,  0,    2.16, 0.31));
+    rider.add(box(0.05, 0.18, 0.05, 0xd0202a,  0.05, 2.16, 0.33)); // 紅 T 直
+    rider.add(box(0.16, 0.06, 0.05, 0xd0202a,  0,    2.23, 0.33)); // 紅 T 橫
   }
 
   // 幼幼園裝扮細節（犀利鴨蛋）
@@ -1441,9 +1697,21 @@ function buildRider(cfg) {
     rider.add(box(0.22, 0.06, 0.02, 0x7a2a1a, 0, 1.68, 0.26));
   }
 
-  // 腿 + 靴
-  const legL = box(0.3, 0.6, 0.32, 0x2a2a2a, -0.32, 0.4, 0.05); legL.rotation.z = 0.25; rider.add(legL);
-  const legR = box(0.3, 0.6, 0.32, 0x2a2a2a,  0.32, 0.4, 0.05); legR.rotation.z = -0.25; rider.add(legR);
+  // CT 棒球衣細節（台灣隊長）
+  if (cfg.baseball) {
+    // 胸前 CT 隊徽：紅色 C/T 線條（疊在白色護心鏡上）
+    rider.add(box(0.07, 0.24, 0.05, 0xd0202a,  0.05, 1.15, 0.31)); // 紅 T 直
+    rider.add(box(0.24, 0.07, 0.05, 0xd0202a,  0,    1.24, 0.31)); // 紅 T 橫
+    // 領口紅色滾邊
+    rider.add(box(0.5, 0.07, 0.5, 0xd0202a, 0, 1.5, 0));
+    // 左袖白色滾邊袖口
+    rider.add(box(0.3, 0.1, 0.34, 0xffffff, -0.5, 0.87, 0.1));
+  }
+
+  // 腿 + 靴（棒球褲為灰色）
+  const pantsCol = cfg.baseball ? 0xc2c7cf : 0x2a2a2a;
+  const legL = box(0.3, 0.6, 0.32, pantsCol, -0.32, 0.4, 0.05); legL.rotation.z = 0.25; rider.add(legL);
+  const legR = box(0.3, 0.6, 0.32, pantsCol,  0.32, 0.4, 0.05); legR.rotation.z = -0.25; rider.add(legR);
   rider.add(box(0.3, 0.18, 0.4, 0x4a2f1a, -0.42, 0.14, 0.12));
   rider.add(box(0.3, 0.18, 0.4, 0x4a2f1a,  0.42, 0.14, 0.12));
 
@@ -1457,9 +1725,11 @@ function buildRider(cfg) {
   weaponArm.add(buildWeapon(cfg.weapon));
   rider.add(weaponArm);
 
-  // 披風
-  rider.add(box(0.7, 1.3, 0.12, cloak, 0, 1.0, -0.32));
-  rider.add(box(0.72, 0.1, 0.13, accent, 0, 0.4, -0.32));
+  // 披風（棒球員不穿披風）
+  if (!cfg.baseball) {
+    rider.add(box(0.7, 1.3, 0.12, cloak, 0, 1.0, -0.32));
+    rider.add(box(0.72, 0.1, 0.13, accent, 0, 0.4, -0.32));
+  }
 
   rider.position.y = 1.5;
   return { rider, weaponArm };
@@ -1540,6 +1810,44 @@ function buildWeapon(type) {
     bow.position.set(0, -0.3, 0.45);
     bow.rotation.y = Math.PI / 2;   // 弓身轉成與前進方向垂直（拉弓姿態）
     w.add(bow);
+  } else if (type === 'boba') {    // 珍珠奶茶炸彈
+    const b = new THREE.Group();
+    // 杯身（下窄上寬，奶茶色）
+    b.add(box(0.55, 0.35, 0.55, 0xf5deb3, 0, -0.50, 0));  // 杯底
+    b.add(box(0.65, 0.35, 0.65, 0xf5deb3, 0, -0.15, 0));  // 杯中
+    b.add(box(0.72, 0.35, 0.72, 0xf5deb3, 0,  0.20, 0));  // 杯上
+    b.add(box(0.75, 0.14, 0.75, 0x8b5c2a, 0,  0.43, 0));  // 深色杯口邊
+    // 奶茶液體（淺褐色，略低於杯口）
+    b.add(box(0.62, 0.30, 0.62, 0xd4a56a, 0,  0.18, 0.08));
+    // 珍珠（黑色圓珠，沉在底部）
+    for (const [px,pz] of [[-0.12,-0.12],[0.12,-0.12],[-0.12,0.12],[0.12,0.12],[0,0]]) {
+      b.add(box(0.12,0.12,0.12, 0x1a1008, px, -0.35, pz));
+    }
+    // 封口膜 + 吸管（台灣珍奶靈魂）
+    b.add(box(0.72, 0.05, 0.72, 0xe8e0cc, 0, 0.52, 0));   // 封口膜
+    b.add(box(0.08, 1.10, 0.08, 0xff6b9d, 0, 1.07, 0.15)); // 粉色吸管
+    // 爆炸導火線（從頂部冒出）
+    b.add(box(0.05, 0.40, 0.05, 0x3a3a2a, 0.18, 1.00, -0.12));
+    b.add(box(0.10, 0.10, 0.10, 0xff8c00, 0.24, 1.20, -0.18)); // 火花
+    // 危險紅條紋貼紙
+    b.add(box(0.70, 0.10, 0.08, 0xff2222, 0, 0.00, 0.38));
+    b.add(box(0.08, 0.45, 0.70, 0xff2222, 0.38, 0.00, 0));
+    b.position.set(0, -0.5, 0.3);
+    w.add(b);
+  } else if (type === 'bat') {     // 大隻球棒（全壘打重棒）
+    // 底部圓頭（knob）
+    w.add(box(0.22, 0.16, 0.22, 0x2a2a2a, 0, -0.55, 0.4));
+    // 黑色防滑握把
+    w.add(box(0.16, 0.9,  0.16, 0x1a1a1a, 0, 0.0,  0.4));
+    // 棒身（由細漸粗，木紋色）
+    w.add(box(0.24, 0.7, 0.24, 0xb5824a, 0, 0.78, 0.4));
+    w.add(box(0.34, 0.8, 0.34, 0xc4925a, 0, 1.5,  0.4));
+    // 粗大頭部（大隻）
+    w.add(box(0.46, 1.05, 0.46, 0xcf9a60, 0, 2.35, 0.4));
+    w.add(box(0.48, 0.2,  0.48, 0xb5824a, 0, 2.92, 0.4)); // 頂蓋
+    // 紅色品牌條紋
+    w.add(box(0.47, 0.12, 0.47, 0xd0202a, 0, 2.02, 0.4));
+    w.add(box(0.47, 0.12, 0.47, 0xd0202a, 0, 2.58, 0.4));
   }
   return w;
 }
@@ -1672,7 +1980,117 @@ function buildScooter() {
   return { horse: s, horseLegs, horseTail: tail, wings: null };
 }
 
-// 夜煞翅膀（全域，供拍動動畫）
+// 石虎坐騎（台灣隊長）— 台灣豹貓：黃褐底色、錢幣黑斑、耳後白斑、眼內白條紋
+function buildStoneTiger() {
+  const t = new THREE.Group();
+  // 石虎特徵色票：黃褐色底 + 黑色錢幣斑 + 白肚 + 金黃眼
+  const COAT  = 0xc8a050;   // 黃褐底色（豹貓特有）
+  const COAT_D= 0xa07838;   // 深色側面
+  const SPOT  = 0x1a1206;   // 黑色實心斑點（錢幣狀）
+  const BELLY = 0xf5eed8;   // 白色腹部
+  const WHITE = 0xf0eee0;   // 耳後白斑、眼內白條
+  const NOSE  = 0xd49080;   // 鼻頭粉色
+  const EYE   = 0xe8c830;   // 金黃眼（貓科）
+  const PUPIL = 0x0a0806;   // 黑色豎橢圓瞳孔
+  const PAW   = 0xb89060;   // 腳掌
+
+  // ── 身體（貓科細長、優雅；比老虎細）──
+  t.add(box(0.65, 0.78, 1.80, COAT,  0, 1.40, 0.00));    // 主體
+  t.add(box(0.50, 0.65, 1.60, COAT_D,0, 1.40,-0.08));    // 側面深色
+  t.add(box(0.50, 0.60, 1.50, BELLY, 0, 1.40, 0.40));    // 白色腹部
+  // 後臀略隆起
+  t.add(box(0.62, 0.68, 0.60, COAT,  0, 1.50,-0.75));
+  // 錢幣狀黑斑（身體兩側，不規則橢圓）
+  const spots = [
+    [-0.25,1.60,-0.20], [0.25,1.60,-0.20],
+    [-0.28,1.55, 0.20], [0.28,1.55, 0.20],
+    [-0.26,1.50,-0.50], [0.26,1.50,-0.50],
+    [-0.27,1.58, 0.45], [0.27,1.58, 0.45],
+    [-0.25,1.52,-0.02], [0.25,1.52,-0.02],
+  ];
+  for (const [sx,sy,sz] of spots) t.add(box(0.16,0.20,0.18,SPOT,sx,sy,sz));
+  // 背部縱向條紋（台灣石虎特徵：背上有4條縱紋）
+  for (let i=0;i<4;i++) t.add(box(0.08,0.10,0.90,SPOT, -0.15+i*0.10, 1.84,-0.10));
+
+  // ── 脖子（前傾，貓科優雅）──
+  const neck = box(0.50, 0.58, 0.50, COAT, 0, 2.00, 0.90); neck.rotation.x=-0.30; t.add(neck);
+  t.add(box(0.36,0.48,0.38,BELLY,0,1.98,1.18));            // 喉白
+
+  // ── 頭部（貓科圓頭，比老虎更圓）──
+  t.add(box(0.68,0.62,0.72,COAT, 0,2.58,1.30));            // 頭顱
+  t.add(box(0.58,0.50,0.60,COAT_D,0,2.58,1.28));           // 側面深色
+  // 吻部（略突出，偏白）
+  t.add(box(0.48,0.38,0.40,BELLY,0,2.42,1.60));
+  t.add(box(0.38,0.28,0.28,WHITE,0,2.38,1.72));            // 白色下嘴
+  // 鼻（粉色，小）
+  t.add(box(0.14,0.10,0.08,NOSE,0,2.55,1.82));
+  // 人中溝
+  t.add(box(0.04,0.16,0.06,SPOT,0,2.46,1.80));
+
+  // ── 石虎招牌特徵：眼睛內側兩道白色條紋 ──
+  t.add(box(0.06,0.32,0.06,WHITE,-0.12,2.72,1.70));        // 左眼內白條
+  t.add(box(0.06,0.32,0.06,WHITE, 0.12,2.72,1.70));        // 右眼內白條
+  // 再加兩道從眼延伸到額頭的褐黑紋
+  const strL = box(0.10,0.28,0.06,SPOT,-0.22,2.80,1.62); strL.rotation.z=-0.2; t.add(strL);
+  const strR = box(0.10,0.28,0.06,SPOT, 0.22,2.80,1.62); strR.rotation.z= 0.2; t.add(strR);
+
+  // 眼睛（金黃，豎橢圓瞳孔）
+  for (const ex of [-0.24,0.24]) {
+    t.add(box(0.18,0.14,0.06,EYE,  ex,2.65,1.76));         // 虹膜金黃
+    t.add(box(0.07,0.16,0.05,PUPIL,ex,2.64,1.81));         // 豎橢圓瞳孔
+    t.add(box(0.05,0.05,0.04,0xffffff,ex-0.05,2.68,1.83)); // 高光
+  }
+  // 眉骨凸起（帶黑紋）
+  const bL2=box(0.24,0.09,0.06,SPOT,-0.26,2.76,1.72); bL2.rotation.z=-0.35; t.add(bL2);
+  const bR2=box(0.24,0.09,0.06,SPOT, 0.26,2.76,1.72); bR2.rotation.z= 0.35; t.add(bR2);
+
+  // ── 石虎最重要特徵：耳後白斑！ ──
+  // 外耳（短而尖，貓科）
+  for (const ex of [-0.26,0.26]) {
+    t.add(box(0.20,0.30,0.18,COAT, ex,2.92,1.18));         // 外耳
+    t.add(box(0.14,0.22,0.10,SPOT, ex,2.96,1.20));         // 耳前黑紋
+    t.add(box(0.18,0.26,0.12,WHITE,ex,2.88,1.10));         // 耳後白斑（關鍵特徵！）
+    t.add(box(0.10,0.18,0.08,0xf0c0a0,ex,2.92,1.24));      // 耳內粉
+  }
+
+  // ── 鬍鬚（貓科長鬍鬚）──
+  for (const [wx,wy,wz,rz] of [
+    [-0.60,2.40,1.70, 0.08],[-0.72,2.36,1.66, 0.18],
+    [ 0.60,2.40,1.70,-0.08],[ 0.72,2.36,1.66,-0.18],
+  ]) {
+    const w=box(0.55,0.035,0.035,WHITE,wx,wy,wz); w.rotation.z=rz; t.add(w);
+  }
+  // 頭部斑點
+  t.add(box(0.12,0.14,0.10,SPOT,-0.30,2.60,1.50));
+  t.add(box(0.12,0.14,0.10,SPOT, 0.30,2.60,1.50));
+
+  // ── 四腿（貓科纖細有力）──
+  const tigerLegs=[];
+  for (const [lx,lz] of [[-0.26,0.65],[0.26,0.65],[-0.26,-0.78],[0.26,-0.78]]) {
+    const leg=new THREE.Group();
+    leg.add(box(0.24,0.80,0.26,COAT, 0,-0.40,0));          // 大腿
+    leg.add(box(0.20,0.72,0.22,COAT, 0,-1.10,0));          // 小腿
+    leg.add(box(0.28,0.16,0.36,PAW,  0,-1.55,0.08));       // 腳掌（橢圓）
+    // 腿部斑點
+    leg.add(box(0.22,0.10,0.14,SPOT, 0,-0.52,0));
+    for (const cx of [-0.08,0.08]) leg.add(box(0.06,0.14,0.06,SPOT,cx,-0.75,0));
+    leg.position.set(lx,1.1,lz); t.add(leg); tigerLegs.push(leg);
+  }
+
+  // ── 尾巴（約半個身長，帶環狀條紋）──
+  const tigTail=new THREE.Group();
+  tigTail.add(box(0.18,0.18,0.95,COAT, 0,0,0));
+  tigTail.add(box(0.20,0.20,0.28,SPOT, 0,0,-0.48));        // 尾尖黑色
+  // 環狀條紋
+  for (let i=0;i<5;i++) tigTail.add(box(0.20,0.12,0.09,SPOT,0,0,-0.08-i*0.17));
+  tigTail.position.set(0,1.55,-1.20); tigTail.rotation.x=0.45; t.add(tigTail);
+
+  // 馬鞍
+  t.add(box(0.68,0.18,0.80,0x6b3f1e,0,2.06,-0.12));
+
+  t.traverse(o=>{ if(o.isMesh)o.castShadow=true; });
+  return { horse:t, horseLegs:tigerLegs, horseTail:tigTail, wings:null };
+}
 let mountWings = null;
 let mountScooter = false;   // 目前坐騎是否為滑板車（輪子旋轉用）
 
@@ -1693,6 +2111,7 @@ function assemblePlayer(genKey) {
   let h;
   if (cfg.mount === 'dragon') h = buildDragon();
   else if (cfg.mount === 'scooter') h = buildScooter();
+  else if (cfg.mount === 'stone_tiger') h = buildStoneTiger();
   else h = buildHorse(cfg.horse);
   horse = h.horse; horseLegs = h.horseLegs; horseTail = h.horseTail;
   mountWings = h.wings || null;
@@ -2335,7 +2754,7 @@ function startGame(genKey) {
     for (let i = 0; i < startLevel - 1 && i < allKeys.length; i++) {
       unlockedGenerals.add(allKeys[i]);
     }
-    showBanner(`跳至第 ${startLevel} 關`, `已解鎖前 ${startLevel - 1} 位武將`);
+    showBanner(t('wave_label') + startLevel + t('wave_unit'), t('skip_banner_sub') + (startLevel-1) + t('skip_banner_sub2'));
   }
   assemblePlayer(genKey);
   applyGeneralStats(genKey);
@@ -2374,7 +2793,7 @@ document.getElementById('lbOpen').addEventListener('click', (e) => { e.stopPropa
 document.getElementById('lbClose').addEventListener('click', (e) => { e.stopPropagation(); hideLeaderboard(); });
 document.getElementById('lbReset').addEventListener('click', (e) => {
   e.stopPropagation();
-  let ok = false; try { ok = confirm('確定清除所有排行榜紀錄？'); } catch (er) { ok = true; }
+  let ok = false; try { ok = confirm(t('confirm_reset')); } catch (er) { ok = true; }
   if (ok) { lbSave([]); showLeaderboard(null); }
 });
 // 版本選單按鈕
@@ -3280,7 +3699,7 @@ function spawnBoss(cfg) {
   bossBarEl.classList.add('show');
   bossNameEl.textContent = cfg.name;
   updateBossHpUI();
-  showBanner(cfg.name + ' 來襲', cfg.subtitle);
+  showBanner(cfg.name + t('boss_approach'), cfg.subtitle);
   sfxMusou();
   addShake(0.4);
 }
@@ -3326,7 +3745,7 @@ function applyGozillaPhase(phase) {
     gammaBeam.material.color.setHex(0xff6622);
     gammaImpact.material.color.setHex(0xff6622);
     if (lubuModel.mouthGlow) lubuModel.mouthGlow.material.color.setHex(0xff8844);
-    showBanner('紅蓮形態覺醒', '體內核分裂失控・全力爆發');
+    showBanner(t('burning_awaken'), t('burning_sub'));
     addShake(0.8); hitStop(0.12);
     // Nuclear pulse burst
     for (let i = 0; i < 4; i++) setTimeout(()=>{ spawnShockwave(); spawnParticles(boss.pos.clone().setY(boss.pos.y+3), 16, 0xff6622); addShake(0.4); }, i*180);
@@ -3367,7 +3786,7 @@ function applyGozillaPhase(phase) {
     // 質子射線改紅橙色（Proton Scream）
     gammaBeam.material.color.setHex(0xff3300);
     gammaImpact.material.color.setHex(0xff4400);
-    showBanner('機械哥吉拉覺醒', 'Proton Scream 全力開火');
+    showBanner(t('mecha_awaken'), t('mecha_sub'));
     addShake(1.0); hitStop(0.15);
     for (let i = 0; i < 6; i++) setTimeout(()=>{
       spawnShockwave();
@@ -3391,7 +3810,7 @@ function killBoss() {
   for (let i = 0; i < 6; i++) spawnParticles(lubuModel.group.position, 12, 0xd4af37);
   const isGoz = boss.cfg && boss.cfg.gozilla;
   spawnFloater(lubuModel.group.position.clone().setY(lubuModel.group.position.y + 3), isGoz ? '魔王討伐！' : '擊 破！', '#ff6b3c', isGoz ? 52 : 40);
-  showBanner((boss.cfg ? boss.cfg.name : '敵將') + (isGoz ? ' 討伐成功' : ' 擊破'), isGoz ? '世界得救了' : '斬將立功');
+  showBanner((boss.cfg ? boss.cfg.name : '') + (isGoz ? (' ' + t('boss_godzilla_killed')) : (' ' + t('boss_slain'))), isGoz ? t('boss_godzilla_killed_sub') : t('boss_slain_sub'));
   // 擊敗 BOSS → 招降一名新武將
   unlockRandomGeneral();
 }
@@ -3413,7 +3832,7 @@ function unlockRandomGeneral() {
 function switchGeneral() {
   const living = Object.keys(GENERALS).filter(k => unlockedGenerals.has(k) && !deadGenerals.has(k));
   if (living.length < 2) {
-    showSwitchHud('沒有其他存活武將可切換');
+    showSwitchHud(t('switch_no_others'));
     return;
   }
   const idx = living.indexOf(currentGeneral);
@@ -3423,7 +3842,7 @@ function switchGeneral() {
   assemblePlayer(next);
   applyGeneralStats(next);                 // 載入新武將的最大血量/攻擊 + 自己的當前血量
   updatePlayerHpUI();
-  showSwitchHud(`切換武將：${GENERALS[next].name}（氣力 ${playerState.hp}/${playerState.maxHp}）`);
+  showSwitchHud(t('switch_gen') + GENERALS[next].name + '（' + t('switch_hp') + ' ' + playerState.hp + '/' + playerState.maxHp + '）');
   spawnParticles(player.position, 12, 0xffd76b);
   sfxHeal();
 }
@@ -3693,13 +4112,13 @@ function startWave(n) {
   waveState.spawnTimer = 0;
   const bcfg = bossForLevel(n);
   waveState.bossWave = !!bcfg;
-  waveNumEl.textContent = `第 ${n} 關 · ${diff().name}`;
+  waveNumEl.textContent = (t('wave_label') + n + t('wave_unit') + ' · ' + t('diff_'+currentDifficulty+'_name'));
   updateWaveTargetUI();
   if (bcfg) {
-    showBanner(`第${cnNum[n] || n}關`, `斬 ${bcfg.name}`);
+    showBanner(t('wave_label') + (cnNum[n]||n) + t('wave_unit'), '⚔ ' + bcfg.name);
     spawnBoss(bcfg);     // 召喚該關 BOSS 武將
   } else {
-    showBanner(`第${cnNum[n] || n}關`, '敵軍來襲');
+    showBanner(t('wave_label') + (cnNum[n]||n) + t('wave_unit'), '');
   }
   // 每關補充 2 隻小動物友軍
   if (n > 1) { spawnAlly(); spawnAlly(); }
@@ -3707,11 +4126,11 @@ function startWave(n) {
 
 function updateWaveTargetUI() {
   if (waveState.cleared) {
-    waveTargetEl.innerHTML = `關主已斬・<b>走進城門</b>`;
+    waveTargetEl.innerHTML = t('killed_label');
   } else if (waveState.bossWave) {
-    waveTargetEl.innerHTML = `擊殺關主以過關 · 已斬小兵 <b>${waveState.killedThisWave}</b>`;
+    waveTargetEl.innerHTML = t('killed_count_label') + ' <b>' + waveState.killedThisWave + '</b>';
   } else {
-    waveTargetEl.innerHTML = `已斬小兵 <b>${waveState.killedThisWave}</b>`;
+    waveTargetEl.innerHTML = t('enemies') + ' <b>' + waveState.killedThisWave + '</b>';
   }
 }
 
@@ -3748,9 +4167,9 @@ function updateWaves(delta) {
     openGate();
     updateWaveTargetUI();
     if (waveState.current >= TOTAL_WAVES) {
-      showBanner('魔王已討', '走進城門・凱旋');
+      showBanner(t('final_gate'), t('clear_gate'));
     } else {
-      showBanner('斬將過關', '城門已開・走進前方關門');
+      showBanner(t('gate_open'), t('gate_hint'));
     }
   }
 }
@@ -3789,10 +4208,10 @@ function recordResult() {
   const survivors = Object.keys(GENERALS).filter(k => unlockedGenerals.has(k) && !deadGenerals.has(k)).length;
   const score = computeScore(timeSec, killCount, survivors);
   let name = '';
-  try { name = (prompt('🏆 通關成功！輸入你的名字登上排行榜：', '無名英雄') || '').trim(); } catch (e) {}
-  if (!name) name = '無名英雄';
+  try { name = (prompt(t('lb_name_prompt'), t('lb_default_name')) || '').trim(); } catch (e) {}
+  if (!name) name = t('lb_default_name');
   name = name.slice(0, 12);
-  const entry = { name, score, kills: killCount, time: timeSec, survivors, diff: diff().name, date: Date.now() };
+  const entry = { name, score, kills: killCount, time: timeSec, survivors, diff: t('diff_'+currentDifficulty+'_name'), date: Date.now() };
   const list = lbLoad();
   list.push(entry);
   list.sort((a, b) => b.score - a.score);
@@ -3805,11 +4224,12 @@ function recordResult() {
 const lbEl = document.getElementById('leaderboard');
 const lbBodyEl = document.getElementById('lbBody');
 function showLeaderboard(highlightEntry) {
+  applyLang();   // 確保語言切換後標題也更新
   const list = lbLoad();
   if (list.length === 0) {
-    lbBodyEl.innerHTML = `<div class="lbEmpty">尚無紀錄 — 通關後即可登榜！</div>`;
+    lbBodyEl.innerHTML = `<div class="lbEmpty">${t('lb_empty')}</div>`;
   } else {
-    let html = `<div class="lbRow lbHead"><span>#</span><span>名稱</span><span>難度</span><span>時間</span><span>擊殺</span><span>存活</span><span>總分</span></div>`;
+    let html = `<div class="lbRow lbHead"><span>${t('lb_head_rank')}</span><span>${t('lb_head_name')}</span><span>${t('lb_head_diff')}</span><span>${t('lb_head_time')}</span><span>${t('lb_head_kills')}</span><span>${t('lb_head_surv')}</span><span>${t('lb_head_score')}</span></div>`;
     list.forEach((e, i) => {
       const hot = highlightEntry && e.name === highlightEntry.name && e.score === highlightEntry.score && e.date === highlightEntry.date;
       const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
@@ -3849,7 +4269,7 @@ function launchWinFireworks() {
   }
   burst();
   // 顯示勝利橫幅
-  showBanner('討伐哥吉拉・天下太平', '恭喜過關！六關全破！');
+  showBanner(t('win_banner'), t('win_sub'));
   // 螢幕全白閃爍
   const fe = document.getElementById('flash');
   if (fe) { fe.style.opacity='1'; setTimeout(()=>fe.style.opacity='0',200); }
@@ -3861,10 +4281,11 @@ function endGame(win) {
   gameEnded = true;
   document.exitPointerLock();
   document.body.classList.remove('playing');   // 收起遊戲 HUD / 觸控按鈕
-  resultEl.querySelector('h1').textContent = win ? '討伐魔王・天下太平' : '力 竭 陣 亡';
+  resultEl.querySelector('h1').textContent = win ? t('win_title') : t('lose_title');
   resultEl.querySelector('h1').className = win ? 'win' : 'lose';
   resultEl.querySelector('h1').style.fontSize = win ? '40px' : '';
   document.getElementById('resultKills').textContent = killCount;
+  applyLang();   // 更新結算畫面語言
   resultEl.classList.add('show');
   // 通關 → 記錄成績並顯示排行榜
   if (win) {
@@ -4086,11 +4507,102 @@ for (let i = 0; i < 5; i++) {
 }
 fxTornado.visible = false; scene.add(fxTornado);
 
+// ── 台灣隊長無雙：101大樓柱陣物件池 ──────────────────────────
+const TAIPEI101_POOL = 16;   // 降低數量，iOS記憶體友好
+const tp101Pillars = [];
+
+// 先建一個模板群組，再 clone（避免為每根柱子重建幾何體/材質）
+function _buildTp101Template() {
+  const _g = new THREE.Group();
+  const _GLASS=0x1a4a6a, _GLASS2=0x2a6a8a, _STEEL=0x5a6068, _GOLD=0xc8a040, _SPIRE=0xc0c8d0, _BASE=0x3a3a40;
+  // 底座
+  _g.add(box(1.80,0.80,1.80,_BASE, 0,0.40,0));
+  _g.add(box(1.60,0.60,1.60,_STEEL,0,1.10,0));
+  _g.add(box(1.85,0.10,1.85,_GOLD, 0,0.85,0));
+  // 8節主塔
+  const _segs=[
+    {y:1.60,w:1.30},{y:2.90,w:1.15},{y:4.15,w:1.05},{y:5.35,w:0.95},
+    {y:6.50,w:0.87},{y:7.55,w:0.78},{y:8.55,w:0.70},{y:9.45,w:0.62},
+  ];
+  for (let _si=0;_si<_segs.length;_si++){
+    const _s=_segs[_si];
+    const _segH=Math.max(0.5,_si<_segs.length-1?_segs[_si+1].y-_s.y:1.0); // 至少0.5防止0高度
+    _g.add(box(_s.w,        Math.max(0.1,_segH*0.55),_s.w,  _GLASS, 0,_s.y+_segH*0.28,0));
+    _g.add(box(_s.w*0.96,   Math.max(0.1,_segH*0.40),_s.w*0.96,_GLASS2,0,_s.y+_segH*0.72,0));
+    _g.add(box(_s.w+0.08,   Math.max(0.08,_segH*0.08),_s.w+0.08,_STEEL,0,_s.y,0));
+    _g.add(box(_s.w+0.06,   Math.max(0.08,_segH*0.08),_s.w+0.06,_STEEL,0,_s.y+_segH,0));
+    const _bw=Math.max(0.15,_s.w*0.22);
+    for (const [_bx,_bz] of [[-_s.w/2-_bw/2,0],[_s.w/2+_bw/2,0],[0,-_s.w/2-_bw/2],[0,_s.w/2+_bw/2]])
+      _g.add(box(_bw,Math.max(0.1,_segH*0.20),_bw,_GOLD,_bx,_s.y+_segH*0.08,_bz));
+    // 窗戶橫條（固定 0.08 厚度，避免趨近0）
+    for (let _wr=1;_wr<=2;_wr++){
+      _g.add(box(_s.w*0.88,0.08,0.08,0x88bbdd,0,_s.y+_segH*(_wr/3),_s.w/2));
+      _g.add(box(0.08,0.08,_s.w*0.88,0x88bbdd,_s.w/2,_s.y+_segH*(_wr/3),0));
+    }
+  }
+  // 頂部 + 尖頂
+  _g.add(box(0.70,0.45,0.70,_STEEL, 0,10.55,0));
+  _g.add(box(0.75,0.12,0.75,_GOLD,  0,10.52,0));
+  _g.add(box(0.26,1.50,0.26,_SPIRE, 0,11.50,0));
+  _g.add(box(0.16,2.00,0.16,_SPIRE, 0,13.00,0));
+  _g.add(box(0.09,2.20,0.09,_SPIRE, 0,14.80,0));
+  _g.add(box(0.05,1.80,0.05,_SPIRE, 0,16.80,0));
+  _g.add(box(0.12,0.12,0.12,0xff2200,0,17.75,0));  // 航行燈
+  return _g;
+}
+const _tp101Template = _buildTp101Template();
+_tp101Template.visible = false;
+scene.add(_tp101Template);
+tp101Pillars.push({ mesh:_tp101Template, active:false, x:0, z:0, riseY:-18, life:0, maxLife:2.8 });
+for (let _i=1; _i<TAIPEI101_POOL; _i++){
+  const _clone = _tp101Template.clone(); // 複用幾何體/材質，記憶體友好
+  _clone.visible = false;
+  scene.add(_clone);
+  tp101Pillars.push({ mesh:_clone, active:false, x:0, z:0, riseY:-18, life:0, maxLife:2.8 });
+}
+
+function spawnTaipei101(wx, wz) {
+  const _p = tp101Pillars.find(_x => !_x.active);
+  if (!_p) return;
+  _p.active = true; _p.life = 0;
+  _p.x = wx; _p.z = wz;
+  const _gy = terrainSurfaceY(wx, wz);
+  _p.riseY = _gy - 18;
+  _p.mesh.position.set(wx, _p.riseY, wz);
+  _p.mesh.rotation.y = Math.random() * Math.PI * 2;
+  _p.mesh.visible = true;
+}
+
+function updateTaipei101(delta) {
+  for (const _p of tp101Pillars) {
+    if (!_p.active) continue;
+    _p.life += delta;
+    const _gy = terrainSurfaceY(_p.x, _p.z);
+    const _riseT = Math.min(1, _p.life / 0.6);
+    _p.mesh.position.y = _p.riseY + _riseT * 18 + _gy;
+    // 傷害判定：塔身範圍內的敵兵
+    for (const _s of soldiers) {
+      if (!_s.active || _s.dead) continue;
+      const _sd = Math.hypot(_s.mesh.position.x - _p.x, _s.mesh.position.z - _p.z);
+      if (_sd < 1.0) {
+        const _dir = new THREE.Vector3(_s.mesh.position.x-_p.x, 0.5, _s.mesh.position.z-_p.z).normalize();
+        hitSoldier(_s, 4, _dir, 18);
+      }
+    }
+    if (_p.life > _p.maxLife) {
+      const _sinkT = Math.min(1, (_p.life - _p.maxLife) / 0.4);
+      _p.mesh.position.y = _gy - _sinkT * 18;
+      if (_sinkT >= 1) { _p.active = false; _p.mesh.visible = false; }
+    }
+  }
+}
+
 // 把所有專屬視覺一次性隱藏（無雙開始時依 mode 開啟對應的）
 function hideAllMusouFx() {
   musouRingGroup.visible = false; aura.visible = false;
   fxQuakeDisc.visible = false; fxLance.visible = false; fxCone.visible = false;
   fxArrowTarget.visible = false; fxTornado.visible = false;
+  for (const p of tp101Pillars) { p.active = false; p.mesh.visible = false; }
   fxQuakeDisc.material.opacity = 0; fxLance.material.opacity = 0; fxCone.material.opacity = 0;
   fxArrowTarget.material.opacity = 0;
   fxTornado.children.forEach(c => c.material.opacity = 0);
@@ -4196,6 +4708,89 @@ function enemyFireArrow(fromPos, dmg) {
   a.vel.copy(dir).multiplyScalar(26);
   a.mesh.rotation.y = Math.atan2(dir.x, dir.z);
   a.mesh.visible = true;
+}
+
+/* =========================================================
+   珍珠奶茶炸彈投射物（台灣隊長武器）
+   ========================================================= */
+const bobaBombs = [];
+const BOBA_MAX = 8;
+for (let i = 0; i < BOBA_MAX; i++) {
+  const g = new THREE.Group();
+  // 簡化的飛行奶茶杯（小版，飛行中旋轉）
+  g.add(box(0.55, 0.65, 0.55, 0xf5deb3, 0, 0, 0));
+  g.add(box(0.50, 0.30, 0.50, 0xd4a56a, 0, 0.05, 0));
+  g.add(box(0.06, 0.50, 0.06, 0xff6b9d, 0, 0.55, 0.1));   // 吸管
+  g.add(box(0.08, 0.08, 0.08, 0xff8c00, 0.14, 0.58, -0.1)); // 火花
+  g.visible = false;
+  scene.add(g);
+  bobaBombs.push({ mesh: g, active: false, vel: new THREE.Vector3(), pos: new THREE.Vector3(), life: 0 });
+}
+
+function sfxBoba() {
+  // 丟出聲：咚！
+  playTone({ freq: 180, slideTo: 80,   type: 'sine',     dur: 0.12, vol: 0.18 });
+  playTone({ freq: 900, slideTo: 300,  type: 'triangle', dur: 0.08, vol: 0.10 });
+}
+function sfxBobaExplode() {
+  // 爆炸：低頻轟 + 高頻噼啪
+  playTone({ freq: 80,  slideTo: 30,   type: 'sawtooth', dur: 0.25, vol: 0.25 });
+  playTone({ freq: 1400,slideTo: 400,  type: 'square',   dur: 0.15, vol: 0.15 });
+  playTone({ freq: 2200,slideTo: 800,  type: 'sine',     dur: 0.10, vol: 0.10 });
+}
+
+function fireBoba(dmg) {
+  const b = bobaBombs.find(x => !x.active);
+  if (!b) return;
+  const fwd = getPlayerForward();
+  b.active = true; b.life = 0; b.dmg = dmg;
+  b.pos.set(player.position.x + fwd.x * 1.2, player.position.y + 2.0, player.position.z + fwd.z * 1.2);
+  b.mesh.position.copy(b.pos);
+  // 拋物線：向前 + 向上初速
+  b.vel.set(fwd.x * 14, 7, fwd.z * 14);
+  b.mesh.visible = true;
+  sfxBoba();
+}
+
+function bobaExplode(b) {
+  sfxBobaExplode();
+  spawnParticles(b.pos.clone(), 18, 0xf5deb3);   // 奶茶色爆炸
+  spawnParticles(b.pos.clone().setY(b.pos.y + 0.3), 12, 0x1a1008); // 珍珠散射
+  spawnParticles(b.pos.clone().setY(b.pos.y + 0.5), 8, 0xff6b9d);  // 粉色碎片
+  addShake(0.35); hitStop(0.06);
+  spawnShockwave();
+  // AoE 傷害：爆炸範圍 4.5
+  const RADIUS = 4.5;
+  for (const s of soldiers) {
+    if (s.dead || !s.active) continue;
+    const d = s.mesh.position.distanceTo(b.pos);
+    if (d < RADIUS) {
+      const dir = new THREE.Vector3().subVectors(s.mesh.position, b.pos).normalize();
+      const falloff = 1 - d / RADIUS;
+      hitSoldier(s, Math.round(b.dmg * falloff), dir, 20 * falloff);
+    }
+  }
+  if (boss.active && !boss.dead && boss.pos.distanceTo(b.pos) < RADIUS + 1) {
+    const dir = new THREE.Vector3().subVectors(boss.pos, b.pos).normalize();
+    damageBoss(b.dmg, dir);
+  }
+}
+
+function updateBoba(delta) {
+  for (const b of bobaBombs) {
+    if (!b.active) continue;
+    b.life += delta;
+    b.vel.y -= 16 * delta;   // 重力
+    b.pos.addScaledVector(b.vel, delta);
+    b.mesh.position.copy(b.pos);
+    b.mesh.rotation.y += delta * 10;  // 飛行旋轉
+    b.mesh.rotation.z += delta * 6;
+    // 落地或超時 → 爆炸
+    if (b.pos.y <= terrainSurfaceY(b.pos.x, b.pos.z) + 0.3 || b.life > 3.5) {
+      bobaExplode(b);
+      b.active = false; b.mesh.visible = false;
+    }
+  }
 }
 
 function updateEnemyArrows(delta) {
@@ -4311,6 +4906,16 @@ function tryAttack() {
   playerState.attacking = true;
   playerState.attackTimer = 0;
   playerState.comboStep = (playerState.comboStep % 3) + 1; // 1→2→3 循環
+
+  if (currentGeneral === 'taiwan_captain') {
+    // === 大隻球棒・全壘打重揮 — 近戰大力掃，超強擊飛 ===
+    sfxBat();
+    showSlash();                     // 白色揮擊弧光
+    // 重揮一棒：傷害較高、擊飛力道極強（全壘打！）；揮棒動畫由普攻迴圈自動帶
+    dealDamageArc(ATTACK_RANGE + 0.5, ATTACK_ARC, Math.round(3 * playerState.atkMul), 18);
+    addShake(0.18);
+    return;
+  }
 
   if (currentGeneral === 'huangzhong') {
     // === 弓箭・遠距射擊 ===
@@ -4459,11 +5064,11 @@ function tryMusou() {
     to.y = 0;
     if (to.length() < 9) { to.normalize(); hitSoldier(s, 2, to, 16); }
   }
-  showSwitchHud(m.name);   // 報招式名
+  showSwitchHud(t('musou_name_' + m.mode));   // 報招式名
 }
 
 // 無雙範圍傷害（多數模式共用）：對半徑內小兵 + BOSS 造成傷害
-const MUSOU_DMG_MUL = 0.5;   // 無雙傷害倍率（整體調弱）
+const MUSOU_DMG_MUL = 1.0;   // 無雙傷害倍率（×2 加強版）
 function musouAoE(radius, dmg, knock, frontBias) {
   const d = dmg * MUSOU_DMG_MUL;
   const forward = getPlayerForward();
@@ -4670,6 +5275,41 @@ function updateMusou(delta) {
       spawnParticles(player.position, 8, mc.c1);
       musouAoE(4, 3, 8, true);
     }
+  } else if (mode === 'taipei101') {
+    // 台灣隊長・101大樓柱陣：從地面冒出一大堆101大樓刺矛
+    // 週期性在玩家周圍和敵人位置生出新的柱子
+    playerState.swirlTimer2 = (playerState.swirlTimer2 || 0) - delta;
+    if (playerState.swirlTimer2 <= 0) {
+      playerState.swirlTimer2 = 0.22;   // 每 0.22s 生一根柱
+      // 以玩家為中心，隨機位置 or 鎖定最近敵人
+      let tx, tz;
+      const nearSoldiers = soldiers.filter(s => s.active && !s.dead);
+      if (nearSoldiers.length > 0 && Math.random() < 0.65) {
+        // 65% 機率長在敵人位置上
+        const s = nearSoldiers[Math.floor(Math.random() * nearSoldiers.length)];
+        tx = s.mesh.position.x + (Math.random() - 0.5) * 1.5;
+        tz = s.mesh.position.z + (Math.random() - 0.5) * 1.5;
+      } else {
+        // 在玩家周圍隨機位置
+        const ang = Math.random() * Math.PI * 2, r = 2 + Math.random() * 10;
+        tx = player.position.x + Math.cos(ang) * r;
+        tz = player.position.z + Math.sin(ang) * r;
+      }
+      tx = Math.max(-(HALF-1), Math.min(HALF-1, tx));
+      tz = Math.max(-(HALF-1), Math.min(HALF-1, tz));
+      spawnTaipei101(tx, tz);
+      // 也對 boss 生一根
+      if (boss.active && !boss.dead && Math.random() < 0.4) {
+        spawnTaipei101(boss.pos.x + (Math.random()-0.5)*2, boss.pos.z + (Math.random()-0.5)*2);
+        damageBoss(1, new THREE.Vector3(0,1,0));
+      }
+      spawnParticles(new THREE.Vector3(tx, terrainSurfaceY(tx,tz)+1, tz), 6, mc.c1);
+      sfxSwing();
+    }
+    updateTaipei101(delta);
+    // 台灣隊長旋舞動作
+    player.rotation.y += delta * 2;
+    weaponArm.rotation.x = -0.5 + Math.sin(t * 12) * 0.8;
   }
 
   // ===== 結束收尾 =====
@@ -4737,6 +5377,8 @@ function animate() {
   updateBladeWaves(delta);
   updateArrows(delta);
   updateEnemyArrows(delta);
+  updateBoba(delta);
+  updateTaipei101(delta);   // 101 柱陣持續動畫（即使無雙結束，已生出的柱子繼續）
   updateBanners(clock.elapsedTime);   // 旗幟隨風飄動
   updateCampfires(clock.elapsedTime); // 篝火閃爍
   updateBuns(delta);                  // 補血包子浮動 + 拾取
@@ -4975,14 +5617,14 @@ function onGeneralFallen() {
   if (alive.length > 0) {
     // 陣亡演出 + 換上下一位
     spawnParticles(player.position.clone().setY(player.position.y + 1.5), 16, 0xff5a3a);
-    spawnFloater(player.position.clone().setY(player.position.y + 3), `${GENERALS[currentGeneral].name} 陣亡`, '#ff6b3c', 30);
+    spawnFloater(player.position.clone().setY(player.position.y + 3), GENERALS[currentGeneral].name + ' ' + t('fallen'), '#ff6b3c', 30);
     addShake(0.4); hitStop(0.1);
     const next = alive[0];
     assemblePlayer(next);
     applyGeneralStats(next);   // 載入接替武將的血量（其自己的剩餘血）
     playerState.invuln = 1.2;  // 換將後短暫無敵，避免立刻又被打死
     updatePlayerHpUI();
-    showSwitchHud(`${GENERALS[next].name} 接替上陣！（剩 ${alive.length} 員）`);
+    showSwitchHud(GENERALS[next].name + t('take_over') + alive.length + t('take_over_end'));
     sfxMusou();
   } else {
     // 全員陣亡 → Game Over
