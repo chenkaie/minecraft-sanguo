@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Three Kingdoms Voxel Warriors v1.4</title>
+<title>Three Kingdoms Voxel Warriors v1.5</title>
 <style>
   /* ===== 全域樣式 ===== */
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -602,7 +602,7 @@
 
 <!-- 準心（建造模式顯示）-->
 <div id="crosshair"></div>
-<div id="verBadge">三國方塊無雙 v1.4</div>
+<div id="verBadge">三國方塊無雙 v1.5</div>
 
 <!-- 模式 + 方塊選擇 -->
 <div id="buildHud">
@@ -657,7 +657,7 @@
     <button class="langBtn" data-lang="zh">中文</button>
     <button class="langBtn" data-lang="en">EN</button>
   </div>
-  <h1 data-i18n="game_title">三國方塊無雙 <span class="ver">v1.4</span></h1>
+  <h1 data-i18n="game_title">三國方塊無雙 <span class="ver">v1.5</span></h1>
   <p style="margin-bottom:10px" data-i18n="select_diff">選擇難度</p>
   <div id="diffSelect">
     <div class="diffBtn" data-diff="rookie" data-i18n-html="diff_rookie">新手村<br><span>敵弱・包子多</span></div>
@@ -715,6 +715,21 @@
       <div class="cDesc" data-i18n-html="hero_taiwan_desc">大隻球棒<br>騎石虎・鎮守台灣</div>
       <div class="cStat" data-i18n="hero_taiwan_stat">氣力115 · 攻擊★★★★</div>
     </div>
+    <div class="charCard" data-gen="dingding">
+      <div class="cName" style="font-size:20px" data-i18n="hero_dingding_name">丁丁噹噹</div><div class="cTitle" data-i18n="hero_dingding_title">暗夜豹影</div>
+      <div class="cDesc" data-i18n-html="hero_dingding_desc">寶劍<br>黑衣勁裝・騎豹</div>
+      <div class="cStat" data-i18n="hero_dingding_stat">氣力100 · 攻擊★★★★</div>
+    </div>
+    <div class="charCard" data-gen="liuding">
+      <div class="cName" style="font-size:18px" data-i18n="hero_liuding_name">6767六丁丁</div><div class="cTitle" data-i18n="hero_liuding_title">喬巴神射手</div>
+      <div class="cDesc" data-i18n-html="hero_liuding_desc">弓射鍋燒意麵<br>騎光煞</div>
+      <div class="cStat" data-i18n="hero_liuding_stat">氣力105 · 攻擊★★★★</div>
+    </div>
+    <div class="charCard" data-gen="lele">
+      <div class="cName" style="font-size:18px" data-i18n="hero_lele_name">676767樂樂</div><div class="cTitle" data-i18n="hero_lele_title">碧藍雷光騎士</div>
+      <div class="cDesc" data-i18n-html="hero_lele_desc">超長劍<br>藍白盔甲・騎水豚</div>
+      <div class="cStat" data-i18n="hero_lele_stat">氣力115 · 攻擊★★★★</div>
+    </div>
   </div>
   <p class="hint" data-i18n="start_hint">點選武將後開始 · 闖六關：貓吉拉→曹操→孫策→夏侯惇→呂布→魔王哥吉拉 · 每位武將無雙招式各不同 · 每過一關招降新武將</p>
   <div style="display:flex;gap:10px;justify-content:center;align-items:stretch;flex-wrap:wrap;margin-top:16px;">
@@ -729,8 +744,12 @@
     <h2>📋 <span data-i18n="ver_title">版本紀錄</span></h2>
     <div class="verList">
       <a class="verItem cur" href="https://chenkaie.github.io/minecraft-sanguo/" target="_blank">
-        <span class="vTag">v1.4 (最新)</span>
-        <span class="vDesc">新增「台灣隊長」武將：大隻球棒近戰·CT棒球衣造型·騎石虎 · 中英雙語介面</span>
+        <span class="vTag">v1.5 (最新)</span>
+        <span class="vDesc">新增四位武將：丁丁噹噹(匕首雨)·6767六丁丁(氣功彈)·676767樂樂(雷射)·台灣隊長 · 共11位武將</span>
+      </a>
+      <a class="verItem" href="https://chenkaie.github.io/minecraft-sanguo/v1.4/index.html" target="_blank">
+        <span class="vTag">v1.4</span>
+        <span class="vDesc">新增「台灣隊長」武將：大隻球棒·CT棒球衣·騎石虎 · 中英雙語介面</span>
       </a>
       <a class="verItem" href="https://chenkaie.github.io/minecraft-sanguo/v1.3/index.html" target="_blank">
         <span class="vTag">v1.3</span>
@@ -826,6 +845,12 @@ const I18N = {
     hero_raymond_desc:'武士刀<br>騎夜煞黑龍', hero_raymond_stat:'氣力120 · 攻擊★★★★',
     hero_taiwan_name:'台灣隊長', hero_taiwan_title:'寶島守護神',
     hero_taiwan_desc:'大隻球棒<br>騎石虎・鎮守台灣', hero_taiwan_stat:'氣力115 · 攻擊★★★★',
+    hero_dingding_name:'丁丁噹噹', hero_dingding_title:'暗夜豹影',
+    hero_dingding_desc:'寶劍<br>黑衣勁裝・騎豹', hero_dingding_stat:'氣力100 · 攻擊★★★★',
+    hero_liuding_name:'6767六丁丁', hero_liuding_title:'喬巴神射手',
+    hero_liuding_desc:'弓射鍋燒意麵<br>騎光煞', hero_liuding_stat:'氣力105 · 攻擊★★★★',
+    hero_lele_name:'676767樂樂', hero_lele_title:'碧藍雷光騎士',
+    hero_lele_desc:'超長劍<br>藍白盔甲・騎水豚', hero_lele_stat:'氣力115 · 攻擊★★★★',
     // 遊戲內動態字串
     wave_label:'第', wave_unit:'關', boss_approach:'來襲',
     boss_slain:'擊破', boss_slain_sub:'斬將立功',
@@ -848,6 +873,9 @@ const I18N = {
     musou_name_arrows:'萬箭齊發・箭雨', musou_name_tornado:'彩傘・繽紛旋風',
     musou_name_iai:'武士刀・居合一閃',
     musou_name_taipei101:'101 柱陣・台灣精神無敵',
+    musou_name_dagger:'萬刃紛落・暗夜豹襲',
+    musou_name_qigong:'鍋燒氣功彈・貫穿一線',
+    musou_name_laser:'碧藍雷光・萬射亂舞',
     confirm_reset:'確定清除所有排行榜紀錄？',
   },
   en: {
@@ -905,6 +933,12 @@ const I18N = {
     hero_raymond_desc:'Katana<br>Rides the Black Dragon', hero_raymond_stat:'HP 120 · ATK ★★★★',
     hero_taiwan_name:'Taiwan Captain', hero_taiwan_title:'Guardian of Formosa',
     hero_taiwan_desc:'Giant Baseball Bat<br>Rides a Stone Tiger', hero_taiwan_stat:'HP 115 · ATK ★★★★',
+    hero_dingding_name:'Ding Ding Dang Dang', hero_dingding_title:'Shadow Panther',
+    hero_dingding_desc:'Sword<br>Black Assassin Garb · Rides a Leopard', hero_dingding_stat:'HP 100 · ATK ★★★★',
+    hero_liuding_name:'6767 Liu Ding Ding', hero_liuding_title:'Chopper Sharpshooter',
+    hero_liuding_desc:'Noodle-Soup Bow<br>Rides a Light Fury', hero_liuding_stat:'HP 105 · ATK ★★★★',
+    hero_lele_name:'676767 Le Le', hero_lele_title:'Azure Lightning Knight',
+    hero_lele_desc:'Greatsword<br>Blue-White Armor · Rides a Capybara', hero_lele_stat:'HP 115 · ATK ★★★★',
     // 遊戲內動態字串
     wave_label:'Stage ', wave_unit:'', boss_approach:' Approaches',
     boss_slain:'Defeated', boss_slain_sub:'General Vanquished',
@@ -927,6 +961,9 @@ const I18N = {
     musou_name_arrows:'Ten Thousand Arrows · Rain', musou_name_tornado:'Rainbow Umbrella · Tornado',
     musou_name_iai:'Katana · Iai Flash Step',
     musou_name_taipei101:'101 Pillar Array · Taiwan Spirit Unbreakable',
+    musou_name_dagger:'Blade Storm · Shadow Panther Strike',
+    musou_name_qigong:'Noodle Qigong Blast · Piercing Beam',
+    musou_name_laser:'Azure Lightning · Laser Barrage',
     confirm_reset:'Clear all leaderboard records?',
   }
 };
@@ -959,11 +996,11 @@ function applyLang() {
   });
   // 遊戲標題特殊處理（保留 <span class="ver"> tag）
   const h1 = document.querySelector('#overlay h1');
-  if (h1) h1.innerHTML = t('game_title') + ' <span class="ver">v1.4</span>';
+  if (h1) h1.innerHTML = t('game_title') + ' <span class="ver">v1.5</span>';
   // 難度名稱 → waveNumEl 格式
   document.getElementById('verBadge').textContent =
-    lang === 'zh' ? '三國方塊無雙 v1.4' : '3K Voxel Warriors v1.4';
-  document.title = lang === 'zh' ? '三國方塊無雙 v1.4' : '3 Kingdoms Voxel Warriors v1.4';
+    lang === 'zh' ? '三國方塊無雙 v1.5' : '3K Voxel Warriors v1.5';
+  document.title = lang === 'zh' ? '三國方塊無雙 v1.5' : '3 Kingdoms Voxel Warriors v1.5';
   // 語言按鈕 active 狀態
   document.querySelectorAll('.langBtn').forEach(b => {
     b.classList.toggle('selected', b.dataset.lang === currentLang);
@@ -1579,6 +1616,21 @@ const GENERALS = {
     face: 0xf5c89a, beard: 'none', headgear: 'baseball_cap', weapon: 'bat', mount: 'stone_tiger',
     horse: 0x888070, maxHp: 115, atk: 1.2, desc: '大隻球棒・CT棒球衣・騎石虎', baseball: true,
   },
+  dingding: {
+    name: '丁丁噹噹', title: '暗夜豹影', robe: 0x0d0d0d, cloak: 0x1a1a1a, accent: 0xc0c0c0,
+    face: 0xf0c8a0, beard: 'none', headgear: 'ponytail', weapon: 'sword', mount: 'leopard',
+    horse: 0xd0a050, maxHp: 100, atk: 1.15, desc: '寶劍・黑衣勁裝・騎豹', ninja: true,
+  },
+  liuding: {
+    name: '6767六丁丁', title: '喬巴神射手', robe: 0xe86a2a, cloak: 0xff9a4a, accent: 0xff4d6a,
+    face: 0xf5c89a, beard: 'none', headgear: 'chopper_hat', weapon: 'noodle_bow', mount: 'light_fury',
+    horse: 0xf0f4f8, maxHp: 105, atk: 1.2, desc: '弓射鍋燒意麵・騎光煞', chopper: true,
+  },
+  lele: {
+    name: '676767樂樂', title: '碧藍雷光騎士', robe: 0x1a5fd0, cloak: 0xe8f0ff, accent: 0xffffff,
+    face: 0xf0c8a0, beard: 'none', headgear: 'helmet_blue', weapon: 'longsword', mount: 'capybara',
+    horse: 0xb08858, maxHp: 115, atk: 1.25, desc: '超長劍・藍白盔甲・騎巨大水豚', knight: true,
+  },
 };
 
 // 每位武將的「無雙」招式設定：mode 決定機制，c1/c2 為主要配色，name 顯示用
@@ -1591,6 +1643,9 @@ const MUSOU = {
   yadan:      { mode:'tornado', c1:0xff8ad0, c2:0x9a6aff, name:'musou_name_tornado'},
   raymond67:      { mode:'iai',      c1:0x9fe8ff, c2:0x3aa0ff, name:'musou_name_iai'   },
   taiwan_captain: { mode:'taipei101', c1:0x009b3a, c2:0xfe0000, name:'musou_name_taipei101' },
+  dingding:       { mode:'daggerRain', c1:0xc0c0c0, c2:0x2a2a2a, name:'musou_name_dagger' },
+  liuding:        { mode:'qigong',     c1:0x6ad0ff, c2:0x2a7add, name:'musou_name_qigong' },
+  lele:           { mode:'laser',      c1:0x4affff, c2:0x2a7add, name:'musou_name_laser' },
 };
 
 /* =========================================================
@@ -1652,6 +1707,21 @@ function buildRider(cfg) {
   } else if (cfg.headgear === 'helmet_gold') {
     rider.add(box(0.58, 0.3, 0.58, 0xd4af37, 0, 2.16, 0));
     rider.add(box(0.16, 0.6, 0.16, 0xb8232f, 0, 2.55, 0)); // 金盔紅纓
+  } else if (cfg.headgear === 'helmet_blue') {
+    // 藍白騎士盔：藍盔身 + 白色遮面條 + 白羽冠
+    rider.add(box(0.60, 0.34, 0.60, 0x1a5fd0, 0, 2.18, 0));         // 盔身（藍）
+    rider.add(box(0.62, 0.10, 0.62, 0xe8f0ff, 0, 2.00, 0));         // 盔緣（白）
+    rider.add(box(0.20, 0.30, 0.06, 0xdce6f0, 0, 1.92, 0.30));      // 白色遮面護鼻條
+    rider.add(box(0.44, 0.08, 0.10, 0x123f9a, 0, 1.90, 0.28));      // 眼縫深藍
+    // 白色羽冠（往後飄）
+    const _pl = new THREE.Group();
+    _pl.add(box(0.12, 0.16, 0.5, 0xf4f8ff, 0, 0, -0.1));
+    _pl.add(box(0.10, 0.14, 0.4, 0xe0e8f4, 0, 0.02, -0.5));
+    _pl.position.set(0, 2.44, -0.15);
+    _pl.rotation.x = 0.5;
+    rider.add(_pl);
+    // 盔頂藍寶石
+    rider.add(box(0.12, 0.12, 0.12, 0x4affff, 0, 2.42, 0.05));
   } else if (cfg.headgear === 'pigtails') {
     // 黑色妹妹頭 + 瀏海 + 雙馬尾
     rider.add(box(0.58, 0.3, 0.58, 0x161616, 0, 2.18, 0));          // 頭頂髮
@@ -1685,6 +1755,47 @@ function buildRider(cfg) {
     rider.add(box(0.2,  0.18, 0.04, 0xffffff,  0,    2.16, 0.31));
     rider.add(box(0.05, 0.18, 0.05, 0xd0202a,  0.05, 2.16, 0.33)); // 紅 T 直
     rider.add(box(0.16, 0.06, 0.05, 0xd0202a,  0,    2.23, 0.33)); // 紅 T 橫
+  } else if (cfg.headgear === 'ponytail') {
+    // 丁丁噹噹：黑色高馬尾 + 瀏海（俐落刺客風）
+    rider.add(box(0.56, 0.30, 0.56, 0x0a0a0a, 0, 2.18, 0));         // 頭頂髮
+    rider.add(box(0.52, 0.12, 0.10, 0x0a0a0a, 0, 1.98, 0.27));      // 齊瀏海
+    rider.add(box(0.16, 0.14, 0.48, 0x0a0a0a, -0.27, 1.80, 0));     // 左側髮
+    rider.add(box(0.16, 0.14, 0.48, 0x0a0a0a,  0.27, 1.80, 0));     // 右側髮
+    // 高馬尾（單束，從後腦紮起，垂到背後）
+    rider.add(box(0.16, 0.14, 0.16, 0xc0c0c0, 0, 2.30, -0.30));     // 銀色髮圈
+    const _pt = new THREE.Group();
+    _pt.add(box(0.16, 0.55, 0.16, 0x0a0a0a, 0, -0.25, 0));
+    _pt.add(box(0.13, 0.45, 0.13, 0x0a0a0a, 0, -0.75, -0.06));
+    _pt.add(box(0.09, 0.35, 0.09, 0x1a1a1a, 0, -1.15, -0.12));      // 尾端漸細
+    _pt.position.set(0, 2.30, -0.36);
+    _pt.rotation.x = 0.25;
+    rider.add(_pt);
+  } else if (cfg.headgear === 'chopper_hat') {
+    // 6767六丁丁：喬巴粉帽（圓頂 + 白色X十字 + 鹿角）+ 馬尾
+    // 棕色瀏海（喬巴髮色）
+    rider.add(box(0.54, 0.14, 0.12, 0x7a4a2a, 0, 1.99, 0.27));      // 瀏海
+    rider.add(box(0.16, 0.14, 0.42, 0x7a4a2a, -0.27, 1.82, 0));     // 側髮
+    rider.add(box(0.16, 0.14, 0.42, 0x7a4a2a,  0.27, 1.82, 0));
+    // 粉紅圓帽冠
+    rider.add(box(0.60, 0.30, 0.60, 0xff6a8a, 0, 2.18, 0));         // 帽冠
+    rider.add(box(0.64, 0.10, 0.64, 0xe8556f, 0, 2.02, 0));         // 帽緣（深粉）
+    rider.add(box(0.30, 0.14, 0.30, 0xff8aa2, 0, 2.38, 0));         // 帽頂圓球
+    // 白色 X 十字（喬巴帽正字標記）
+    const _x1 = box(0.30, 0.08, 0.05, 0xffffff, 0, 2.20, 0.31); _x1.rotation.z = 0.7; rider.add(_x1);
+    const _x2 = box(0.30, 0.08, 0.05, 0xffffff, 0, 2.20, 0.31); _x2.rotation.z = -0.7; rider.add(_x2);
+    // 藍色鹿角（喬巴的角，兩側向上分叉）
+    const _aL1 = box(0.09, 0.34, 0.09, 0x6a9ad0, -0.34, 2.42, -0.05); _aL1.rotation.z = 0.5; rider.add(_aL1);
+    const _aL2 = box(0.09, 0.22, 0.09, 0x6a9ad0, -0.54, 2.66, -0.05); _aL2.rotation.z = 1.0; rider.add(_aL2);
+    const _aR1 = box(0.09, 0.34, 0.09, 0x6a9ad0,  0.34, 2.42, -0.05); _aR1.rotation.z = -0.5; rider.add(_aR1);
+    const _aR2 = box(0.09, 0.22, 0.09, 0x6a9ad0,  0.54, 2.66, -0.05); _aR2.rotation.z = -1.0; rider.add(_aR2);
+    // 棕色馬尾（單束，垂在背後）
+    rider.add(box(0.15, 0.12, 0.15, 0xff4d6a, 0, 2.16, -0.30));     // 粉色髮圈
+    const _pt2 = new THREE.Group();
+    _pt2.add(box(0.16, 0.50, 0.16, 0x7a4a2a, 0, -0.24, 0));
+    _pt2.add(box(0.12, 0.40, 0.12, 0x7a4a2a, 0, -0.70, -0.06));
+    _pt2.position.set(0, 2.18, -0.36);
+    _pt2.rotation.x = 0.3;
+    rider.add(_pt2);
   }
 
   // 幼幼園裝扮細節（犀利鴨蛋）
@@ -1712,10 +1823,47 @@ function buildRider(cfg) {
     rider.add(box(0.3, 0.1, 0.34, 0xffffff, -0.5, 0.87, 0.1));
   }
 
-  // 腿 + 靴（棒球褲為灰色）
-  const pantsCol = cfg.baseball ? 0xc2c7cf : 0x2a2a2a;
+  // 喬巴衣裝細節（6767六丁丁）
+  if (cfg.chopper) {
+    // 白色 X 交叉繃帶（喬巴胸前特徵）
+    const _cx1 = box(0.5, 0.09, 0.05, 0xffffff, 0, 1.1, 0.28); _cx1.rotation.z = 0.6; rider.add(_cx1);
+    const _cx2 = box(0.5, 0.09, 0.05, 0xffffff, 0, 1.1, 0.28); _cx2.rotation.z = -0.6; rider.add(_cx2);
+    // 橘色圓肚（喬巴橘毛）
+    rider.add(box(0.5, 0.4, 0.06, 0xf5843a, 0, 0.9, 0.27));
+    // 小米手環（左手腕：灰黑帶 + 亮綠螢幕）
+    rider.add(box(0.22, 0.10, 0.22, 0x2a2a2e, -0.5, 0.72, 0.08));   // 錶帶
+    rider.add(box(0.12, 0.06, 0.06, 0x5ad0a0, -0.5, 0.72, 0.20));   // 綠色螢幕
+  }
+
+  // 藍白騎士盔甲細節（676767樂樂）
+  if (cfg.knight) {
+    // 白色胸甲板 + 藍色紋章
+    rider.add(box(0.62, 0.5, 0.05, 0xe8f0ff, 0, 1.15, 0.28));       // 白胸甲
+    rider.add(box(0.24, 0.28, 0.05, 0x1a5fd0, 0, 1.18, 0.31));      // 藍色紋章底
+    rider.add(box(0.10, 0.24, 0.06, 0x4affff, 0, 1.18, 0.33));      // 亮藍雷紋（直）
+    rider.add(box(0.18, 0.08, 0.06, 0x4affff, 0, 1.24, 0.33));      // 亮藍雷紋（橫）
+    // 肩甲（藍白護肩）
+    rider.add(box(0.30, 0.22, 0.42, 0x1a5fd0, -0.48, 1.42, 0.02));  // 左肩甲藍
+    rider.add(box(0.30, 0.22, 0.42, 0x1a5fd0,  0.48, 1.42, 0.02));  // 右肩甲藍
+    rider.add(box(0.32, 0.08, 0.44, 0xe8f0ff, -0.48, 1.54, 0.02));  // 左肩緣白
+    rider.add(box(0.32, 0.08, 0.44, 0xe8f0ff,  0.48, 1.54, 0.02));  // 右肩緣白
+    // 白色腰甲裙
+    rider.add(box(0.72, 0.22, 0.56, 0xe0e8f4, 0, 0.68, 0));
+    rider.add(box(0.74, 0.06, 0.58, 0x1a5fd0, 0, 0.80, 0));         // 藍腰帶
+    // 護膝（藍）
+    rider.add(box(0.30, 0.14, 0.34, 0x1a5fd0, -0.32, 0.5, 0.10));
+    rider.add(box(0.30, 0.14, 0.34, 0x1a5fd0,  0.32, 0.5, 0.10));
+  }
+
+  // 腿 + 靴（棒球褲為灰色；丁丁噹噹為純黑勁裝褲；6767六丁丁為短褲）
+  const pantsCol = cfg.baseball ? 0xc2c7cf : (cfg.ninja ? 0x080808 : (cfg.chopper ? 0x3a5a8a : (cfg.knight ? 0x2a4a8a : 0x2a2a2a)));
   const legL = box(0.3, 0.6, 0.32, pantsCol, -0.32, 0.4, 0.05); legL.rotation.z = 0.25; rider.add(legL);
   const legR = box(0.3, 0.6, 0.32, pantsCol,  0.32, 0.4, 0.05); legR.rotation.z = -0.25; rider.add(legR);
+  // 短褲：露出小腿膚色（6767六丁丁）
+  if (cfg.chopper) {
+    rider.add(box(0.26, 0.28, 0.30, cfg.face, -0.34, 0.28, 0.06));  // 左小腿膚色
+    rider.add(box(0.26, 0.28, 0.30, cfg.face,  0.34, 0.28, 0.06));  // 右小腿膚色
+  }
   rider.add(box(0.3, 0.18, 0.4, 0x4a2f1a, -0.42, 0.14, 0.12));
   rider.add(box(0.3, 0.18, 0.4, 0x4a2f1a,  0.42, 0.14, 0.12));
 
@@ -1796,6 +1944,37 @@ function buildWeapon(type) {
     blade.position.set(0, 0.7, 0.4);
     blade.rotation.x = -0.08;
     w.add(blade);
+  } else if (type === 'sword') {      // 寶劍（直身雙刃劍，俐落刺客風）
+    // 劍柄（黑色纏繩握把）
+    w.add(box(0.11, 0.62, 0.11, 0x1a1a1a, 0, 0.10, 0.4));
+    // 柄頭銀飾
+    w.add(box(0.16, 0.10, 0.16, 0xc0c0c0, 0, -0.24, 0.4));
+    // 一字護手（十字形，區別武士刀的圓盤）
+    w.add(box(0.46, 0.09, 0.14, 0xa8a8b0, 0, 0.44, 0.4));
+    // 劍身（直身雙刃，銀白色，帶血溝細線）
+    const sblade = new THREE.Group();
+    sblade.add(box(0.10, 1.65, 0.06, 0xe8ecf0, 0, 0.95, 0));      // 主劍身
+    sblade.add(box(0.03, 1.55, 0.07, 0x9aa4ae, 0, 0.90, 0));      // 血溝（中線凹紋）
+    sblade.add(box(0.14, 0.32, 0.07, 0xdfe7ee, 0, 1.92, 0));      // 劍尖（收窄三角感）
+    sblade.position.set(0, 0.55, 0.4);
+    w.add(sblade);
+  } else if (type === 'longsword') {   // 超長劍（藍白騎士巨劍，特別長）
+    // 握把（藍色纏繩，雙手握把較長）
+    w.add(box(0.13, 0.85, 0.13, 0x123f9a, 0, 0.20, 0.4));
+    // 柄頭藍寶石
+    w.add(box(0.18, 0.14, 0.18, 0x4affff, 0, -0.30, 0.4));
+    // 十字護手（白銀，寬）
+    w.add(box(0.60, 0.11, 0.16, 0xe8f0ff, 0, 0.68, 0.4));
+    w.add(box(0.16, 0.11, 0.16, 0x4affff, 0, 0.68, 0.4));         // 護手中央藍寶石
+    // 超長劍身（分多段堆出極長劍刃）
+    const lblade = new THREE.Group();
+    lblade.add(box(0.14, 3.4, 0.07, 0xeef4fc, 0, 1.7, 0));        // 主劍身（超長）
+    lblade.add(box(0.05, 3.2, 0.08, 0x9ac0e8, 0, 1.65, 0));       // 藍色血溝中線
+    lblade.add(box(0.20, 0.45, 0.08, 0xdfe7ee, 0, 3.55, 0));      // 劍尖
+    // 劍身雷光紋（藍色能量刻紋，貫穿劍身）
+    for (let i = 0; i < 5; i++) lblade.add(box(0.16, 0.06, 0.09, 0x4affff, 0, 0.5 + i * 0.65, 0));
+    lblade.position.set(0, 0.85, 0.4);
+    w.add(lblade);
   } else if (type === 'bow') {        // 弓（長弓 + 弓弦 + 搭一支待射的箭）
     const bow = new THREE.Group();
     // 弓臂（上下兩段，微彎）
@@ -1813,6 +1992,25 @@ function buildWeapon(type) {
     // 擺到手中（弓面朝前）
     bow.position.set(0, -0.3, 0.45);
     bow.rotation.y = Math.PI / 2;   // 弓身轉成與前進方向垂直（拉弓姿態）
+    w.add(bow);
+  } else if (type === 'noodle_bow') {   // 鍋燒意麵弓（弓身 + 搭一碗鍋燒意麵當箭）
+    const bow = new THREE.Group();
+    const upper = box(0.1, 1.1, 0.14, 0xd08030, 0, 0.6, 0); upper.rotation.x = 0.25; bow.add(upper);
+    const lower = box(0.1, 1.1, 0.14, 0xd08030, 0, -0.6, 0); lower.rotation.x = -0.25; bow.add(lower);
+    bow.add(box(0.12, 0.3, 0.16, 0xa8642a, 0, 0, 0));            // 握把
+    bow.add(box(0.14, 0.14, 0.14, 0xff9a4a, 0, 1.12, 0.14));     // 上弓梢
+    bow.add(box(0.14, 0.14, 0.14, 0xff9a4a, 0, -1.12, 0.14));    // 下弓梢
+    bow.add(box(0.02, 2.3, 0.02, 0xeeeeee, 0, 0, -0.1));         // 弓弦
+    // 搭著的鍋燒意麵碗（黃碗 + 麵 + 蝦）
+    const bowl = new THREE.Group();
+    bowl.add(box(0.34, 0.20, 0.34, 0xf0d030, 0, 0, 0));          // 黃色碗
+    bowl.add(box(0.30, 0.08, 0.30, 0xf5e8a0, 0, 0.10, 0));       // 麵湯
+    bowl.add(box(0.10, 0.06, 0.10, 0xff6a4a, 0.06, 0.15, 0.04)); // 蝦
+    bowl.add(box(0.24, 0.04, 0.06, 0xe8c060, -0.02, 0.16, 0));   // 麵條
+    bowl.position.set(0, 0, 0.5);
+    bow.add(bowl);
+    bow.position.set(0, -0.3, 0.45);
+    bow.rotation.y = Math.PI / 2;
     w.add(bow);
   } else if (type === 'boba') {    // 珍珠奶茶炸彈
     const b = new THREE.Group();
@@ -1891,9 +2089,17 @@ function buildHorse(bodyColor) {
 }
 
 // 建構夜煞黑龍（Night Fury 風格）— 回傳同樣的 { horse, horseLegs, horseTail, wings }
-function buildDragon() {
+function buildDragon(light) {
   const d = new THREE.Group();
-  const BODY = 0x1a1a1f, BELLY = 0x2a2a30, EYE = 0x6ad08a;
+  // light=true → 光煞（白色 Light Fury）；否則夜煞（黑色 Night Fury）
+  const BODY = light ? 0xf0f4f8 : 0x1a1a1f;
+  const BELLY = light ? 0xdce6ee : 0x2a2a30;
+  const EYE = light ? 0x9a6ad0 : 0x6ad08a;            // 光煞紫眼 / 夜煞綠眼
+  const FIN = light ? 0xc8d4e0 : 0x111114;
+  const WING = light ? 0xe4ecf4 : 0x16161a;
+  const WING_D = light ? 0xd0dce8 : 0x0a0a0c;
+  const WING_T = light ? 0xeef2f8 : 0x1e1e24;
+  const CLAW = light ? 0xc0ccd8 : 0x0a0a0c;
   // 軀幹（流線）
   d.add(box(1.0, 0.95, 2.0, BODY, 0, 1.5, -0.1));
   d.add(box(0.9, 0.8, 0.6, BODY, 0, 1.45, 0.9));      // 胸
@@ -1913,7 +2119,7 @@ function buildDragon() {
   const earR = box(0.1, 0.5, 0.16, BODY,  0.26, 2.6, 1.3); earR.rotation.z = -0.3; earR.rotation.x = -0.4; d.add(earR);
   // 背鰭（沿背一排小三角）
   for (let i = 0; i < 5; i++) {
-    d.add(box(0.08, 0.22, 0.3, 0x111114, 0, 2.0 - i*0.05, 0.6 - i * 0.45));
+    d.add(box(0.08, 0.22, 0.3, FIN, 0, 2.0 - i*0.05, 0.6 - i * 0.45));
   }
   // 馬鞍（騎乘處）
   d.add(box(0.95, 0.2, 0.95, 0x3a2a1a, 0, 1.98, -0.05));
@@ -1924,9 +2130,9 @@ function buildDragon() {
   const mkWing = (side) => {
     const wing = new THREE.Group();
     const s = side; // -1 左, +1 右
-    wing.add(box(1.6, 0.1, 1.2, 0x16161a, s * 0.9, 0, -0.1));      // 主翼膜
-    wing.add(box(0.16, 0.16, 1.3, 0x0a0a0c, s * 0.1, 0, -0.1));    // 翼骨
-    wing.add(box(1.2, 0.08, 0.7, 0x1e1e24, s * 1.6, 0, -0.4));     // 翼尖
+    wing.add(box(1.6, 0.1, 1.2, WING, s * 0.9, 0, -0.1));      // 主翼膜
+    wing.add(box(0.16, 0.16, 1.3, WING_D, s * 0.1, 0, -0.1));    // 翼骨
+    wing.add(box(1.2, 0.08, 0.7, WING_T, s * 1.6, 0, -0.4));     // 翼尖
     wing.position.set(s * 0.35, 1.7, -0.1);
     d.add(wing); wings.push(wing);
   };
@@ -1937,7 +2143,7 @@ function buildDragon() {
   const mkLeg = (x, z) => {
     const leg = new THREE.Group();
     leg.add(box(0.26, 0.8, 0.3, BODY, 0, -0.4, 0));
-    leg.add(box(0.3, 0.16, 0.4, 0x0a0a0c, 0, -0.85, 0.06));  // 爪
+    leg.add(box(0.3, 0.16, 0.4, CLAW, 0, -0.85, 0.06));  // 爪
     leg.position.set(x, 1.1, z); d.add(leg); legs.push(leg);
   };
   mkLeg(-0.36, 0.7); mkLeg(0.36, 0.7); mkLeg(-0.36, -0.8); mkLeg(0.36, -0.8);
@@ -1945,8 +2151,8 @@ function buildDragon() {
   // 長尾 + 招牌尾翼（夜煞的紅色義肢尾翼風格，這裡用紅色點綴）
   const tail = new THREE.Group();
   tail.add(box(0.3, 0.3, 1.0, BODY, 0, 0, -0.5));
-  tail.add(box(0.6, 0.06, 0.5, 0x16161a, 0, 0, -1.1));   // 尾翼
-  tail.add(box(0.5, 0.06, 0.4, 0xb8232f, 0.15, 0.02, -1.15)); // 紅色義肢尾翼
+  tail.add(box(0.6, 0.06, 0.5, WING, 0, 0, -1.1));   // 尾翼
+  tail.add(box(0.5, 0.06, 0.4, light ? 0x9a6ad0 : 0xb8232f, 0.15, 0.02, -1.15)); // 尾翼點綴（光煞紫/夜煞紅）
   tail.position.set(0, 1.4, -1.5);
   d.add(tail);
 
@@ -2095,6 +2301,161 @@ function buildStoneTiger() {
   t.traverse(o=>{ if(o.isMesh)o.castShadow=true; });
   return { horse:t, horseLegs:tigerLegs, horseTail:tigTail, wings:null };
 }
+
+// 豹坐騎（丁丁噹噹）— 修長矯健的花豹：金黃底、玫瑰花斑（環狀簇生黑斑）、細長靈活身形
+function buildLeopard() {
+  const t = new THREE.Group();
+  const COAT  = 0xdcb050;   // 金黃底色（比石虎更亮更黃，區分兩者）
+  const COAT_D= 0xb88f38;
+  const ROSE  = 0x1c1006;   // 玫瑰花斑外環（深黑）
+  const ROSE_C= 0x8a5a28;   // 玫瑰花斑內芯（棕色，真花豹特徵）
+  const BELLY = 0xf5ecd0;
+  const NOSE  = 0xc06858;
+  const EYE   = 0x8ad848;   // 綠色貓眼（區分石虎的金黃眼）
+  const PUPIL = 0x0a0806;
+  const PAW   = 0xc8a058;
+
+  // ── 身體（比石虎更修長、更低伏、線條更流線）──
+  t.add(box(0.58, 0.68, 2.05, COAT,  0, 1.30, 0.00));
+  t.add(box(0.44, 0.56, 1.85, COAT_D,0, 1.30,-0.06));
+  t.add(box(0.42, 0.50, 1.70, BELLY, 0, 1.28, 0.42));
+  t.add(box(0.54, 0.60, 0.55, COAT,  0, 1.36,-0.85));   // 後臀
+  // 玫瑰花斑（環狀簇生斑：外圈黑、內芯棕，花豹正字標記）
+  const roses = [
+    [-0.22,1.52,-0.15],[0.22,1.52,-0.15],[-0.25,1.46,0.22],[0.25,1.46,0.22],
+    [-0.23,1.42,-0.48],[0.23,1.42,-0.48],[-0.24,1.50,0.50],[0.24,1.50,0.50],
+    [-0.22,1.44,0.02],[0.22,1.44,0.02],[-0.20,1.58,-0.65],[0.20,1.58,-0.65],
+  ];
+  for (const [rx,ry,rz] of roses) {
+    t.add(box(0.16,0.17,0.15,ROSE, rx,ry,rz));
+    t.add(box(0.08,0.09,0.07,ROSE_C, rx,ry,rz+0.02));
+  }
+  // 小型實心斑點（頭部、四肢過渡處）
+  for (let i=0;i<3;i++) t.add(box(0.09,0.09,0.08,ROSE, -0.10+i*0.10, 1.72,-0.05-i*0.05));
+
+  // ── 脖子（比石虎更細長優雅）──
+  const neck = box(0.42, 0.50, 0.46, COAT, 0, 1.86, 0.92); neck.rotation.x=-0.32; t.add(neck);
+  t.add(box(0.30,0.40,0.32,BELLY,0,1.84,1.16));
+
+  // ── 頭部（花豹頭型比石虎更狹長）──
+  t.add(box(0.56,0.50,0.62,COAT, 0,2.36,1.30));
+  t.add(box(0.46,0.40,0.50,COAT_D,0,2.36,1.28));
+  t.add(box(0.40,0.30,0.34,BELLY,0,2.22,1.56));         // 吻部偏白
+  t.add(box(0.30,0.20,0.20,0xffffff,0,2.16,1.68));      // 下顎白
+  t.add(box(0.12,0.08,0.07,NOSE,0,2.32,1.76));          // 鼻頭
+  t.add(box(0.03,0.13,0.05,ROSE,0,2.24,1.74));          // 人中
+
+  // 眼睛（綠色貓眼，區分石虎）
+  for (const ex of [-0.20,0.20]) {
+    t.add(box(0.15,0.12,0.05,EYE,  ex,2.44,1.68));
+    t.add(box(0.06,0.14,0.045,PUPIL,ex,2.43,1.72));
+    t.add(box(0.04,0.04,0.03,0xffffff,ex-0.04,2.47,1.74));
+  }
+  // 眼周深色斑紋（花豹特徵：眼睛周圍常有深色斑）
+  t.add(box(0.20,0.16,0.06,ROSE,-0.20,2.50,1.64));
+  t.add(box(0.20,0.16,0.06,ROSE, 0.20,2.50,1.64));
+
+  // 耳（短圓，比石虎更小更圓，貼頭）
+  for (const ex of [-0.22,0.22]) {
+    t.add(box(0.16,0.22,0.14,COAT, ex,2.66,1.14));
+    t.add(box(0.10,0.14,0.08,ROSE, ex,2.68,1.16));
+    t.add(box(0.08,0.14,0.06,0xf0e0b0,ex,2.66,1.18));
+  }
+  // 鬍鬚
+  for (const [wx,wy,wz,rz] of [[-0.50,2.20,1.60,0.06],[-0.62,2.16,1.55,0.14],[0.50,2.20,1.60,-0.06],[0.62,2.16,1.55,-0.14]]) {
+    const w=box(0.48,0.03,0.03,0xffffff,wx,wy,wz); w.rotation.z=rz; t.add(w);
+  }
+
+  // ── 四腿（花豹腿更細長、更利於奔跑）──
+  const leopardLegs=[];
+  for (const [lx,lz] of [[-0.22,0.68],[0.22,0.68],[-0.22,-0.82],[0.22,-0.82]]) {
+    const leg=new THREE.Group();
+    leg.add(box(0.20,0.85,0.22,COAT, 0,-0.42,0));
+    leg.add(box(0.16,0.78,0.18,COAT, 0,-1.18,0));
+    leg.add(box(0.22,0.14,0.30,PAW,  0,-1.62,0.06));
+    // 腿部斑點（環狀，沿腿分布）
+    for (let li=0; li<2; li++) leg.add(box(0.18,0.09,0.12,ROSE,0,-0.35-li*0.35,0));
+    leg.position.set(lx,1.08,lz); t.add(leg); leopardLegs.push(leg);
+  }
+
+  // ── 尾巴（比石虎更長，帶花斑轉環紋，末端黑）──
+  const leoTail=new THREE.Group();
+  leoTail.add(box(0.15,0.15,1.25,COAT, 0,0,0));
+  leoTail.add(box(0.17,0.17,0.30,ROSE, 0,0,-0.62));
+  for (let i=0;i<6;i++) leoTail.add(box(0.16,0.10,0.08,ROSE,0,0,-0.10-i*0.16));
+  leoTail.position.set(0,1.50,-1.28); leoTail.rotation.x=0.42; t.add(leoTail);
+
+  // 馬鞍
+  t.add(box(0.58,0.16,0.75,0x4a2f1a,0,1.96,-0.10));
+
+  t.traverse(o=>{ if(o.isMesh)o.castShadow=true; });
+  return { horse:t, horseLegs:leopardLegs, horseTail:leoTail, wings:null };
+}
+
+// 巨大水豚君坐騎（676767樂樂）— 圓潤棕色、方形吻、慵懶淡定臉
+function buildCapybara() {
+  const t = new THREE.Group();
+  const FUR  = 0xa8804a;   // 水豚棕
+  const FUR_D= 0x8a6838;   // 深棕
+  const FUR_L= 0xc4a068;   // 淺棕高光
+  const NOSE = 0x2a1e14;
+  const EYE  = 0x1a1206;
+
+  // ── 身體（超大、圓潤、方桶形，水豚就是一大塊）──
+  t.add(box(1.50, 1.30, 2.60, FUR,  0, 1.55, 0.00));      // 主體（巨大）
+  t.add(box(1.30, 1.05, 2.30, FUR_L,0, 1.50, 0.10));      // 淺色肚腹面
+  t.add(box(1.45, 1.10, 1.10, FUR,  0, 1.55,-0.90));      // 後半更厚
+  // 背部深色分界
+  t.add(box(1.52, 0.20, 2.40, FUR_D,0, 2.12, 0.00));
+
+  // ── 脖子（幾乎沒脖子，頭直接接身體）──
+  t.add(box(1.10, 1.00, 0.70, FUR, 0, 1.75, 1.30));
+
+  // ── 頭（水豚方頭大吻）──
+  t.add(box(1.10, 0.95, 1.05, FUR,  0, 1.95, 1.85));      // 頭顱
+  t.add(box(1.00, 0.70, 0.55, FUR_L,0, 1.72, 2.30));      // 大方吻部
+  t.add(box(0.92, 0.30, 0.30, FUR_D,0, 1.55, 2.52));      // 下巴/嘴
+  // 大鼻（水豚招牌方鼻）
+  t.add(box(0.70, 0.34, 0.24, NOSE, 0, 1.95, 2.52));
+  t.add(box(0.16, 0.12, 0.10, 0x0a0806,-0.18, 1.98, 2.62)); // 鼻孔
+  t.add(box(0.16, 0.12, 0.10, 0x0a0806, 0.18, 1.98, 2.62));
+  // 小眼睛（水豚淡定瞇瞇眼，位置偏高偏後）
+  t.add(box(0.18, 0.14, 0.10, EYE, -0.34, 2.25, 2.02));
+  t.add(box(0.18, 0.14, 0.10, EYE,  0.34, 2.25, 2.02));
+  t.add(box(0.05, 0.04, 0.04, 0xffffff, -0.36, 2.28, 2.08)); // 高光
+  t.add(box(0.05, 0.04, 0.04, 0xffffff,  0.32, 2.28, 2.08));
+  // 小圓耳（水豚耳朵很小，偏後）
+  t.add(box(0.22, 0.18, 0.14, FUR_D, -0.42, 2.48, 1.75));
+  t.add(box(0.22, 0.18, 0.14, FUR_D,  0.42, 2.48, 1.75));
+  t.add(box(0.12, 0.10, 0.08, 0x5a4028, -0.42, 2.48, 1.82)); // 耳內
+  t.add(box(0.12, 0.10, 0.08, 0x5a4028,  0.42, 2.48, 1.82));
+
+  // ── 四腿（短粗，水豚腿短）──
+  const capyLegs = [];
+  for (const [lx, lz] of [[-0.50, 0.95], [0.50, 0.95], [-0.50, -0.95], [0.50, -0.95]]) {
+    const leg = new THREE.Group();
+    leg.add(box(0.42, 0.70, 0.44, FUR,   0, -0.35, 0));   // 粗短腿
+    leg.add(box(0.46, 0.18, 0.52, FUR_D, 0, -0.72, 0.06));// 腳掌（水豚有小蹼）
+    // 腳趾紋
+    for (const cx of [-0.12, 0, 0.12]) leg.add(box(0.06, 0.08, 0.10, NOSE, cx, -0.80, 0.24));
+    leg.position.set(lx, 0.95, lz); t.add(leg); capyLegs.push(leg);
+  }
+
+  // ── 尾巴（水豚幾乎沒尾巴，給個小凸起佔位）──
+  const capyTail = new THREE.Group();
+  capyTail.add(box(0.30, 0.26, 0.20, FUR_D, 0, 0, 0));
+  capyTail.position.set(0, 1.5, -1.35); t.add(capyTail);
+
+  // 馬鞍（坐墊，因為身體超大，坐墊也大）
+  t.add(box(1.30, 0.22, 1.30, 0x6b3f1e, 0, 2.28, -0.10));
+  t.add(box(1.34, 0.08, 1.34, 0x8a5a2a, 0, 2.40, -0.10));
+  // 招牌：頭上放一顆橘子（水豚 meme）
+  t.add(box(0.26, 0.26, 0.26, 0xff9a3a, 0, 2.62, 1.85));
+  t.add(box(0.05, 0.10, 0.05, 0x3a6a2a, 0, 2.76, 1.85));  // 橘子葉
+
+  t.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  return { horse: t, horseLegs: capyLegs, horseTail: capyTail, wings: null };
+}
 let mountWings = null;
 let mountScooter = false;   // 目前坐騎是否為滑板車（輪子旋轉用）
 
@@ -2114,8 +2475,11 @@ function assemblePlayer(genKey) {
   // 坐騎：夜煞黑龍 / 滑板車 / 戰馬
   let h;
   if (cfg.mount === 'dragon') h = buildDragon();
+  else if (cfg.mount === 'light_fury') h = buildDragon(true);
   else if (cfg.mount === 'scooter') h = buildScooter();
   else if (cfg.mount === 'stone_tiger') h = buildStoneTiger();
+  else if (cfg.mount === 'leopard') h = buildLeopard();
+  else if (cfg.mount === 'capybara') h = buildCapybara();
   else h = buildHorse(cfg.horse);
   horse = h.horse; horseLegs = h.horseLegs; horseTail = h.horseTail;
   mountWings = h.wings || null;
@@ -4797,6 +5161,290 @@ function updateBoba(delta) {
   }
 }
 
+/* =========================================================
+   丁丁噹噹無雙：匕首雨（一大堆匕首從空中射向四周敵人）
+   ========================================================= */
+const daggers = [];
+const DAGGER_MAX = 40;
+const daggerGeo = new THREE.BoxGeometry(0.07, 0.55, 0.07);
+const daggerMat = new THREE.MeshBasicMaterial({ color: 0xd0d4d8 });
+const daggerHiltMat = new THREE.MeshBasicMaterial({ color: 0x1a1a1a });
+for (let i = 0; i < DAGGER_MAX; i++) {
+  const g = new THREE.Group();
+  const blade = new THREE.Mesh(daggerGeo, daggerMat);
+  blade.position.y = 0.15; g.add(blade);
+  const hilt = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.20, 0.09), daggerHiltMat);
+  hilt.position.y = -0.22; g.add(hilt);
+  const guard = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.05, 0.09), daggerHiltMat);
+  guard.position.y = -0.10; g.add(guard);
+  g.visible = false;
+  scene.add(g);
+  daggers.push({ mesh: g, active: false, vel: new THREE.Vector3(), dmg: 0, life: 0 });
+}
+
+// 丟出一把匕首，朝目標位置（略帶散射角）飛去
+function throwDagger(fromPos, targetPos, dmg) {
+  const d = daggers.find(x => !x.active);
+  if (!d) return;
+  const dir = new THREE.Vector3().subVectors(targetPos, fromPos);
+  dir.y += (Math.random() - 0.5) * 2;   // 些微散射
+  dir.normalize();
+  d.active = true; d.life = 0; d.dmg = dmg;
+  d.mesh.position.copy(fromPos);
+  d.vel.copy(dir).multiplyScalar(24 + Math.random() * 6);
+  // 讓匕首朝向飛行方向（刀尖向前）
+  d.mesh.rotation.set(
+    Math.atan2(-dir.y, Math.hypot(dir.x, dir.z)),
+    Math.atan2(dir.x, dir.z),
+    0
+  );
+  d.mesh.visible = true;
+}
+
+// 無雙用：從玩家頭頂上方向四周敵人齊發一輪匕首雨
+function daggerBarrage(count) {
+  const originY = player.position.y + 4.5;
+  const targets = [];
+  for (const s of soldiers) { if (s.active && !s.dead) targets.push(s.mesh.position.clone()); }
+  if (boss.active && !boss.dead) targets.push(boss.pos.clone().setY(boss.pos.y + 2));
+  for (let i = 0; i < count; i++) {
+    const origin = new THREE.Vector3(
+      player.position.x + (Math.random() - 0.5) * 6,
+      originY + Math.random() * 2,
+      player.position.z + (Math.random() - 0.5) * 6
+    );
+    let target;
+    if (targets.length > 0 && Math.random() < 0.75) {
+      target = targets[Math.floor(Math.random() * targets.length)].clone();
+      target.x += (Math.random() - 0.5) * 1.2;
+      target.z += (Math.random() - 0.5) * 1.2;
+    } else {
+      const ang = Math.random() * Math.PI * 2, r = 2 + Math.random() * 9;
+      target = new THREE.Vector3(player.position.x + Math.cos(ang) * r, terrainSurfaceY(player.position.x, player.position.z), player.position.z + Math.sin(ang) * r);
+    }
+    throwDagger(origin, target, Math.round(5 * playerState.atkMul));
+  }
+  sfxSwing();
+}
+
+function updateDaggers(delta) {
+  for (const d of daggers) {
+    if (!d.active) continue;
+    d.life += delta;
+    d.vel.y -= 10 * delta;   // 輕微重力弧線
+    d.mesh.position.addScaledVector(d.vel, delta);
+    let hit = false;
+    for (const s of soldiers) {
+      if (s.dead || !s.active) continue;
+      if (d.mesh.position.distanceTo(s.mesh.position) < 1.1) {
+        const dir = new THREE.Vector3().subVectors(s.mesh.position, d.mesh.position); dir.y = 0.3; dir.normalize();
+        hitSoldier(s, d.dmg, dir, 10);
+        hit = true; break;
+      }
+    }
+    if (!hit && boss.active && !boss.dead && d.mesh.position.distanceTo(boss.pos) < 2.2) {
+      const dir = new THREE.Vector3().subVectors(boss.pos, d.mesh.position).normalize();
+      damageBoss(d.dmg, dir); hit = true;
+    }
+    if (hit || d.mesh.position.y <= terrainSurfaceY(d.mesh.position.x, d.mesh.position.z) || d.life > 2.5) {
+      if (hit) spawnParticles(d.mesh.position.clone(), 3, 0xd0d4d8);
+      d.active = false; d.mesh.visible = false;
+    }
+  }
+}
+
+/* =========================================================
+   6767六丁丁：鍋燒意麵投射物 + 氣功彈
+   ========================================================= */
+const noodles = [];
+const NOODLE_MAX = 16;
+for (let i = 0; i < NOODLE_MAX; i++) {
+  const g = new THREE.Group();
+  // 一碗鍋燒意麵（飛行中旋轉）
+  g.add(new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.24, 0.42), new THREE.MeshBasicMaterial({ color: 0xf0d030 })));
+  const soup = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.10, 0.36), new THREE.MeshBasicMaterial({ color: 0xf5e8a0 }));
+  soup.position.y = 0.12; g.add(soup);
+  const shrimp = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, 0.12), new THREE.MeshBasicMaterial({ color: 0xff6a4a }));
+  shrimp.position.set(0.07, 0.18, 0.04); g.add(shrimp);
+  g.visible = false;
+  scene.add(g);
+  noodles.push({ mesh: g, active: false, vel: new THREE.Vector3(), dmg: 0, life: 0 });
+}
+
+function fireNoodle(dmg) {
+  const n = noodles.find(x => !x.active);
+  if (!n) return;
+  const fwd = getPlayerForward();
+  n.active = true; n.life = 0; n.dmg = dmg;
+  n.mesh.position.set(player.position.x + fwd.x * 1.5, player.position.y + 2.2, player.position.z + fwd.z * 1.5);
+  n.vel.set(fwd.x, 0.05, fwd.z).multiplyScalar(34);
+  n.mesh.visible = true;
+}
+
+function updateNoodles(delta) {
+  for (const n of noodles) {
+    if (!n.active) continue;
+    n.life += delta;
+    n.mesh.position.addScaledVector(n.vel, delta);
+    n.mesh.rotation.y += delta * 8;
+    let hit = false;
+    for (const s of soldiers) {
+      if (s.dead || !s.active) continue;
+      if (n.mesh.position.distanceTo(s.mesh.position) < 1.1) {
+        const dir = new THREE.Vector3().subVectors(s.mesh.position, n.mesh.position); dir.y = 0; dir.normalize();
+        hitSoldier(s, n.dmg, dir, 8);
+        spawnParticles(n.mesh.position.clone(), 4, 0xf5e8a0);
+        hit = true; break;
+      }
+    }
+    if (!hit && boss.active && !boss.dead && n.mesh.position.distanceTo(boss.pos) < 2.0) {
+      const dir = new THREE.Vector3().subVectors(boss.pos, n.mesh.position).normalize();
+      damageBoss(n.dmg, dir); hit = true;
+    }
+    if (hit || n.life > 2.2 || Math.abs(n.mesh.position.x) > HALF || Math.abs(n.mesh.position.z) > HALF) {
+      n.active = false; n.mesh.visible = false;
+    }
+  }
+}
+
+// 氣功彈（無雙）：大能量球，穿透飛行，沿途對所有敵人造成大量傷害
+const qigongBalls = [];
+const QIGONG_MAX = 6;
+for (let i = 0; i < QIGONG_MAX; i++) {
+  const g = new THREE.Group();
+  const core = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 12), new THREE.MeshBasicMaterial({ color: 0x8ad8ff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
+  g.add(core);
+  const halo = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 12), new THREE.MeshBasicMaterial({ color: 0x4aa0ff, transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false }));
+  g.add(halo);
+  g.visible = false;
+  scene.add(g);
+  qigongBalls.push({ mesh: g, active: false, vel: new THREE.Vector3(), dmg: 0, life: 0, hitSet: new Set() });
+}
+
+function fireQigong(dmg) {
+  const q = qigongBalls.find(x => !x.active);
+  if (!q) return;
+  const fwd = getPlayerForward();
+  q.active = true; q.life = 0; q.dmg = dmg; q.hitSet.clear();
+  q.mesh.position.set(player.position.x + fwd.x * 1.5, player.position.y + 2.0, player.position.z + fwd.z * 1.5);
+  q.vel.set(fwd.x, 0, fwd.z).multiplyScalar(18);
+  q.mesh.visible = true;
+  sfxMusou();
+}
+
+function updateQigong(delta) {
+  for (const q of qigongBalls) {
+    if (!q.active) continue;
+    q.life += delta;
+    q.mesh.position.addScaledVector(q.vel, delta);
+    // 脈動
+    const ps = 1 + Math.sin(q.life * 16) * 0.15;
+    q.mesh.scale.setScalar(ps);
+    q.mesh.rotation.y += delta * 4;
+    if (Math.random() < 0.8) spawnParticles(q.mesh.position.clone(), 2, 0x8ad8ff);
+    // 穿透傷害（每個敵人只打一次）
+    for (const s of soldiers) {
+      if (s.dead || !s.active || q.hitSet.has(s)) continue;
+      if (q.mesh.position.distanceTo(s.mesh.position) < 2.0) {
+        const dir = new THREE.Vector3().subVectors(s.mesh.position, q.mesh.position); dir.y = 0.3; dir.normalize();
+        hitSoldier(s, q.dmg, dir, 20);
+        q.hitSet.add(s);
+      }
+    }
+    if (boss.active && !boss.dead && q.mesh.position.distanceTo(boss.pos) < 3.0) {
+      if (!q.hitSet.has('boss')) { damageBoss(q.dmg, q.vel.clone().normalize()); q.hitSet.add('boss'); }
+    }
+    if (q.life > 2.0 || Math.abs(q.mesh.position.x) > HALF || Math.abs(q.mesh.position.z) > HALF) {
+      spawnParticles(q.mesh.position.clone(), 12, 0x8ad8ff);
+      q.active = false; q.mesh.visible = false;
+    }
+  }
+}
+
+/* =========================================================
+   676767樂樂：雷射光束（無雙射出很多雷射，命中扣血）
+   ========================================================= */
+const lasers = [];
+const LASER_MAX = 30;
+for (let i = 0; i < LASER_MAX; i++) {
+  const g = new THREE.Group();
+  const beam = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.12, 0.12, 1, 6, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0x4affff, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+  );
+  beam.rotation.x = Math.PI / 2;   // 讓圓柱沿 z 軸（飛行方向）
+  g.add(beam);
+  const coreBeam = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.05, 0.05, 1, 6, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false })
+  );
+  coreBeam.rotation.x = Math.PI / 2; g.add(coreBeam);
+  g.visible = false;
+  g.scale.z = 3;   // 拉長成光束
+  scene.add(g);
+  lasers.push({ mesh: g, active: false, vel: new THREE.Vector3(), dmg: 0, life: 0, hitSet: new Set() });
+}
+
+function sfxLaser() {
+  playTone({ freq: 1400, slideTo: 500, type: 'square',   dur: 0.12, vol: 0.10 });
+  playTone({ freq: 700,  slideTo: 200, type: 'sawtooth', dur: 0.10, vol: 0.08 });
+}
+
+// 發射一道雷射，朝目標方向（可帶散射）
+function fireLaser(fromPos, dir, dmg) {
+  const l = lasers.find(x => !x.active);
+  if (!l) return;
+  l.active = true; l.life = 0; l.dmg = dmg; l.hitSet.clear();
+  l.mesh.position.copy(fromPos);
+  l.vel.copy(dir).normalize().multiplyScalar(40);   // 高速
+  l.mesh.rotation.y = Math.atan2(dir.x, dir.z);
+  l.mesh.visible = true;
+  sfxLaser();
+}
+
+// 無雙用：一次朝四面八方 + 敵人方向掃射一輪雷射
+function laserBarrage(count) {
+  const origin = player.position.clone().setY(player.position.y + 2.2);
+  const targets = [];
+  for (const s of soldiers) { if (s.active && !s.dead) targets.push(s.mesh.position.clone()); }
+  if (boss.active && !boss.dead) targets.push(boss.pos.clone().setY(boss.pos.y + 2));
+  for (let i = 0; i < count; i++) {
+    let dir;
+    if (targets.length > 0 && Math.random() < 0.7) {
+      const tp = targets[Math.floor(Math.random() * targets.length)];
+      dir = new THREE.Vector3().subVectors(tp, origin);
+      dir.x += (Math.random() - 0.5) * 2; dir.z += (Math.random() - 0.5) * 2;
+    } else {
+      const ang = Math.random() * Math.PI * 2;
+      dir = new THREE.Vector3(Math.sin(ang), (Math.random() - 0.5) * 0.2, Math.cos(ang));
+    }
+    fireLaser(origin.clone(), dir, Math.round(6 * playerState.atkMul));
+  }
+}
+
+function updateLasers(delta) {
+  for (const l of lasers) {
+    if (!l.active) continue;
+    l.life += delta;
+    l.mesh.position.addScaledVector(l.vel, delta);
+    for (const s of soldiers) {
+      if (s.dead || !s.active || l.hitSet.has(s)) continue;
+      if (l.mesh.position.distanceTo(s.mesh.position) < 1.3) {
+        const dir = new THREE.Vector3().subVectors(s.mesh.position, l.mesh.position); dir.y = 0.2; dir.normalize();
+        hitSoldier(s, l.dmg, dir, 12);
+        spawnParticles(l.mesh.position.clone(), 3, 0x4affff);
+        l.hitSet.add(s);
+      }
+    }
+    if (boss.active && !boss.dead && l.mesh.position.distanceTo(boss.pos) < 2.2) {
+      if (!l.hitSet.has('boss')) { damageBoss(l.dmg, l.vel.clone().normalize()); l.hitSet.add('boss'); }
+    }
+    if (l.life > 1.2 || Math.abs(l.mesh.position.x) > HALF || Math.abs(l.mesh.position.z) > HALF) {
+      l.active = false; l.mesh.visible = false;
+    }
+  }
+}
+
 function updateEnemyArrows(delta) {
   for (const a of enemyArrows) {
     if (!a.active) continue;
@@ -4925,6 +5573,15 @@ function tryAttack() {
     // === 弓箭・遠距射擊 ===
     sfxBow();
     fireArrow(Math.round(3 * playerState.atkMul));   // 射出飛行箭矢（傷害較高）
+    addShake(0.05);
+    playerState.attacking = true; playerState.attackTimer = 0;
+    return;
+  }
+
+  if (currentGeneral === 'liuding') {
+    // === 鍋燒意麵弓・遠距射擊（射出一碗鍋燒意麵）===
+    sfxBow();
+    fireNoodle(Math.round(3 * playerState.atkMul));
     addShake(0.05);
     playerState.attacking = true; playerState.attackTimer = 0;
     return;
@@ -5314,6 +5971,46 @@ function updateMusou(delta) {
     // 台灣隊長旋舞動作
     player.rotation.y += delta * 2;
     weaponArm.rotation.x = -0.5 + Math.sin(t * 12) * 0.8;
+  } else if (mode === 'daggerRain') {
+    // 丁丁噹噹・萬刃紛落：一大堆匕首從空中射向周圍所有敵人
+    playerState.swirlTimer2 = (playerState.swirlTimer2 || 0) - delta;
+    if (playerState.swirlTimer2 <= 0) {
+      playerState.swirlTimer2 = 0.18;   // 每 0.18s 一波
+      daggerBarrage(3 + Math.floor(Math.random() * 3));   // 每波 3~5 把
+      spawnParticles(player.position.clone().setY(player.position.y + 3), 5, mc.c1);
+    }
+    // 原地旋身姿態（居合／刺客風）
+    player.rotation.y += delta * 8;
+    weaponArm.rotation.x = -1.2 + Math.sin(t * 10) * 0.6;
+    if (Math.floor(t * 16) % 3 === 0) musouAoE(3, 2, 6, false);   // 周身輕微壓制
+  } else if (mode === 'qigong') {
+    // 6767六丁丁・氣功彈：拉弓蓄力，連續射出大型氣功能量球（穿透）
+    weaponArm.rotation.x = -0.5;
+    playerState.swirlTimer2 = (playerState.swirlTimer2 || 0) - delta;
+    if (playerState.swirlTimer2 <= 0) {
+      playerState.swirlTimer2 = 0.4;   // 每 0.4s 射一發氣功彈
+      // 面向最近的敵人再發射
+      let nearest = null, nd = 999;
+      for (const s of soldiers) { if (!s.active || s.dead) continue; const dd = s.mesh.position.distanceTo(player.position); if (dd < nd) { nd = dd; nearest = s; } }
+      if (nearest) { const to = new THREE.Vector3().subVectors(nearest.mesh.position, player.position); playerAim = Math.atan2(to.x, to.z); player.rotation.y = playerAim; }
+      fireQigong(Math.round(10 * playerState.atkMul));   // 大傷害穿透能量球
+      spawnParticles(player.position.clone().setY(player.position.y + 2), 6, mc.c1);
+      addShake(0.2);
+    }
+    // 蓄力光環（藍色氣勁）
+    if (Math.floor(t * 20) % 2 === 0) spawnParticles(player.position.clone().setY(player.position.y + 1.5), 3, mc.c1);
+  } else if (mode === 'laser') {
+    // 676767樂樂・雷光萬箭：舉超長劍，連續朝四面八方射出大量雷射
+    weaponArm.rotation.x = -1.6;   // 舉劍朝天
+    player.rotation.y += delta * 3;
+    playerState.swirlTimer2 = (playerState.swirlTimer2 || 0) - delta;
+    if (playerState.swirlTimer2 <= 0) {
+      playerState.swirlTimer2 = 0.12;   // 每 0.12s 一輪
+      laserBarrage(4 + Math.floor(Math.random() * 3));   // 每輪 4~6 道雷射
+      spawnParticles(player.position.clone().setY(player.position.y + 2.5), 5, mc.c1);
+      addShake(0.15);
+    }
+    if (Math.floor(t * 24) % 2 === 0) musouAoE(3.5, 2, 8, false);   // 周身壓制
   }
 
   // ===== 結束收尾 =====
@@ -5382,6 +6079,10 @@ function animate() {
   updateArrows(delta);
   updateEnemyArrows(delta);
   updateBoba(delta);
+  updateDaggers(delta);
+  updateNoodles(delta);
+  updateQigong(delta);
+  updateLasers(delta);
   updateTaipei101(delta);   // 101 柱陣持續動畫（即使無雙結束，已生出的柱子繼續）
   updateBanners(clock.elapsedTime);   // 旗幟隨風飄動
   updateCampfires(clock.elapsedTime); // 篝火閃爍
