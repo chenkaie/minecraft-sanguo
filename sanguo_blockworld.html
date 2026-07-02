@@ -1648,6 +1648,30 @@ const MUSOU = {
   lele:           { mode:'laser',      c1:0x4affff, c2:0x2a7add, name:'musou_name_laser' },
 };
 
+// 驗證武將卡片上的「氣力XXX」顯示文字是否與 maxHp 值同步
+function validateGeneralStats() {
+  const genKeys = Object.keys(GENERALS);
+  for (const key of genKeys) {
+    const cfg = GENERALS[key];
+    const card = document.querySelector(`[data-gen="${key}"]`);
+    if (card) {
+      const cStat = card.querySelector('.cStat');
+      const displayHp = cStat.textContent.match(/氣力(\d+)|HP\s*(\d+)/);
+      if (displayHp) {
+        const displayValue = parseInt(displayHp[1] || displayHp[2]);
+        if (displayValue !== cfg.maxHp) {
+          console.warn(`❌ ${key}: cStat 顯示 ${displayValue}，但 maxHp 是 ${cfg.maxHp}`);
+        }
+      }
+    }
+  }
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', validateGeneralStats);
+} else {
+  validateGeneralStats();
+}
+
 /* =========================================================
    3. 玩家武將（用方塊堆出造型）— 五虎將通用建構器
    ========================================================= */
