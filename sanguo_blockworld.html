@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Three Kingdoms Voxel Warriors v1.5</title>
+<title>Three Kingdoms Voxel Warriors v2.1</title>
 <style>
   /* ===== 全域樣式 ===== */
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -415,6 +415,25 @@
     right: 56px; bottom: 150px; width: 64px; height: 64px; font-size: 14px;
     background: rgba(60,110,170,0.55); border-color: #8fd0ff;
   }
+  /* 閃避（無雙鈕上方）*/
+  #btnDodge {
+    right: 150px; bottom: 165px; width: 60px; height: 60px; font-size: 13px;
+    background: rgba(230,230,240,0.35); border-color: #ffffff;
+  }
+  body.touch.build-mode #btnDodge { display: none; }
+  /* 畫面暗角（電影感）+ 低血量紅色脈動 */
+  #vignette {
+    position: fixed; inset: 0; z-index: 8; pointer-events: none;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.42) 100%);
+    transition: background 0.3s;
+  }
+  body.low-hp #vignette {
+    animation: lowHpPulse 0.9s ease-in-out infinite alternate;
+  }
+  @keyframes lowHpPulse {
+    from { background: radial-gradient(ellipse at center, rgba(0,0,0,0) 50%, rgba(160,0,0,0.35) 100%); }
+    to   { background: radial-gradient(ellipse at center, rgba(0,0,0,0) 42%, rgba(220,0,0,0.62) 100%); }
+  }
   /* 模式切換（右上）*/
   #btnMode {
     right: 20px; top: 70px; width: 72px; height: 56px; border-radius: 14px; font-size: 13px;
@@ -602,7 +621,7 @@
 
 <!-- 準心（建造模式顯示）-->
 <div id="crosshair"></div>
-<div id="verBadge">三國方塊無雙 v1.5</div>
+<div id="verBadge">三國方塊無雙 v2.1</div>
 
 <!-- 模式 + 方塊選擇 -->
 <div id="buildHud">
@@ -623,6 +642,7 @@
 </div>
 
 <!-- 特效層 -->
+<div id="vignette"></div>
 <div id="flash"></div>
 <div id="hurt"></div>
 <div id="fade"></div>
@@ -644,6 +664,7 @@
   <div id="btnAttack" class="btn" data-i18n="btn_attack">普攻</div>
   <div id="btnMusou" class="btn" data-i18n="btn_musou">無雙</div>
   <div id="btnJump" class="btn" data-i18n="btn_jump">跳</div>
+  <div id="btnDodge" class="btn" data-i18n="btn_dodge">閃避</div>
   <div id="btnMode" class="btn" data-i18n-html="btn_mode">建造<br>模式</div>
   <div id="btnSwitch" class="btn" data-i18n="btn_switch">換將</div>
   <div id="btnBreak" class="btn" data-i18n="btn_break">破壞</div>
@@ -657,7 +678,7 @@
     <button class="langBtn" data-lang="zh">中文</button>
     <button class="langBtn" data-lang="en">EN</button>
   </div>
-  <h1 data-i18n="game_title">三國方塊無雙 <span class="ver">v1.5</span></h1>
+  <h1 data-i18n="game_title">三國方塊無雙 <span class="ver">v2.1</span></h1>
   <p style="margin-bottom:10px" data-i18n="select_diff">選擇難度</p>
   <div id="diffSelect">
     <div class="diffBtn" data-diff="rookie" data-i18n-html="diff_rookie">新手村<br><span>敵弱・包子多</span></div>
@@ -730,6 +751,11 @@
       <div class="cDesc" data-i18n-html="hero_lele_desc">超長劍<br>藍白盔甲・騎水豚</div>
       <div class="cStat" data-i18n="hero_lele_stat">氣力115 · 攻擊★★★★</div>
     </div>
+    <div class="charCard" data-gen="zero">
+      <div class="cName" data-i18n="hero_zero_name">澤洛</div><div class="cTitle" data-i18n="hero_zero_title">星漠賞金獵人</div>
+      <div class="cDesc" data-i18n-html="hero_zero_desc">雙管光子步槍<br>懸浮飛車・軌道砲擊</div>
+      <div class="cStat" data-i18n="hero_zero_stat">氣力110 · 攻擊★★★★</div>
+    </div>
   </div>
   <p class="hint" data-i18n="start_hint">點選武將後開始 · 闖六關：貓吉拉→曹操→孫策→夏侯惇→呂布→魔王哥吉拉 · 每位武將無雙招式各不同 · 每過一關招降新武將</p>
   <div style="display:flex;gap:10px;justify-content:center;align-items:stretch;flex-wrap:wrap;margin-top:16px;">
@@ -744,7 +770,11 @@
     <h2>📋 <span data-i18n="ver_title">版本紀錄</span></h2>
     <div class="verList">
       <a class="verItem cur" href="https://chenkaie.github.io/minecraft-sanguo/" target="_blank">
-        <span class="vTag">v1.5 (最新)</span>
+        <span class="vTag">v2.1 (最新)</span>
+        <span class="vDesc">引擎升級：Bloom光暈·ACES電影色調·漸層天幕+方塊雲·閃避翻滾+完美閃避·動態FOV · 新武將「澤洛」星漠賞金獵人（軌道砲擊）· 共12位武將</span>
+      </a>
+      <a class="verItem" href="https://chenkaie.github.io/minecraft-sanguo/v1.5/index.html" target="_blank">
+        <span class="vTag">v1.5</span>
         <span class="vDesc">新增四位武將：丁丁噹噹(匕首雨)·6767六丁丁(氣功彈)·676767樂樂(雷射)·台灣隊長 · 共11位武將</span>
       </a>
       <a class="verItem" href="https://chenkaie.github.io/minecraft-sanguo/v1.4/index.html" target="_blank">
@@ -787,6 +817,10 @@
 
 <script type="module">
 import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 /* =========================================================
    🌐 國際化 (i18n) — 中文 / English，自動偵測瀏覽器語言
@@ -801,9 +835,9 @@ const I18N = {
     hud_b:'B：切換 戰鬥／建造模式',
     hud_combat:'戰鬥：左鍵 普攻連段　|　Q／右鍵 無雙亂舞（發動後可用 WASD 自由衝鋒開路）',
     hud_build:'建造：右鍵 放置方塊　左鍵 破壞　|　1/2/3 選方塊（白色預覽框顯示落點）',
-    hud_move:'WASD：移動　|　滑鼠：轉視角　|　Space：跳躍　|　SHIFT+F：全螢幕',
+    hud_move:'WASD：移動　|　滑鼠：轉視角　|　Space：跳躍　|　Shift／E：閃避翻滾（命中瞬間閃避＝完美閃避）　|　SHIFT+F：全螢幕',
     // 觸控按鈕
-    btn_attack:'普攻', btn_musou:'無雙', btn_jump:'跳',
+    btn_attack:'普攻', btn_musou:'無雙', btn_jump:'跳', btn_dodge:'閃避', perfect_dodge:'完美閃避！',
     btn_mode:'建造<br>模式', btn_switch:'換將', btn_break:'破壞', btn_place:'放置',
     // 暫停
     paused:'遊戲暫停', click_resume:'點擊畫面繼續遊戲', pause_sub:'（滑鼠移動轉視角・WASD 移動）',
@@ -851,6 +885,8 @@ const I18N = {
     hero_liuding_desc:'弓射鍋燒意麵<br>騎光煞', hero_liuding_stat:'氣力105 · 攻擊★★★★',
     hero_lele_name:'676767樂樂', hero_lele_title:'碧藍雷光騎士',
     hero_lele_desc:'超長劍<br>藍白盔甲・騎水豚', hero_lele_stat:'氣力115 · 攻擊★★★★',
+    hero_zero_name:'澤洛', hero_zero_title:'星漠賞金獵人',
+    hero_zero_desc:'雙管光子步槍<br>懸浮飛車・軌道砲擊', hero_zero_stat:'氣力110 · 攻擊★★★★',
     // 遊戲內動態字串
     wave_label:'第', wave_unit:'關', boss_approach:'來襲',
     boss_slain:'擊破', boss_slain_sub:'斬將立功',
@@ -876,6 +912,7 @@ const I18N = {
     musou_name_dagger:'萬刃紛落・暗夜豹襲',
     musou_name_qigong:'鍋燒氣功彈・貫穿一線',
     musou_name_laser:'碧藍雷光・萬射亂舞',
+    musou_name_orbital:'軌道星落・天降制裁',
     confirm_reset:'確定清除所有排行榜紀錄？',
   },
   en: {
@@ -887,9 +924,9 @@ const I18N = {
     hud_b:'B: Toggle Combat / Build mode',
     hud_combat:'Combat: LMB Attack combo  |  Q / RMB Musou (use WASD to dash freely)',
     hud_build:'Build: RMB Place  LMB Break  |  1/2/3 Select block (white preview)',
-    hud_move:'WASD: Move  |  Mouse: Camera  |  Space: Jump  |  SHIFT+F: Fullscreen',
+    hud_move:'WASD: Move  |  Mouse: Camera  |  Space: Jump  |  Shift / E: Dodge roll (dodge on impact = Perfect Dodge)  |  SHIFT+F: Fullscreen',
     // 觸控按鈕
-    btn_attack:'Attack', btn_musou:'Musou', btn_jump:'Jump',
+    btn_attack:'Attack', btn_musou:'Musou', btn_jump:'Jump', btn_dodge:'Dodge', perfect_dodge:'PERFECT DODGE!',
     btn_mode:'Build<br>Mode', btn_switch:'Switch', btn_break:'Break', btn_place:'Place',
     // 暫停
     paused:'PAUSED', click_resume:'Click to Resume', pause_sub:'(Mouse to look · WASD to move)',
@@ -939,6 +976,8 @@ const I18N = {
     hero_liuding_desc:'Noodle-Soup Bow<br>Rides a Light Fury', hero_liuding_stat:'HP 105 · ATK ★★★★',
     hero_lele_name:'676767 Le Le', hero_lele_title:'Azure Lightning Knight',
     hero_lele_desc:'Greatsword<br>Blue-White Armor · Rides a Capybara', hero_lele_stat:'HP 115 · ATK ★★★★',
+    hero_zero_name:'Zero', hero_zero_title:'Star-Desert Bounty Hunter',
+    hero_zero_desc:'Twin Photon Rifle<br>Hover Speeder · Orbital Strike', hero_zero_stat:'HP 110 · ATK ★★★★',
     // 遊戲內動態字串
     wave_label:'Stage ', wave_unit:'', boss_approach:' Approaches',
     boss_slain:'Defeated', boss_slain_sub:'General Vanquished',
@@ -964,6 +1003,7 @@ const I18N = {
     musou_name_dagger:'Blade Storm · Shadow Panther Strike',
     musou_name_qigong:'Noodle Qigong Blast · Piercing Beam',
     musou_name_laser:'Azure Lightning · Laser Barrage',
+    musou_name_orbital:'Orbital Strike · Judgement from Above',
     confirm_reset:'Clear all leaderboard records?',
   }
 };
@@ -996,11 +1036,11 @@ function applyLang() {
   });
   // 遊戲標題特殊處理（保留 <span class="ver"> tag）
   const h1 = document.querySelector('#overlay h1');
-  if (h1) h1.innerHTML = t('game_title') + ' <span class="ver">v1.5</span>';
+  if (h1) h1.innerHTML = t('game_title') + ' <span class="ver">v2.1</span>';
   // 難度名稱 → waveNumEl 格式
   document.getElementById('verBadge').textContent =
-    lang === 'zh' ? '三國方塊無雙 v1.5' : '3K Voxel Warriors v1.5';
-  document.title = lang === 'zh' ? '三國方塊無雙 v1.5' : '3 Kingdoms Voxel Warriors v1.5';
+    lang === 'zh' ? '三國方塊無雙 v2.1' : '3K Voxel Warriors v2.1';
+  document.title = lang === 'zh' ? '三國方塊無雙 v2.1' : '3 Kingdoms Voxel Warriors v2.1';
   // 語言按鈕 active 狀態
   document.querySelectorAll('.langBtn').forEach(b => {
     b.classList.toggle('selected', b.dataset.lang === currentLang);
@@ -1039,16 +1079,37 @@ const renderer = new THREE.WebGLRenderer({
   alpha: false,
 });
 renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio, isIOS ? 2 : 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, isIOS ? 1.5 : 2));   // iOS 降 DPR 換取後處理效能
 renderer.shadowMap.enabled = !isIOS;   // iOS 上關陰影（大幅提升幀率）
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+// 🎬 電影級色調映射 + 正確色彩空間（ACES Filmic：高光柔和、暗部有層次）
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.25;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 document.body.appendChild(renderer.domElement);
+
+/* =========================================================
+   ✨ 後處理管線：Render → Bloom（光暈）→ Output（色調映射 + sRGB）
+   所有加色混合/自發光物件（無雙、雷射、gamma 射線、機械哥吉拉紅眼、煙火）都會發光
+   ========================================================= */
+const composer = new EffectComposer(renderer);
+composer.setPixelRatio(renderer.getPixelRatio());
+composer.addPass(new RenderPass(scene, camera));
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(innerWidth / (isIOS ? 4 : 2), innerHeight / (isIOS ? 4 : 2)),   // 低解析度 mip，效能友善
+  isIOS ? 0.45 : 0.6,   // strength
+  0.4,                  // radius
+  0.85                  // threshold（只讓真正亮的東西發光，天空不會糊）
+);
+composer.addPass(bloomPass);
+composer.addPass(new OutputPass());
 
 // iOS Safari 旋轉/resize（包含網址列顯示/消失）— 用 visualViewport 最準確
 function onResize() {
   const w = window.visualViewport ? window.visualViewport.width  : innerWidth;
   const h = window.visualViewport ? window.visualViewport.height : innerHeight;
   renderer.setSize(w, h);
+  composer.setSize(w, h);
   camera.aspect = w / h;
   camera.updateProjectionMatrix();
 }
@@ -1122,8 +1183,60 @@ dirLight.castShadow = true;
 dirLight.shadow.mapSize.set(2048, 2048);
 Object.assign(dirLight.shadow.camera, { near: 1, far: 100, left: -40, right: 40, top: 40, bottom: -40 });
 scene.add(dirLight);
-const ambLight = new THREE.AmbientLight(0xffffff, 0.65);
+const ambLight = new THREE.AmbientLight(0xffffff, 0.35);
 scene.add(ambLight);
+// 🌤️ 天地雙色環境光：天空偏藍、地面反射暖色，立體感遠勝單色 ambient
+const hemiLight = new THREE.HemisphereLight(0xbfe3ff, 0x8a6a3a, 0.55);
+scene.add(hemiLight);
+if (!isIOS) { dirLight.shadow.mapSize.set(4096, 4096); dirLight.shadow.bias = -0.0005; dirLight.shadow.normalBias = 0.02; }
+
+/* =========================================================
+   🌅 漸層天幕（地平線 → 天頂）+ 飄動方塊雲
+   ========================================================= */
+const skyUniforms = {
+  topColor:    { value: new THREE.Color(0x3a7bd5) },
+  bottomColor: { value: new THREE.Color(0x9ad4eb) },
+  offset:      { value: 20 },
+  exponent:    { value: 0.55 },
+};
+const skyDome = new THREE.Mesh(
+  new THREE.SphereGeometry(420, 24, 16),
+  new THREE.ShaderMaterial({
+    uniforms: skyUniforms,
+    side: THREE.BackSide, depthWrite: false, fog: false,
+    vertexShader: `varying vec3 vWorldPosition;
+      void main(){ vec4 wp = modelMatrix * vec4(position,1.0); vWorldPosition = wp.xyz;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+    fragmentShader: `uniform vec3 topColor; uniform vec3 bottomColor; uniform float offset; uniform float exponent;
+      varying vec3 vWorldPosition;
+      void main(){ float h = normalize(vWorldPosition + vec3(0.0, offset, 0.0)).y;
+        gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h,0.0), exponent), 0.0)), 1.0); }`,
+  })
+);
+skyDome.renderOrder = -1000;
+scene.add(skyDome);
+
+const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.92, fog: false });
+const clouds = [];
+for (let ci = 0; ci < 11; ci++) {
+  const c = new THREE.Group();
+  const n = 3 + Math.floor(Math.random() * 4);
+  for (let k = 0; k < n; k++) {
+    const w = 3 + Math.random() * 6, d = 2 + Math.random() * 4;
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, 1.2, d), cloudMat);
+    m.position.set((Math.random() - 0.5) * 9, Math.random() * 0.8, (Math.random() - 0.5) * 6);
+    c.add(m);
+  }
+  c.position.set((Math.random() - 0.5) * 160, 36 + Math.random() * 14, (Math.random() - 0.5) * 160);
+  c.userData.speed = 0.6 + Math.random() * 0.8;
+  scene.add(c); clouds.push(c);
+}
+function updateClouds(delta) {
+  for (const c of clouds) {
+    c.position.x += c.userData.speed * delta;
+    if (c.position.x > 95) c.position.x = -95;
+  }
+}
 
 /* === 各關場景主題（天色 / 霧 / 光線）=== */
 const LEVEL_THEMES = [
@@ -1174,10 +1287,16 @@ function applyTerrainPalette(theme) {
 
 function applyLevelTheme(n) {
   const th = LEVEL_THEMES[(n - 1) % LEVEL_THEMES.length] || LEVEL_THEMES[0];
-  scene.background.setHex(th.sky);
+  scene.background.setHex(th.fog);
   scene.fog.color.setHex(th.fog);
-  ambLight.color.setHex(th.amb); ambLight.intensity = th.ai;
+  ambLight.color.setHex(th.amb); ambLight.intensity = th.ai * 0.5;
   dirLight.color.setHex(th.sun); dirLight.intensity = th.si;
+  // 天幕：地平線 = 霧色，天頂 = 天色往深藍壓暗（有層次的晴空）
+  skyUniforms.bottomColor.value.setHex(th.fog);
+  skyUniforms.topColor.value.setHex(th.sky).lerp(new THREE.Color(0x2a5fc0), 0.55);
+  hemiLight.color.setHex(th.sky);
+  const gp = GROUND_PALETTES[th.groundPalette] || GROUND_PALETTES.plain;
+  hemiLight.groundColor.setHex(gp.mid);   // 地面反光取該關地面色
   applyTerrainLevel(n);       // 切換地形形狀
   applyTerrainPalette(th);    // 切換地面配色
 }
@@ -1631,6 +1750,11 @@ const GENERALS = {
     face: 0xf0c8a0, beard: 'none', headgear: 'helmet_blue', weapon: 'longsword', mount: 'capybara',
     horse: 0xb08858, maxHp: 115, atk: 1.25, desc: '超長劍・藍白盔甲・騎巨大水豚', knight: true,
   },
+  zero: {
+    name: '澤洛', title: '星漠賞金獵人', robe: 0x1f5f6a, cloak: 0x1a2430, accent: 0xc08a3a,
+    face: 0xf0c8a0, beard: 'none', headgear: 'visor_helmet', weapon: 'blaster', mount: 'hoverbike',
+    horse: 0x2a3a48, maxHp: 110, atk: 1.2, desc: '雙管光子步槍・懸浮飛車・軌道砲擊', scifi: true,
+  },
 };
 
 // 每位武將的「無雙」招式設定：mode 決定機制，c1/c2 為主要配色，name 顯示用
@@ -1646,6 +1770,7 @@ const MUSOU = {
   dingding:       { mode:'daggerRain', c1:0xc0c0c0, c2:0x2a2a2a, name:'musou_name_dagger' },
   liuding:        { mode:'qigong',     c1:0x6ad0ff, c2:0x2a7add, name:'musou_name_qigong' },
   lele:           { mode:'laser',      c1:0x4affff, c2:0x2a7add, name:'musou_name_laser' },
+  zero:           { mode:'orbital',    c1:0x5af0ff, c2:0xc08a3a, name:'musou_name_orbital' },
 };
 
 /* =========================================================
@@ -1770,6 +1895,20 @@ function buildRider(cfg) {
     _pt.position.set(0, 2.30, -0.36);
     _pt.rotation.x = 0.25;
     rider.add(_pt);
+  } else if (cfg.headgear === 'visor_helmet') {
+    // 澤洛：全罩式圓弧戰盔（深青金屬）+ 青銅鑲邊 + 發光青色橫向觀景窗 + 側邊通訊天線
+    rider.add(box(0.60, 0.42, 0.60, 0x1f5f6a, 0, 2.08, 0));          // 盔頂主體（蓋過頭）
+    rider.add(box(0.62, 0.30, 0.62, 0x18505a, 0, 1.78, 0));          // 盔下半（罩住臉）
+    rider.add(box(0.64, 0.06, 0.64, 0xc08a3a, 0, 1.94, 0));          // 青銅腰線
+    rider.add(box(0.30, 0.10, 0.30, 0xc08a3a, 0, 2.32, 0));          // 盔頂青銅飾
+    const _vis = box(0.46, 0.12, 0.08, 0x5af0ff, 0, 1.86, 0.30);     // 發光觀景窗（橫帶）
+    _vis.material.emissive.setHex(0x5af0ff); _vis.material.emissiveIntensity = 1.8; rider.add(_vis);
+    rider.add(box(0.52, 0.04, 0.10, 0x0a1a20, 0, 1.94, 0.30));       // 窗上黑框
+    rider.add(box(0.52, 0.04, 0.10, 0x0a1a20, 0, 1.78, 0.30));       // 窗下黑框
+    rider.add(box(0.14, 0.18, 0.14, 0x3a3a40, 0.34, 1.80, 0.06));    // 右耳通訊器
+    rider.add(box(0.04, 0.42, 0.04, 0xc0c8d0, 0.38, 2.12, 0.02));    // 天線
+    const _lamp = box(0.06, 0.06, 0.06, 0xff4040, 0.38, 2.36, 0.02); // 天線紅燈
+    _lamp.material.emissive.setHex(0xff2020); _lamp.material.emissiveIntensity = 2.0; rider.add(_lamp);
   } else if (cfg.headgear === 'chopper_hat') {
     // 6767六丁丁：喬巴粉帽（圓頂 + 白色X十字 + 鹿角）+ 馬尾
     // 棕色瀏海（喬巴髮色）
@@ -1855,8 +1994,30 @@ function buildRider(cfg) {
     rider.add(box(0.30, 0.14, 0.34, 0x1a5fd0,  0.32, 0.5, 0.10));
   }
 
+  // 星漠獵人裝甲細節（澤洛）：青銅胸甲 + 肩甲 + 戰術腰帶 + 肩上偵察無人機
+  if (cfg.scifi) {
+    rider.add(box(0.58, 0.46, 0.06, 0xc08a3a, 0, 1.14, 0.28));        // 青銅胸甲板
+    rider.add(box(0.20, 0.30, 0.07, 0x1f5f6a, 0, 1.16, 0.31));        // 胸甲中央青色嵌板
+    const _core = box(0.08, 0.08, 0.06, 0x5af0ff, 0, 1.18, 0.35);     // 胸口能量核心
+    _core.material.emissive.setHex(0x5af0ff); _core.material.emissiveIntensity = 1.6; rider.add(_core);
+    rider.add(box(0.30, 0.18, 0.40, 0xc08a3a, -0.48, 1.44, 0.02));    // 左肩甲
+    rider.add(box(0.30, 0.18, 0.40, 0xc08a3a,  0.48, 1.44, 0.02));    // 右肩甲
+    rider.add(box(0.72, 0.10, 0.56, 0x3a3028, 0, 0.72, 0));           // 戰術腰帶
+    for (const bx of [-0.22, 0.0, 0.22]) rider.add(box(0.14, 0.14, 0.10, 0x5a4a3a, bx, 0.70, 0.30)); // 腰包
+    rider.add(box(0.28, 0.10, 0.30, 0xc08a3a, -0.33, 0.58, 0.06));    // 左護膝
+    rider.add(box(0.28, 0.10, 0.30, 0xc08a3a,  0.33, 0.58, 0.06));
+    // 肩上偵察無人機（小方塊 + 旋翼 + 綠眼）
+    const _dr = new THREE.Group();
+    _dr.add(box(0.22, 0.14, 0.22, 0x2a3a48, 0, 0, 0));
+    _dr.add(box(0.34, 0.03, 0.06, 0xc0c8d0, 0, 0.10, 0));
+    _dr.add(box(0.06, 0.03, 0.34, 0xc0c8d0, 0, 0.10, 0));
+    const _eye = box(0.08, 0.06, 0.04, 0x5aff8a, 0, 0, 0.12);
+    _eye.material.emissive.setHex(0x3aff6a); _eye.material.emissiveIntensity = 1.8; _dr.add(_eye);
+    _dr.position.set(-0.58, 1.78, -0.05); rider.add(_dr);
+  }
+
   // 腿 + 靴（棒球褲為灰色；丁丁噹噹為純黑勁裝褲；6767六丁丁為短褲）
-  const pantsCol = cfg.baseball ? 0xc2c7cf : (cfg.ninja ? 0x080808 : (cfg.chopper ? 0x3a5a8a : (cfg.knight ? 0x2a4a8a : 0x2a2a2a)));
+  const pantsCol = cfg.baseball ? 0xc2c7cf : (cfg.ninja ? 0x080808 : (cfg.chopper ? 0x3a5a8a : (cfg.knight ? 0x2a4a8a : (cfg.scifi ? 0x1a2a34 : 0x2a2a2a))));
   const legL = box(0.3, 0.6, 0.32, pantsCol, -0.32, 0.4, 0.05); legL.rotation.z = 0.25; rider.add(legL);
   const legR = box(0.3, 0.6, 0.32, pantsCol,  0.32, 0.4, 0.05); legR.rotation.z = -0.25; rider.add(legR);
   // 短褲：露出小腿膚色（6767六丁丁）
@@ -1975,6 +2136,19 @@ function buildWeapon(type) {
     for (let i = 0; i < 5; i++) lblade.add(box(0.16, 0.06, 0.09, 0x4affff, 0, 0.5 + i * 0.65, 0));
     lblade.position.set(0, 0.85, 0.4);
     w.add(lblade);
+  } else if (type === 'blaster') {    // 雙管光子步槍（澤洛）
+    w.add(box(0.14, 0.42, 0.16, 0x2a2a30, 0, 0.0, 0.40));          // 握把
+    w.add(box(0.18, 0.22, 0.70, 0x3a4048, 0, 0.30, 0.55));         // 機匣
+    w.add(box(0.16, 0.18, 0.46, 0x2a3038, 0, 0.26, 0.00));         // 槍托
+    w.add(box(0.10, 0.10, 1.10, 0x4a5058, -0.07, 0.36, 1.25));     // 左槍管
+    w.add(box(0.10, 0.10, 1.10, 0x4a5058,  0.07, 0.36, 1.25));     // 右槍管
+    w.add(box(0.26, 0.12, 0.14, 0xc08a3a, 0, 0.36, 1.00));         // 青銅槍管箍
+    w.add(box(0.12, 0.16, 0.40, 0x1f5f6a, 0, 0.50, 0.50));         // 上方瞄準鏡
+    const _mz1 = box(0.07, 0.07, 0.06, 0x5af0ff, -0.07, 0.36, 1.82);
+    const _mz2 = box(0.07, 0.07, 0.06, 0x5af0ff,  0.07, 0.36, 1.82);
+    for (const m of [_mz1, _mz2]) { m.material.emissive.setHex(0x5af0ff); m.material.emissiveIntensity = 2.2; w.add(m); }
+    const _cell = box(0.08, 0.20, 0.10, 0x5af0ff, 0, 0.22, 0.40);  // 能量匣
+    _cell.material.emissive.setHex(0x3ad0ff); _cell.material.emissiveIntensity = 1.2; w.add(_cell);
   } else if (type === 'bow') {        // 弓（長弓 + 弓弦 + 搭一支待射的箭）
     const bow = new THREE.Group();
     // 弓臂（上下兩段，微彎）
@@ -2456,7 +2630,50 @@ function buildCapybara() {
   t.traverse(o => { if (o.isMesh) o.castShadow = true; });
   return { horse: t, horseLegs: capyLegs, horseTail: capyTail, wings: null };
 }
+
+// 懸浮飛車坐騎（澤洛）— 流線深青金屬車身、青銅導流片、尾部雙噴射口發光、無輪懸浮
+function buildHoverbike() {
+  const s = new THREE.Group();
+  const HULL = 0x2a3a48, HULL_D = 0x1a262f, TRIM = 0xc08a3a, GLOW = 0x5af0ff, SEAT = 0x3a2a1e;
+  // 主車身（前尖後寬）
+  s.add(box(0.80, 0.42, 2.40, HULL,   0, 0.95, -0.10));
+  s.add(box(0.60, 0.30, 0.90, HULL_D, 0, 1.00,  1.35));      // 前錐
+  s.add(box(0.34, 0.18, 0.60, HULL_D, 0, 1.02,  2.05));      // 車頭尖
+  s.add(box(0.96, 0.22, 1.20, HULL,   0, 0.88, -0.70));      // 後段加寬
+  // 青銅導流片 + 側翼
+  s.add(box(0.84, 0.05, 2.30, TRIM,  0, 1.18, -0.05));
+  const fl = box(0.70, 0.06, 0.70, TRIM, -0.72, 0.92, -0.50); fl.rotation.z =  0.28; s.add(fl);
+  const fr = box(0.70, 0.06, 0.70, TRIM,  0.72, 0.92, -0.50); fr.rotation.z = -0.28; s.add(fr);
+  // 座椅 + 把手
+  s.add(box(0.46, 0.14, 0.90, SEAT, 0, 1.24, -0.25));
+  s.add(box(0.10, 0.34, 0.10, HULL_D, 0, 1.36, 0.85));
+  s.add(box(0.80, 0.08, 0.08, TRIM, 0, 1.54, 0.85));
+  s.add(box(0.10, 0.14, 0.10, 0x1a1a1a, -0.38, 1.54, 0.85));
+  s.add(box(0.10, 0.14, 0.10, 0x1a1a1a,  0.38, 1.54, 0.85));
+  // 前方儀表發光
+  const dash = box(0.30, 0.08, 0.06, GLOW, 0, 1.42, 1.02);
+  dash.material.emissive.setHex(GLOW); dash.material.emissiveIntensity = 1.4; s.add(dash);
+  // 尾部雙噴射口（發光）+ 底部懸浮推進盤
+  const thrusters = [];
+  for (const tx of [-0.28, 0.28]) {
+    s.add(box(0.26, 0.26, 0.30, HULL_D, tx, 0.95, -1.40));
+    const j = box(0.18, 0.18, 0.12, GLOW, tx, 0.95, -1.58);
+    j.material.emissive.setHex(GLOW); j.material.emissiveIntensity = 2.4; s.add(j); thrusters.push(j);
+  }
+  for (const [px, pz] of [[-0.30, 0.70], [0.30, 0.70], [-0.34, -0.80], [0.34, -0.80]]) {
+    const pad = box(0.28, 0.06, 0.28, GLOW, px, 0.70, pz);
+    pad.material.emissive.setHex(GLOW); pad.material.emissiveIntensity = 1.6; s.add(pad); thrusters.push(pad);
+  }
+  // 沿用 legs 介面：4 個空 group 佔位（不會動）
+  const horseLegs = [];
+  for (let i = 0; i < 4; i++) { const g = new THREE.Group(); s.add(g); horseLegs.push(g); }
+  const tail = new THREE.Group(); tail.position.set(0, 0.9, -1.5); s.add(tail);
+  s.userData.thrusters = thrusters;
+  s.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  return { horse: s, horseLegs, horseTail: tail, wings: null };
+}
 let mountWings = null;
+let mountHover = false;     // 目前坐騎是否為懸浮飛車（懸浮律動用）
 let mountScooter = false;   // 目前坐騎是否為滑板車（輪子旋轉用）
 
 // === 以選定武將組裝玩家（可重新組裝以切換武將）===
@@ -2480,12 +2697,14 @@ function assemblePlayer(genKey) {
   else if (cfg.mount === 'stone_tiger') h = buildStoneTiger();
   else if (cfg.mount === 'leopard') h = buildLeopard();
   else if (cfg.mount === 'capybara') h = buildCapybara();
+  else if (cfg.mount === 'hoverbike') h = buildHoverbike();
   else h = buildHorse(cfg.horse);
   horse = h.horse; horseLegs = h.horseLegs; horseTail = h.horseTail;
   mountWings = h.wings || null;
   mountScooter = (cfg.mount === 'scooter');
+  mountHover = (cfg.mount === 'hoverbike');
   // 滑板車較矮：把騎手降低，做出「站在板上」的感覺
-  rider.position.y = mountScooter ? 0.5 : 1.5;
+  rider.position.y = mountScooter ? 0.5 : (mountHover ? 1.05 : 1.5);
   player.add(horse);
   player.traverse(o => { if (o.isMesh) o.castShadow = true; });
 }
@@ -3026,6 +3245,21 @@ const horseRestY = [];  // 記錄每條腿的基準 y（髖位置）
 horseLegs.forEach(l => horseRestY.push(l.position.y));
 
 function updateHorseGait(delta, moving) {
+  // 懸浮飛車：上下懸浮律動 + 移動時車身前傾、噴射口增亮閃爍
+  if (mountHover) {
+    const tt = clock.elapsedTime;
+    horse.position.y = 0.55 + Math.sin(tt * 3.2) * 0.10 + (moving ? 0.08 : 0);
+    horse.rotation.x += ((moving ? -0.12 : 0) - horse.rotation.x) * 0.1;
+    horse.rotation.z = Math.sin(tt * 1.7) * 0.025;
+    const th = horse.userData.thrusters || [];
+    const base = moving ? 2.6 : 1.4;
+    for (const j of th) j.material.emissiveIntensity = base + Math.sin(tt * 22 + j.position.x * 7) * 0.6;
+    if (moving && Math.random() < 0.5) {
+      const back = getPlayerForward().multiplyScalar(-1.6);
+      spawnParticles(player.position.clone().add(back).setY(player.position.y + 0.9), 1, 0x5af0ff);
+    }
+    return;
+  }
   // 滑板車：輪子持續旋轉（移動時更快），車身微微前傾律動
   if (mountScooter) {
     const spin = (moving ? 14 : 0) * delta;
@@ -3085,7 +3319,45 @@ const playerState = {
   chargeTime: 0,                 // 持續移動累積的衝鋒時間（用於馬衝撞）
   trampleCd: 0,                  // 衝撞特效節流
   invuln: 0,
+  dodging: 0, dodgeCd: 0,        // 閃避翻滾：剩餘時間 / 冷卻
+  dodgeDir: new THREE.Vector3(),
 };
+const DODGE_TIME = 0.32, DODGE_CD = 0.85, DODGE_SPEED = 24;
+
+// 動態 FOV（無雙廣角 / 閃避衝刺 / 命中踢擊）
+let fovKick = 0;
+function kickFov(a) { fovKick = Math.max(fovKick, a); }
+
+function sfxDodge() {
+  playTone({ freq: 520, slideTo: 1400, type: 'sine',     dur: 0.10, vol: 0.12 });
+  playTone({ freq: 220, slideTo: 80,   type: 'triangle', dur: 0.12, vol: 0.08 });
+}
+function sfxPerfect() {
+  playTone({ freq: 880,  slideTo: 1760, type: 'sine',   dur: 0.18, vol: 0.16 });
+  playTone({ freq: 1320, slideTo: 2640, type: 'square', dur: 0.12, vol: 0.08 });
+}
+
+// 閃避翻滾：朝移動方向（無輸入則朝面向）瞬間衝刺；閃避中被攻擊 → 完美閃避
+function tryDodge() {
+  if (!pointerLocked || buildMode || playerState.inMusou) return;
+  if (playerState.dodging > 0 || playerState.dodgeCd > 0 || waveState.gameOver) return;
+  let mx = (keys.r ? 1 : 0) - (keys.l ? 1 : 0);
+  let mz = (keys.f ? 1 : 0) - (keys.b ? 1 : 0);
+  if (touchAxis.active && (touchAxis.x !== 0 || touchAxis.z !== 0)) { mx = touchAxis.x; mz = touchAxis.z; }
+  if (mx !== 0 || mz !== 0) {
+    const cf = new THREE.Vector3(-Math.sin(camOrbit.yaw), 0, -Math.cos(camOrbit.yaw));
+    const cr = new THREE.Vector3(Math.cos(camOrbit.yaw), 0, -Math.sin(camOrbit.yaw));
+    playerState.dodgeDir.set(0, 0, 0).addScaledVector(cf, mz).addScaledVector(cr, mx).normalize();
+  } else {
+    playerState.dodgeDir.copy(getPlayerForward());
+  }
+  playerState.dodging = DODGE_TIME;
+  playerState.dodgeCd = DODGE_CD;
+  playerAim = Math.atan2(playerState.dodgeDir.x, playerState.dodgeDir.z);
+  player.rotation.y = playerAim;
+  sfxDodge(); kickFov(6);
+  spawnParticles(player.position.clone().setY(player.position.y + 0.6), 10, 0xffffff);
+}
 
 /* =========================================================
    4. 第三人稱相機（環繞 + 跟隨）
@@ -3232,6 +3504,8 @@ addEventListener('keydown', (e) => {
     case 'Digit2': if (buildMode) selectBlock(1); break;
     case 'Digit3': if (buildMode) selectBlock(2); break;
     case 'KeyQ': if (!buildMode) tryMusou(); break;    // 無雙僅戰鬥模式
+    case 'ShiftLeft': case 'ShiftRight': case 'KeyE':
+      if (!(e.shiftKey && e.code === 'KeyF')) tryDodge(); break;   // 閃避翻滾
   }
 });
 addEventListener('keyup', (e) => {
@@ -3350,6 +3624,7 @@ if (isTouch) {
   bind('btnAttack', () => { if (!buildMode) tryAttack(); });
   bind('btnMusou',  () => { if (!buildMode) tryMusou(); });
   bind('btnJump',   () => { if (playerState.canJump) { playerState.yVel = 9; playerState.canJump = false; } });
+  bind('btnDodge',  () => tryDodge());
   bind('btnBreak',  () => { if (buildMode) doBreak(); });
   bind('btnPlace',  () => { if (buildMode) doPlace(); });
   bind('btnMode',   () => {
@@ -5422,6 +5697,78 @@ function laserBarrage(count) {
   }
 }
 
+/* =========================================================
+   澤洛無雙：軌道星落 — 從天而降的垂直能量砲擊
+   ========================================================= */
+const orbitals = [];
+const ORBITAL_MAX = 14;
+for (let i = 0; i < ORBITAL_MAX; i++) {
+  const g = new THREE.Group();
+  const beam = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.9, 0.9, 70, 10, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0x5af0ff, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+  );
+  beam.position.y = 35; g.add(beam);
+  const core = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.3, 0.3, 70, 8, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false })
+  );
+  core.position.y = 35; g.add(core);
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(0.6, 2.6, 24),
+    new THREE.MeshBasicMaterial({ color: 0xc08a3a, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide })
+  );
+  ring.rotation.x = -Math.PI / 2; ring.position.y = 0.12; g.add(ring);
+  g.visible = false; scene.add(g);
+  orbitals.push({ mesh: g, beam, core, ring, active: false, life: 0, struck: false, dmg: 0 });
+}
+function sfxOrbital() {
+  playTone({ freq: 2200, slideTo: 300, type: 'sawtooth', dur: 0.22, vol: 0.14 });
+  playTone({ freq: 90,   slideTo: 40,  type: 'sine',     dur: 0.30, vol: 0.22 });
+}
+function spawnOrbital(wx, wz, dmg) {
+  const o = orbitals.find(x => !x.active);
+  if (!o) return;
+  o.active = true; o.life = 0; o.struck = false; o.dmg = dmg;
+  o.mesh.position.set(wx, terrainSurfaceY(wx, wz), wz);
+  o.mesh.scale.set(0.15, 1, 0.15);
+  o.beam.material.opacity = 0.9; o.core.material.opacity = 0.95; o.ring.material.opacity = 0.8;
+  o.mesh.visible = true;
+}
+function updateOrbital(delta) {
+  for (const o of orbitals) {
+    if (!o.active) continue;
+    o.life += delta;
+    // 0~0.12s 細光束鎖定 → 0.12s 瞬間擴張砲擊 → 之後收細淡出
+    let w;
+    if (o.life < 0.12) w = 0.15 + o.life * 2;
+    else if (o.life < 0.30) w = 1.0 + Math.sin((o.life - 0.12) / 0.18 * Math.PI) * 0.4;
+    else w = Math.max(0.02, 1.0 - (o.life - 0.30) / 0.35);
+    o.mesh.scale.set(w, 1, w);
+    const fade = o.life < 0.30 ? 1 : Math.max(0, 1 - (o.life - 0.30) / 0.35);
+    o.beam.material.opacity = 0.9 * fade; o.core.material.opacity = 0.95 * fade; o.ring.material.opacity = 0.8 * fade;
+    o.ring.rotation.z += delta * 6;
+    if (!o.struck && o.life >= 0.12) {
+      o.struck = true;
+      sfxOrbital(); addShake(0.3); kickFov(2);
+      spawnParticles(o.mesh.position.clone().setY(o.mesh.position.y + 0.6), 14, 0x5af0ff);
+      spawnParticles(o.mesh.position.clone().setY(o.mesh.position.y + 0.4), 6, 0xc08a3a);
+      for (const s of soldiers) {
+        if (s.dead || !s.active) continue;
+        const dd = Math.hypot(s.mesh.position.x - o.mesh.position.x, s.mesh.position.z - o.mesh.position.z);
+        if (dd < 2.4) {
+          const dir = new THREE.Vector3(s.mesh.position.x - o.mesh.position.x, 0.6, s.mesh.position.z - o.mesh.position.z).normalize();
+          hitSoldier(s, o.dmg, dir, 16);
+        }
+      }
+      if (boss.active && !boss.dead && Math.hypot(boss.pos.x - o.mesh.position.x, boss.pos.z - o.mesh.position.z) < 3.2) {
+        damageBoss(o.dmg, new THREE.Vector3(0, 1, 0));
+      }
+    }
+    if (o.life > 0.65) { o.active = false; o.mesh.visible = false; }
+  }
+}
+
 function updateLasers(delta) {
   for (const l of lasers) {
     if (!l.active) continue;
@@ -5578,6 +5925,22 @@ function tryAttack() {
     return;
   }
 
+  if (currentGeneral === 'zero') {
+    // === 雙管光子步槍：兩發光子彈連射（左右槍管）===
+    const fwd = getPlayerForward();
+    const muzzle = player.position.clone().addScaledVector(fwd, 1.4).setY(player.position.y + 2.0);
+    const side = new THREE.Vector3(fwd.z, 0, -fwd.x);
+    for (const sx of [-0.12, 0.12]) {
+      const dir = fwd.clone(); dir.x += (Math.random() - 0.5) * 0.06; dir.z += (Math.random() - 0.5) * 0.06;
+      fireLaser(muzzle.clone().addScaledVector(side, sx), dir, Math.round(3 * playerState.atkMul));
+    }
+    addShake(0.06); kickFov(1.5);
+    playerState.attacking = true; playerState.attackTimer = 0;
+    weaponArm.rotation.x = -0.9;
+    setTimeout(() => { if (weaponArm) weaponArm.rotation.x = 0; }, 120);
+    return;
+  }
+
   if (currentGeneral === 'liuding') {
     // === 鍋燒意麵弓・遠距射擊（射出一碗鍋燒意麵）===
     sfxBow();
@@ -5639,6 +6002,7 @@ function dealDamageArc(range, arc, dmg, knockForce) {
 function hitSoldier(s, dmg, dir, knockForce) {
   s.hp -= dmg;
   updateSoldierHpBar(s);
+  s.hitPunch = 1;   // 受擊縮放彈跳（在 updateSoldiers 衰減）
   // 擊飛效果
   s.knockback.copy(dir).multiplyScalar(knockForce);
   s.yVel = 5;
@@ -6011,6 +6375,29 @@ function updateMusou(delta) {
       addShake(0.15);
     }
     if (Math.floor(t * 24) % 2 === 0) musouAoE(3.5, 2, 8, false);   // 周身壓制
+  } else if (mode === 'orbital') {
+    // 澤洛・軌道星落：呼叫軌道砲，連續在敵人頭頂落下垂直能量砲擊
+    weaponArm.rotation.x = -2.2;   // 舉槍指天（標定目標）
+    playerState.swirlTimer2 = (playerState.swirlTimer2 || 0) - delta;
+    if (playerState.swirlTimer2 <= 0) {
+      playerState.swirlTimer2 = 0.16;
+      const targets = [];
+      for (const s of soldiers) if (s.active && !s.dead) targets.push(s.mesh.position);
+      if (boss.active && !boss.dead) targets.push(boss.pos);
+      let tx, tz;
+      if (targets.length > 0 && Math.random() < 0.75) {
+        const tp = targets[Math.floor(Math.random() * targets.length)];
+        tx = tp.x + (Math.random() - 0.5) * 1.6; tz = tp.z + (Math.random() - 0.5) * 1.6;
+      } else {
+        const ang = Math.random() * Math.PI * 2, r = 3 + Math.random() * 10;
+        tx = player.position.x + Math.cos(ang) * r; tz = player.position.z + Math.sin(ang) * r;
+      }
+      tx = Math.max(-(HALF - 1), Math.min(HALF - 1, tx));
+      tz = Math.max(-(HALF - 1), Math.min(HALF - 1, tz));
+      spawnOrbital(tx, tz, Math.round(7 * playerState.atkMul));
+    }
+    if (Math.floor(t * 20) % 2 === 0) spawnParticles(player.position.clone().setY(player.position.y + 2.6), 2, mc.c1);
+    if (Math.floor(t * 24) % 3 === 0) musouAoE(3, 2, 6, false);
   }
 
   // ===== 結束收尾 =====
@@ -6083,14 +6470,17 @@ function animate() {
   updateNoodles(delta);
   updateQigong(delta);
   updateLasers(delta);
+  updateOrbital(delta);
   updateTaipei101(delta);   // 101 柱陣持續動畫（即使無雙結束，已生出的柱子繼續）
   updateBanners(clock.elapsedTime);   // 旗幟隨風飄動
   updateCampfires(clock.elapsedTime); // 篝火閃爍
   updateBuns(delta);                  // 補血包子浮動 + 拾取
   updateGate(delta);                  // 關隘城門開啟 + 過關偵測
+  updateClouds(delta);                // 方塊雲飄動
   updateCamera();
+  skyDome.position.copy(camera.position);   // 天幕永遠包住相機
   updateBuildPreview();   // 建造模式：準心變色 + 目標輪廓 + 放置預覽
-  renderer.render(scene, camera);
+  composer.render();      // 後處理管線（Bloom + ACES）
 }
 
 function updatePlayer(delta) {
@@ -6103,6 +6493,26 @@ function updatePlayer(delta) {
     moveZ = touchAxis.z;
   }
   let isMoving = false;
+
+  // --- 閃避翻滾：高速衝刺 + 前傾，期間接管移動 ---
+  if (playerState.dodgeCd > 0) playerState.dodgeCd -= delta;
+  if (playerState.dodging > 0) {
+    playerState.dodging -= delta;
+    const k = Math.max(0, playerState.dodging / DODGE_TIME);
+    const step = DODGE_SPEED * delta * (0.55 + 0.45 * k);   // 前快後慢
+    const nx = player.position.x + playerState.dodgeDir.x * step;
+    const nz = player.position.z + playerState.dodgeDir.z * step;
+    const gx = Math.round(nx - 0.5), gz = Math.round(nz - 0.5);
+    if (columnTopY(gx, gz) - player.position.y <= 1.0) {
+      const lim = HALF - 0.5;
+      player.position.x = Math.max(-lim, Math.min(lim, nx));
+      player.position.z = Math.max(-lim, Math.min(lim, nz));
+    }
+    player.rotation.x = -0.45 * Math.sin(k * Math.PI);       // 翻滾前傾
+    if (Math.random() < 0.6) spawnParticles(player.position.clone().setY(player.position.y + 0.4), 2, 0xeef4ff);
+    if (playerState.dodging <= 0) player.rotation.x = 0;
+    moveX = 0; moveZ = 0; isMoving = true;
+  }
 
   if (moveX !== 0 || moveZ !== 0) {
     isMoving = true;
@@ -6218,6 +6628,13 @@ function updateSoldiers(delta) {
   for (const s of soldiers) {
     if (!s.active) continue;           // 池中未啟用的小兵跳過
 
+    if (s.hitPunch > 0) {
+      s.hitPunch = Math.max(0, s.hitPunch - delta * 5.5);
+      const sc = 1 + Math.sin(s.hitPunch * Math.PI) * 0.22;   // 快速鼓起再彈回
+      s.mesh.scale.set(sc, 2 - sc, sc);                        // 壓扁拉伸（squash & stretch）
+      if (s.hitPunch === 0 || s.dead) s.mesh.scale.setScalar(1);
+    }
+
     if (s.dead) {
       // 死亡動畫：倒下並下沉，之後回收進池
       s.deathTimer += delta;
@@ -6299,6 +6716,20 @@ function updateSoldiers(delta) {
 
 function damagePlayer(dmg) {
   if (waveState.gameOver) return;
+  // ⚡ 完美閃避：翻滾中被攻擊命中 → 傷害無效化、時間凍結、無雙槽大補
+  if (playerState.dodging > 0) {
+    playerState.dodging = Math.min(playerState.dodging, 0.1);   // 瞬間結束翻滾並擺好姿勢
+    playerState.invuln = 0.5;
+    hitStop(0.38); kickFov(10); addShake(0.25);
+    sfxPerfect();
+    const fe = document.getElementById('flash');
+    if (fe) { fe.style.opacity = '0.75'; setTimeout(() => fe.style.opacity = '0', 120); }
+    spawnFloater(player.position.clone().setY(player.position.y + 3.2), t('perfect_dodge'), '#9fe8ff', 34);
+    spawnParticles(player.position.clone().setY(player.position.y + 1.2), 22, 0x9fe8ff);
+    spawnShockwave();
+    if (!playerState.inMusou) playerState.musou = Math.min(playerState.musouMax, playerState.musou + 15);
+    return;
+  }
   playerState.hp -= dmg;
   playerState.invuln = 0.6;
   hurtEl.style.opacity = '1';
@@ -6343,6 +6774,7 @@ const hpBarEl = document.getElementById('hpBar');
 function updatePlayerHpUI() {
   const pct = Math.max(0, (playerState.hp / playerState.maxHp) * 100);
   hpBarEl.style.width = pct + '%';
+  document.body.classList.toggle('low-hp', pct > 0 && pct < 25 && !waveState.gameOver);   // 低血量紅色脈動
 }
 updatePlayerHpUI();  // 初始化血條為滿
 
@@ -6377,6 +6809,14 @@ function updateCamera() {
     shakeAmount *= 0.85; // 衰減
   } else shakeAmount = 0;
   camera.lookAt(tx, ty, tz);
+  // 🎥 動態 FOV：無雙廣角、閃避衝刺感、衝鋒微廣角、命中踢擊
+  let fovTarget = 70;
+  if (playerState.inMusou) fovTarget = 82;
+  else if (playerState.dodging > 0) fovTarget = 77;
+  else if (playerState.chargeTime > 0.5) fovTarget = 73;
+  fovTarget += fovKick; fovKick *= 0.82; if (fovKick < 0.05) fovKick = 0;
+  camera.fov += (fovTarget - camera.fov) * 0.14;
+  camera.updateProjectionMatrix();
 }
 
 animate();
@@ -6385,6 +6825,7 @@ addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
 });
 </script>
 </body>
