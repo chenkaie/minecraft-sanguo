@@ -1,11 +1,11 @@
-# 三國方塊無雙 v1.5
+# 三國方塊無雙 v2.1
 ### Three Kingdoms Voxel Warriors — Minecraft-style Voxel Musou
 
 > 一個完全自包含的單頁 HTML 遊戲 — 無需安裝、無需伺服器、下載即玩。
 > A fully self-contained single-file HTML game — no install, no server, just open and play.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Version](https://img.shields.io/badge/version-1.5-blue)
+![Version](https://img.shields.io/badge/version-2.1-blue)
 ![Built with](https://img.shields.io/badge/built%20with-Three.js%20r160-green)
 ![i18n](https://img.shields.io/badge/i18n-中文%20%2F%20English-orange)
 
@@ -37,7 +37,7 @@
 
 ---
 
-## 🧑‍🤝‍🧑 十一位可選武將
+## 🧑‍🤝‍🧑 十二位可選武將
 
 每位武將血量獨立，陣亡自動換將，全員陣亡才 Game Over。每過一關招降一位新武將。
 
@@ -54,10 +54,18 @@
 | 丁丁噹噹 | 暗夜豹影 | 寶劍 | 🐆 花豹 | 匕首雨 |
 | 6767六丁丁 | 喬巴神射手 | 鍋燒意麵弓 | 🐲 光煞（白龍） | 鍋燒氣功彈 |
 | 676767樂樂 | 碧藍雷光騎士 | 超長劍 | 🦫 巨大水豚君 | 碧藍雷光萬射 |
+| 澤洛 | 星漠賞金獵人 | 雙管光子步槍 | 🛸 懸浮飛車 | 軌道星落 |
 
 ---
 
 ## ✨ 主要特色
+
+### 🎬 v2 引擎升級
+- **Bloom 光暈後處理** — 無雙、雷射、gamma 射線、機械哥吉拉紅眼、軌道砲擊全部真正發光
+- **ACES Filmic 電影級色調映射** + sRGB 色彩管理
+- **HemisphereLight 天地雙色環境光** + 漸層天幕 + 飄動方塊雲
+- **閃避翻滾**（Shift / E / 觸控鈕）與 **完美閃避**（命中瞬間閃避 → 時間凍結、無雙槽 +15）
+- **動態 FOV**、敵人受擊 squash & stretch 回饋、低血量紅色脈動
 
 - **🌤️ 六關獨特場景** — 草原平野／中原大地／江南翠嶺／北方荒原／關西高原／蒼茫邊塞，各有不同地形起伏與地面配色（全白天晴空）
 - **🚪 城門傳送門系統** — 斬殺 BOSS 後城門開啟發光傳送門，走進去過關
@@ -94,6 +102,7 @@
 | 無雙大絕 | Q / 右鍵 | 無雙鈕 |
 | 跳躍 | Space | 跳鈕 |
 | 切換武將 | T | 換將鈕 |
+| 閃避翻滾 | Shift / E | 閃避鈕 |
 | 戰鬥 ⇄ 建造 | B | 模式鈕 |
 | 全螢幕 | Shift + F | — |
 | 暫停 | ESC → 點畫面繼續 | — |
@@ -105,10 +114,10 @@
 | 項目 | 說明 |
 |------|------|
 | 引擎 | [Three.js r160](https://threejs.org/) via CDN import map |
-| 渲染 | WebGL，InstancedMesh 地形（單 draw call）|
+| 渲染 | WebGL + EffectComposer 後處理（UnrealBloom / OutputPass），InstancedMesh 地形 |
 | 音效 | Web Audio API 即時合成，零外部檔案 |
 | 儲存 | localStorage（排行榜 + 語言設定）|
-| 封裝 | 單一 HTML 檔案，約 6,400 行，無依賴 |
+| 封裝 | 單一 HTML 檔案，約 6,800 行，無依賴 |
 | 國際化 | 內建 zh/en 字典 + `data-i18n` 動態切換 |
 
 ---
@@ -120,7 +129,7 @@ minecraft-sanguo/
 ├── index.html                  # GitHub Pages 首頁（= 最新遊戲本體）
 ├── sanguo_blockworld.html      # 遊戲本體（單檔，下載即玩）
 ├── sanguo_blockworld_參數表.md  # 可調參數完整說明
-├── v1.0/ ~ v1.4/               # 各歷史版本快照
+├── v1.0/ ~ v1.5/               # 各歷史版本快照
 └── README.md
 ```
 
